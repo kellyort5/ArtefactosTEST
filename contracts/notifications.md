@@ -6,6 +6,8 @@ servidor, autenticación bearer, almacenamiento, renovación efectiva, outbox,
 Firebase ni envío. Las pruebas de fixtures no acreditan entrega push ni recepción
 con la app cerrada. Esas funciones pertenecen a los cambios de sus consumidores.
 
+**Revisión de alcance del 2026-11-11:** por instrucción del usuario, los canales son únicamente webhook y push Android; las alertas internas de la app se conservan. El estado HTTP no incluye el canal retirado. El componente todavía no está implementado.
+
 ## HTTP y autorización
 
 La futura API estará en HTTPS de LAN con CA confiada y CORS de orígenes explícitos.
@@ -24,7 +26,7 @@ GET/DELETE reciben su representación JSON normalizada, no interpretan HTTP crud
 | --- | --- | --- |
 | `POST /v1/registrations` | `{device_id,installation_id,platform:"android",token}` | `{device_id,installation_id,status:"registered"}` |
 | `DELETE /v1/registrations/<installation_id>` | `{device_id,installation_id}` normalizado por el adaptador desde ruta/contexto | `{device_id,installation_id,status:"removed"}` |
-| `GET /v1/status?device_id=...` | `{device_id}` desde query | `{device_id,channels:{webhook,telegram,push}}` |
+| `GET /v1/status?device_id=...` | `{device_id}` desde query | `{device_id,channels:{webhook,push}}` |
 
 DELETE opera dentro del nodo autorizado, sobre el par `(device_id,installation_id)`.
 Si se resuelve una instalación existente, el `device_id` suministrado al helper debe
@@ -77,7 +79,7 @@ el cliente usa el TTL documentado, no una supuesta fecha retornada.
 
 ## Estado de canales y entrega
 
-Cada canal obligatorio (`webhook`, `telegram`, `push`) tiene exactamente:
+Cada canal obligatorio (`webhook`, `push`) tiene exactamente:
 
 ```json
 {

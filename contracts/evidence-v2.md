@@ -59,6 +59,12 @@ Hallazgos e integración resueltos:
 
 ## Límites y siguiente paso
 
+### Revisión posterior del alcance: canales de notificaciones
+
+El 2026-11-11 el usuario retiró Telegram del módulo Cebo porque utilizará la app móvil. Se ajustaron el tipo, esquema y fixtures de estado para exigir únicamente `webhook` y `push`; las alertas internas, registro Android y recepción push con app cerrada se conservan. Se añadió una regresión que acepta ambos canales, rechaza su ausencia y rechaza el campo retirado como propiedad desconocida. `npm run check:contracts` compila y pasa los cuatro archivos de pruebas con esta revisión.
+
+Este ajuste posterior no reescribe los artefactos archivados ni los resultados originales: documenta la instrucción vigente y la corrección del contrato antes de implementar sus consumidores. Los límites, autenticación y privacidad se conservan; no se implementa ningún servidor o proveedor de notificaciones.
+
 Las pruebas son de contratos y lógica real de la biblioteca. No acreditan captura/detectores en ESP32, NAT/DoH, HTTP/Telnet, pairing/TLS negociados, persistencia física ni recepción push. El cliente nuevo y firmware v2 se integrarán en sus specs; la app actual conserva su API v1.
 
 Los objetos cerrados no autentican por sí mismos el origen ni eliminan un secreto que un productor inserte en un campo permitido. El receptor deriva autorización de una sesión confiable; el productor sanitiza y limita los datos conforme al codebook. El estado de notificaciones distingue aceptación por proveedor de lectura, que permanece desconocida.
