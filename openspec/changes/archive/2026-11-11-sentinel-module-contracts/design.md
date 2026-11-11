@@ -2,7 +2,7 @@
 
 ## Context
 
-Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../archive/2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [roadmap](../../../docs/roadmap.md). Los encargos futuros del equipo se publican por separado; no son una dependencia de lectura de esta entrega de contratos.
+Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../../docs/technical-decisions.md), [arquitectura](../../../../docs/architecture.md) y [roadmap](../../../../docs/roadmap.md). Los encargos futuros del equipo se publican por separado; no son una dependencia de lectura de esta entrega de contratos.
 
 Responsable único: **Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware**. Dependencias para integrar: base existente. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
 
@@ -91,7 +91,7 @@ Alternativa evaluada: MQTT Android permanente en segundo plano. Se descarta como
 
 ### Interfaces y propiedad
 
-Contrato único: este diseño y el [protocolo funcional implementado](../../../contracts/module-protocol.md). La API de hooks y recursos del firmware se implementará en el cambio independiente sentinel-firmware-module-api, respetando estos mensajes. No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
+Contrato único: este diseño y el [protocolo funcional implementado](../../../../contracts/module-protocol.md). La API de hooks y recursos del firmware se implementará en el cambio independiente sentinel-firmware-module-api, respetando estos mensajes. No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
 
 Archivos de implementación: `contracts/schemas/v2/`, `contracts/src/ (codec y exportaciones)`, `contracts/fixtures/v2/`, `contracts/test/`, `contracts/README.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
 

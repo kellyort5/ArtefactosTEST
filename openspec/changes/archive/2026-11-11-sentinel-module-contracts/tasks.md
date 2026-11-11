@@ -1,6 +1,6 @@
 # Tasks
 
-Responsable único de todas las casillas: **Persona 1**, con agentes de apoyo bajo integración central. Implementación y comprobaciones técnicas registradas en [contracts/evidence-v2.md](../../../contracts/evidence-v2.md). La tarea 2.2 conserva pendiente la revisión final del usuario; los resultados de pruebas y la revisión técnica de consumidor ya están documentados y no la sustituyen.
+Responsable único de todas las casillas: **Persona 1**, con agentes de apoyo bajo integración central. Implementación, comprobaciones técnicas y revisión de consumidor registradas en [contracts/evidence-v2.md](../../../../contracts/evidence-v2.md). El usuario aprobó expresamente el contrato y el cierre de 2.2 el 2026-11-11: «Apruebo el contrato; cerrar 2.2». También eligió sincronizar los seis requisitos y archivar. Las pruebas no sustituyen esa aprobación ni acreditan hardware.
 
 ## 1. Esquemas y compatibilidad
 
@@ -13,7 +13,7 @@ Responsable único de todas las casillas: **Persona 1**, con agentes de apoyo ba
 ## 2. Contrato listo para consumidores
 
 - [x] 2.1 Añadir fixtures compartidos benignos/sospechosos y ejemplos HTTP de registro sin secretos reales; verificar tamaño UTF-8 y nombres de campos.
-- [ ] 2.2 Ejecutar npm run check:contracts y npm run build -w contracts; registrar resultados y obtener revisión del usuario y un consumidor del contrato.
+- [x] 2.2 Ejecutar npm run check:contracts y npm run build -w contracts; registrar resultados y obtener revisión del usuario y un consumidor del contrato.
 
 ## Workflow follow-up
 

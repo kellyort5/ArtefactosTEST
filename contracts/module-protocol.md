@@ -1,6 +1,6 @@
 # Protocolo funcional Sentinel v2
 
-Cambio: [sentinel-module-contracts](../openspec/changes/sentinel-module-contracts/proposal.md). El [diseño](../openspec/changes/sentinel-module-contracts/design.md) es la referencia de alcance. Los nombres exactos y tipos se publican en [v2-types.ts](src/v2-types.ts) y los objetos cerrados en [schemas/v2](schemas/v2/). El contrato HTTP de notificaciones tiene [documentación propia](notifications.md).
+Cambio archivado: [sentinel-module-contracts](../openspec/changes/archive/2026-11-11-sentinel-module-contracts/proposal.md), con [diseño](../openspec/changes/archive/2026-11-11-sentinel-module-contracts/design.md) y [cierre](../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). La [spec principal](../openspec/specs/module-protocol/spec.md) conserva los seis requisitos aprobados. Los nombres exactos y tipos se publican en [v2-types.ts](src/v2-types.ts) y los objetos cerrados en [schemas/v2](schemas/v2/). El contrato HTTP de notificaciones tiene [documentación propia](notifications.md).
 
 ## Compatibilidad y negociación
 

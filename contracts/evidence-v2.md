@@ -2,7 +2,7 @@
 
 Fecha: **2026-11-11**, America/El_Salvador. Rama: **feat/sentinel-module-contracts**, creada desde `origin/develop` después de integrar la base. Base Git: `f696371`.
 
-Estado: implementación y comprobaciones técnicas terminadas; **revisión final del usuario pendiente en la tarea 2.2**. No se sustituye esa revisión por una prueba automática ni por una opinión de agente.
+Estado: implementación y comprobaciones técnicas terminadas; **contrato aprobado expresamente por el usuario y tarea 2.2 cerrada el 2026-11-11**. Su respuesta fue «Apruebo el contrato; cerrar 2.2». También eligió «Sincronizar los seis requisitos y archivar (recomendado)». La aprobación no se infiere de una prueba automática ni de una opinión de agente.
 
 ## Entrega
 
@@ -14,7 +14,7 @@ Estado: implementación y comprobaciones técnicas terminadas; **revisión final
 - Registro/baja/status de notificaciones y payload push con validación de contexto por nodo y event_id original. Son contratos ejecutables y ejemplos, no un servidor ni un envío real.
 - `payload.origin:real|simulated` obligatorio en eventos v2, **aprobado expresamente por el usuario** durante esta implementación; origen preservado durante replay y sin modificar eventos históricos v1.
 
-Referencia para consumidores: [protocolo y codebook](module-protocol.md), [notificaciones](notifications.md), [tipos v2](src/v2-types.ts) y [spec](../openspec/changes/sentinel-module-contracts/specs/module-protocol/spec.md). Cada operación tiene ejemplo y consumidor identificados en la tabla del protocolo.
+Referencia para consumidores: [protocolo y codebook](module-protocol.md), [notificaciones](notifications.md), [tipos v2](src/v2-types.ts), [spec principal](../openspec/specs/module-protocol/spec.md) y [cierre del cambio](../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Cada operación tiene ejemplo y consumidor identificados en la tabla del protocolo.
 
 ## Comprobaciones ejecutadas
 
@@ -63,4 +63,4 @@ Las pruebas son de contratos y lógica real de la biblioteca. No acreditan captu
 
 Los objetos cerrados no autentican por sí mismos el origen ni eliminan un secreto que un productor inserte en un campo permitido. El receptor deriva autorización de una sesión confiable; el productor sanitiza y limita los datos conforme al codebook. El estado de notificaciones distingue aceptación por proveedor de lectura, que permanece desconocida.
 
-La revisión final del usuario debe cubrir el [protocolo](module-protocol.md), la [API de notificaciones](notifications.md) y esta evidencia. Hasta recibirla, la casilla **2.2** permanece abierta. Los cambios de otros encargos siguen preservados y separados; commit/push/PR y archivo requieren su autorización correspondiente conforme a AGENTS.md.
+La revisión final del usuario sobre la entrega del [protocolo](module-protocol.md), la [API de notificaciones](notifications.md) y esta evidencia quedó aprobada mediante su respuesta explícita; la casilla **2.2** está completa. El usuario autorizó publicar el trabajo en ramas y PR hacia develop antes del archivo. Contratos se publicó primero en [PR #2](https://github.com/Jefry-P/ArtefactosProyecto/pull/2) y la planificación del equipo en [PR #3](https://github.com/Jefry-P/ArtefactosProyecto/pull/3). Los ajustes de cierre se publican en esas mismas ramas. No se autorizaron ni ejecutaron merges; la aprobación del contrato no acredita las integraciones físicas pendientes.
