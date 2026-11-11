@@ -7,8 +7,8 @@ MQTT y una app cerrada no envían por sí mismos las alertas externas obligatori
 ## What Changes
 
 - Responsable único: **Persona 3 — firmware Cebo y servidor de notificaciones**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
-- Entregar alertas: componente, webhook y telegram conforme a R-04 y R-10.
-- Cierre observable: Webhook y Telegram reales, con dedup/reintentos y estado autenticado; infraestructura mínima documentada.
+- Entregar el componente de alertas y webhook conforme a R-04 y al alcance actualizado de R-10.
+- Cierre observable: Webhook real, con dedup/reintentos y estado autenticado; infraestructura mínima documentada.
 - Dependencias de integración: `sentinel-module-contracts`, `sentinel-broker-lan`, `sentinel-cebo-eventos-historial`.
 - Esta propuesta solo planifica. No implementa funcionalidades ajenas a la capacidad ni modifica la evidencia de la base.
 
@@ -16,7 +16,7 @@ MQTT y una app cerrada no envían por sí mismos las alertas externas obligatori
 
 ### New Capabilities
 
-- `notification-dispatch`: Alertas: componente, webhook y Telegram para completar la entrega integrada de Sentinel Node.
+- `notification-dispatch`: Componente de alertas y webhook para completar la entrega integrada de Sentinel Node; el envío push conserva su cambio independiente.
 
 ### Modified Capabilities
 

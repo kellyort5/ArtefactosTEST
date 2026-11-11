@@ -4,7 +4,7 @@
 
 **Actualización confirmada el 2026-11-10:** desarrollar rápidamente una versión funcional sobre ESP32-S3-DevKitC-1 N16R8 con **Escudo Pasivo, Auditor/Sanitizador y Cebo completos**, aplicación Android e infraestructura real de comunicación y notificación. Los tres módulos se desarrollan en paralelo con un responsable por cambio.
 
-La implementación incremental determina el orden, no una reducción del alcance. Evil Twin, indicios Karma pasivos, Telnet, almacenamiento persistente, sincronización, webhooks, Telegram y push con la app cerrada no son ampliaciones posteriores al MVP.
+La implementación incremental determina el orden, no una reducción del alcance. Evil Twin, indicios Karma pasivos, Telnet, almacenamiento persistente, sincronización, webhooks y push con la app cerrada no son ampliaciones posteriores al MVP.
 
 **Sanitizador desde la primera ronda:** su responsable implementa auditoría, pasarela IPv4, filtrado DNS y DoH conforme a R-08 mientras avanzan Escudo, Cebo y app. La [asignación por cambio](encargos/README.md) concreta el orden y las dependencias.
 
@@ -90,7 +90,7 @@ La regla temporal anterior de simular antes de integrar hardware queda sustituid
 | 3.1 Servicios reales simulados | STA en LAN autorizada; panel HTTP ficticio y Telnet simulado puerto 23; conexiones, accesos e intentos de autenticación. | Acceder a ambos desde un cliente de prueba; no hay comandos ejecutables ni administración real. |
 | 3.2 Eventos y clasificación | IP, puerto, protocolo, fecha/hora/calidad, tipo, cantidad y frecuencia; patrones repetitivos y nivel de sospecha. Límites de sockets/tiempos/tamaños y exclusión de datos sensibles. | Interacciones aisladas/repetidas generan clasificación esperada sin guardar contraseñas, tokens ni cuerpos completos. |
 | 3.3 Persistencia y dashboard | Búfer circular persistente limitado, pendientes, MQTT, identificación/deduplicación, métricas, historial e incidentes en tiempo real; alertas visibles. | Caer/restablecer MQTT y reiniciar brevemente; registros persistidos se recuperan y sincronizan sin duplicación. Comprobar el límite con pocos registros. |
-| 3.4 Webhooks y Telegram | Componente separado de notificaciones, entrega webhook y Telegram, control de alertas repetitivas y secretos propios de integración fuera de código/logs. | Recibir una alerta real por cada integración y comprobar supresión/agrupación de repeticiones según política inicial. Ambos canales son obligatorios. |
+| 3.4 Webhooks | Componente separado de notificaciones, entrega webhook, control de alertas repetitivas y secretos propios de integración fuera de código/logs. | Recibir una alerta real en el webhook y comprobar supresión/agrupación de repeticiones según política inicial. El push obligatorio se integra en 3.5. |
 | 3.5 Push Android real | Infraestructura necesaria de registro/envío/recepción, integrada con el componente y Capacitor; recepción con la app cerrada. | En teléfono real, cerrar la app y disparar un incidente real del Cebo; comprobar recepción push. Una alerta solo en primer plano no satisface el requisito. |
 | 3.6 Conjunto Cebo | HTTP/Telnet, clasificación, registro, MQTT, historial y los tres canales externos funcionando juntos; estado OLED, control físico y reconexiones. | Recorrido funcional completo y estado de canales visible cuando no haya conectividad. |
 
@@ -98,7 +98,7 @@ La regla temporal anterior de simular antes de integrar hardware queda sustituid
 
 **Restricciones:** solo redes propias/autorizadas, sin exposición pública ni port forwarding HTTP/Telnet, sin secretos recibidos registrados ni ejecución de comandos. No confundir los servicios ficticios locales con mocks de implementación: HTTP/Telnet deben estar ejecutándose realmente en el ESP32.
 
-**Salida funcional:** todas las filas integradas y verificadas, incluidas webhooks, Telegram, push con app cerrada, persistencia y deduplicación. Las alertas externas pueden no entregarse inmediatamente sin Internet; su indisponibilidad no autoriza omitir las integraciones. H-06/H-07/H-08 se comprueban durante estos incrementos.
+**Salida funcional:** todas las filas integradas y verificadas, incluidos webhooks, push con app cerrada, persistencia y deduplicación. Las alertas externas pueden no entregarse inmediatamente sin Internet; su indisponibilidad no autoriza omitir las integraciones. H-06/H-07/H-08 se comprueban durante estos incrementos.
 
 ## Etapa 4 — Integración completa y cierre del MVP
 
@@ -111,7 +111,7 @@ Trabajo:
 - Gestión conjunta Wi-Fi/BLE, memoria y conexiones con límites; corregir bloqueos concretos sin optimización anticipada.
 - OLED y botón físico en los tres modos; disponibilidad, errores y reconexión visibles. Conservar la apertura de emparejamiento mediante pulsación larga de la base.
 - Escudo con catálogo/objetivo, todas sus detecciones, gráficas/incidentes, pendientes y sincronización BLE.
-- Cebo con HTTP/Telnet, clasificación, registro persistente e historial MQTT; webhook, Telegram y push con app cerrada.
+- Cebo con HTTP/Telnet, clasificación, registro persistente e historial MQTT; webhook y push con app cerrada.
 - Sanitizador con auditoría DNS/HTTPS/portal, cliente real usando AP/DHCP/NAT, reglas DNS y DoH validado, clientes/RSSI/tráfico y control BLE.
 - Instalación Android y comprobación breve en teléfono real del recorrido completo; recuperación después de una desconexión y un reinicio.
 - Documentar comportamiento funcional y limitaciones observadas, sin presentar garantías de rendimiento o autonomía sin mediciones.
@@ -168,7 +168,7 @@ Las hipótesis son pendientes de observación, no prerrequisitos de investigaci�
 | Intentos, cantidad/frecuencia, clasificación y patrones | 3.2 | Metadatos y niveles de sospecha sin datos sensibles; recursos limitados. |
 | Persistencia circular y sincronización MQTT | 1.5 y 3.3 | Evento persistido sobrevive al reinicio breve y recupera canal sin duplicarse. |
 | MQTT, tiempo real, métricas, historial y alertas en app | 3.3 | Datos reales visibles y recuperables según límites documentados. |
-| Webhooks, Telegram y control de repetición | 3.4 | Entrega real en ambos canales; política inicial contra saturación. |
+| Webhooks y control de repetición | 3.4 | Entrega real en webhook; política inicial contra saturación. |
 | Push Android con app cerrada | 3.5 | Infraestructura real y recepción comprobada en teléfono. |
 | Android BLE/MQTT, configuración, gráficos, incidentes, historial | 1–4 | Flujos completos por canal correspondiente, autenticados y confirmados. |
 | OLED, botón, errores, transiciones y recuperación | 1–4 y línea paralela | Operación física y remota coherente en los tres modos. |
@@ -180,7 +180,7 @@ La planificación se concreta en [23 cambios con un autor por cambio](encargos/R
 
 - Base: arranque/configuración S3; supervisor y periféricos; contratos y BLE/Android; MQTT seguro; registro persistente.
 - Escudo: catálogo/selección; captura/parser; detectores; dashboard BLE; recuperación/coexistencia.
-- Cebo: HTTP/Telnet; clasificación; MQTT/historial; webhooks/Telegram; infraestructura push; recuperación integrada.
+- Cebo: HTTP/Telnet; clasificación; MQTT/historial; webhooks; infraestructura push; recuperación integrada.
 - Integración: transiciones, recursos y recorrido funcional final.
 - Sanitizador desde la primera ronda, conforme a la decisión actualizada y sus dependencias de contratos y supervisor.
 

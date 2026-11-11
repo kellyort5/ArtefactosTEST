@@ -6,14 +6,14 @@ MQTT y una app cerrada no envían por sí mismos las alertas externas obligatori
 
 ## ADDED Requirements
 
-### Requirement: Entrega de dos canales
+### Requirement: Entrega webhook
 
-El componente SHALL enviar alertas reales a un webhook y Telegram según configuración autorizada sin exponer secretos.
+El componente SHALL enviar alertas reales a un webhook según configuración autorizada sin exponer secretos.
 
-#### Scenario: Entrega de dos canales verificable
+#### Scenario: Entrega webhook verificable
 
 - **WHEN** un incidente Cebo válido llega por MQTT
-- **THEN** ambos destinos configurados reciben una alerta correlacionada al evento
+- **THEN** el webhook configurado recibe una alerta correlacionada al evento
 
 ### Requirement: Repetición y recuperación acotadas
 
@@ -26,9 +26,9 @@ El componente SHALL deduplicar IDs, controlar alertas repetitivas y mantener rei
 
 ### Requirement: Estado verificable
 
-El componente SHALL informar estado y fallos de canales mediante acceso autenticado sin divulgar tokens ni contenidos sensibles.
+El componente SHALL informar estado y fallos únicamente de los canales webhook y push mediante acceso autenticado sin divulgar tokens ni contenidos sensibles. Un canal aún no configurado SHALL indicarlo sin afirmar entrega.
 
 #### Scenario: Estado verificable verificable
 
-- **WHEN** la app autorizada consulta estado tras un fallo de Telegram
-- **THEN** recibe estado sanitizado y contadores, sin token ni chat privado
+- **WHEN** la app autorizada consulta estado tras un fallo del webhook
+- **THEN** recibe estado sanitizado y contadores, sin token ni destino privado
