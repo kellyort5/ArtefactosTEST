@@ -12,12 +12,14 @@ Leer primero la [guía común del equipo](guia-equipo.md): cómo encontrar requi
 | --- | --- |
 | Persona 1 — Jefry | [Coordinación, contratos, API, Escudo e integración](guia-persona-1.md). Incluye cómo aplicar cada cambio con OpenSpec y hacer seguimiento de las entregas del equipo. |
 | Persona 2 | [Auditor/Sanitizador completo](guia-persona-2.md): auditoría → pasarela/NAT → DNS → DoH, contratos, pruebas y coordinación con núcleo/app. |
-| Persona 3 | [Cebo y servidor de alertas](guia-persona-3.md): HTTP → Telnet → eventos/persistencia → webhook/Telegram → push servidor. |
+| Persona 3 | [Cebo y servidor de alertas](guia-persona-3.md): HTTP → Telnet → eventos/persistencia → webhook → push servidor. |
 | Persona 4 | [App, broker LAN y laboratorio](guia-persona-4.md): base común → infraestructura y pantallas → push Android y evidencia conjunta. |
 
 Las guías explican el reparto aprobado; las fichas y sus specs conservan el detalle de tareas y aceptación. Un cambio sigue teniendo un solo autor. La existencia de una guía no autoriza Git ni convierte una propuesta en comportamiento implementado.
 
 ## Reparto confirmado y responsabilidad
+
+**Ajuste confirmado el 2026-11-11:** se elimina Telegram del alcance de Cebo y de P3. Se mantienen alertas en la app, webhook y push móvil; el encargo se llama ahora `sentinel-alertas-webhook`. El reparto conserva los mismos responsables y cinco encargos de P3.
 
 El usuario coordina OpenSpec y desarrolla Escudo. El Sanitizador comienza desde la primera ronda, por instrucción del 2026-11-10; los tres módulos conservan todo su alcance funcional. Solo un modo usa la radio a la vez en cada ESP32.
 
@@ -26,7 +28,7 @@ El usuario coordina OpenSpec y desarrolla Escudo. El Sanitizador comienza desde 
 | ----------------- | -------------------------------------------------------------------------------- | -------------- |
 | Persona 1 — Jefry | Contratos, API/supervisor, Escudo, integración del núcleo y seguimiento OpenSpec | 7              |
 | Persona 2         | Auditor/Sanitizador completo                                                     | 4              |
-| Persona 3         | Cebo completo y envío de webhook/Telegram/push                                   | 5              |
+| Persona 3         | Cebo completo y envío de webhook/push                                   | 5              |
 | Persona 4         | App de los tres modos, recepción push Android, broker LAN y laboratorio          | 7              |
 
 
@@ -40,7 +42,7 @@ Alcance, stack, transporte por modo, exclusión de modos y contrato v2 ya están
 
 1. [Protocolo v2 compatible con la base e historial v1](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/design.md): biblioteca implementada, probada y aprobada por el usuario; consultar [contrato para consumidores](../../contracts/module-protocol.md) y [evidencia de aprobación](../../contracts/evidence-v2.md). La base conserva v1 hasta que sus consumidores se adapten; no admite campos funcionales por simple adición. `origin` en eventos v2 es obligatorio y conserva el formato histórico v1.
 2. [API de módulos y único propietario de radio/journal](../../openspec/changes/sentinel-firmware-module-api/design.md): concreta las interfaces para que los tres autores integren sin editar el mismo núcleo.
-3. [Componente mínimo Node y API de notificaciones](../../openspec/changes/sentinel-alertas-webhook-telegram/design.md), [FCM servidor](../../openspec/changes/sentinel-alertas-push-servidor/design.md) y [plugin Android](../../openspec/changes/sentinel-app-push/design.md): proveedores/credenciales locales se aprovisionan al implementarlos. No se ha creado un proyecto Firebase ni acreditado entrega real.
+3. [Componente mínimo Node y API de notificaciones](../../openspec/changes/sentinel-alertas-webhook/design.md), [FCM servidor](../../openspec/changes/sentinel-alertas-push-servidor/design.md) y [plugin Android](../../openspec/changes/sentinel-app-push/design.md): proveedores/credenciales locales se aprovisionan al implementarlos. No se ha creado un proyecto Firebase ni acreditado entrega real.
 
 Los límites de conexiones, umbrales, cachés y tiempos son recomendaciones iniciales documentadas en cada diseño. Ajustarlos ante fallos no reduce funciones. H-01 a H-08 siguen siendo validaciones durante implementación; NAT, DoH, concurrencia y push no están demostrados por estos archivos. No hacen falta benchmarks previos.
 
@@ -50,7 +52,7 @@ Los límites de conexiones, umbrales, cachés y tiempos son recomendaciones inic
 2. Continuar con la API de módulos, consumiendo el contrato aprobado y archivado. Son dos encargos separados: el contrato está terminado y la API sigue pendiente. Los compañeros leen sus interfaces para preparar su carpeta; no se exige terminar todas las comprobaciones de base para empezar lógica/UI. Confirmar que la referencia compartida contiene ambos PR y las dependencias necesarias: publicar no equivale a integrar en develop.
 3. Primera ronda en paralelo: tú descubrimiento Escudo; P2 auditoría; P3 HTTP; P4 adaptación app y broker (dos cambios suyos, uno por rama/PR). Cada uno necesita contrato/API que consuma.
 4. Seguir la cadena interna de cada módulo y las pantallas independientes. La UI puede prepararse con fixtures revisados; sus dependencias de la tabla son de **integración/cierre**, no una prohibición de preparar vistas antes. Un fixture nunca cuenta como funcionalidad integrada.
-5. P3 entrega webhook/Telegram y servidor push; P4 integra recepción Android y prueba con app cerrada. P4 prepara laboratorio desde temprano y consolida evidencia durante todas las rondas.
+5. P3 entrega webhook y servidor push; P4 integra recepción Android y prueba con app cerrada. P4 prepara laboratorio desde temprano y consolida evidencia durante todas las rondas.
 6. Tú integras registros/recursos físicos del núcleo; cada fallo de un módulo o de la app vuelve a su autor. P4 consolida laboratorio. El cierre requiere Escudo, Sanitizador y Cebo completos en ESP32/app.
 
 ```mermaid
@@ -62,7 +64,7 @@ flowchart TD
   API --> E["P1 · Escudo por incrementos"]
   API --> S["P2 · Auditor / NAT / DNS / DoH"]
   API --> H["P3 · HTTP / Telnet / eventos"]
-  H --> N["P3 · Webhook / Telegram / push servidor"]
+  H --> N["P3 · Webhook / push servidor"]
   BROKER --> N
   APP --> UI["P4 · Pantallas y push Android"]
   E --> UI
@@ -93,12 +95,12 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | [sentinel-cebo-http](sentinel-cebo-http.md)                               | P3    | `firmware-module-api`                                                                                                         |
 | [sentinel-cebo-telnet](sentinel-cebo-telnet.md)                           | P3    | `cebo-http`                                                                                                                   |
 | [sentinel-cebo-eventos-historial](sentinel-cebo-eventos-historial.md)     | P3    | `cebo-telnet`                                                                                                                 |
-| [sentinel-alertas-webhook-telegram](sentinel-alertas-webhook-telegram.md) | P3    | `module-contracts`, `broker-lan`, `cebo-eventos-historial`                                                                    |
-| [sentinel-alertas-push-servidor](sentinel-alertas-push-servidor.md)       | P3    | `alertas-webhook-telegram`                                                                                                    |
+| [sentinel-alertas-webhook](sentinel-alertas-webhook.md) | P3    | `module-contracts`, `broker-lan`, `cebo-eventos-historial`                                                                    |
+| [sentinel-alertas-push-servidor](sentinel-alertas-push-servidor.md)       | P3    | `alertas-webhook`                                                                                                    |
 | [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md)                 | P4    | `module-contracts`                                                                                                            |
 | [sentinel-app-escudo](sentinel-app-escudo.md)                             | P4    | `app-protocolo-v2`, `escudo-descubrimiento`, `escudo-detectores`, `escudo-recuperacion`                                       |
 | [sentinel-app-sanitizador](sentinel-app-sanitizador.md)                   | P4    | `app-protocolo-v2`, `sanitizador-auditoria`, `sanitizador-doh`                                                                |
-| [sentinel-app-cebo](sentinel-app-cebo.md)                                 | P4    | `app-protocolo-v2`, `cebo-eventos-historial`, `alertas-webhook-telegram`                                                      |
+| [sentinel-app-cebo](sentinel-app-cebo.md)                                 | P4    | `app-protocolo-v2`, `cebo-eventos-historial`, `alertas-webhook`                                                      |
 | [sentinel-app-push](sentinel-app-push.md)                                 | P4    | `app-protocolo-v2`, `app-cebo`, `alertas-push-servidor`                                                                       |
 | [sentinel-broker-lan](sentinel-broker-lan.md)                             | P4    | `module-contracts`                                                                                                            |
 | [sentinel-laboratorio-pruebas](sentinel-laboratorio-pruebas.md)           | P4    | `module-contracts`                                                                                                            |
@@ -143,7 +145,7 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | IP/puertos/protocolo/tiempo, cantidad/frecuencia/sospecha             | P3 cebo-eventos-historial                       | P4 app-cebo                                                   |
 | Journal circular persistente offline, recuperación/IDs/dedup          | P3 cebo-eventos-historial + journal base        | P4 app-protocolo-v2 + app-cebo                                |
 | MQTT real, historial/incidentes/métricas/gráficos/alertas internas    | P3 cebo-eventos-historial                       | P4 app-cebo + broker-lan                                      |
-| Webhooks, Telegram, dedup y control de saturación                     | P3 alertas-webhook-telegram                     | P4 app-cebo consulta estado                                   |
+| Webhooks, dedup y control de saturación                     | P3 alertas-webhook                     | P4 app-cebo consulta estado                                   |
 | Push móvil incluso app cerrada                                        | P3 alertas-push-servidor                        | P4 app-push; teléfono real obligatorio                        |
 | TLS/WSS, BLE autenticado, contratos/ACK/replay                        | P1 contratos + API + base                       | P4 broker-lan + app-protocolo-v2                              |
 | OLED/botón, supervisor, cambios seguros y manejo de errores           | P1 firmware-module-api + integracion-tres-modos | P4 pantallas reflejan estado, laboratorio recoge evidencia    |

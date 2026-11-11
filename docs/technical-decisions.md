@@ -17,7 +17,7 @@ La referencia funcional es [brief.md](brief.md) y el PDF identificado en arquite
 | C-05 | Confirmada por decisiones aprobadas y usuario | PlatformIO + ESP-IDF + FreeRTOS con C/C++; Mosquitto/Docker; React/Vite/Tailwind/Zustand/Capacitor para Android; BLE en Escudo y MQTT en Cebo. | Elegir versiones compatibles y fijarlas al implementar. Las versiones y proveedores concretos aún no están seleccionados. |
 | C-06 | Confirmada por fuentes/instrucciones y usuario | Seguridad, persistencia offline y pruebas de lógica crítica; solo redes autorizadas; sin secretos en el repositorio ni credenciales de terceros almacenadas. | Comprobaciones funcionales breves y pruebas focalizadas; rendimiento, autonomía y estabilidad prolongada se evalúan después, salvo fallo que impida funcionar. |
 | C-07 | Confirmada por el usuario para esta tarea | Preparar documentación, propuestas OpenSpec y encargos con responsable único. | Cada integrante implementará los cambios que se le asignen después de revisar su contrato y diseño. |
-| C-08 | Confirmada por el usuario y R-10 | Webhooks, Telegram y push Android con recepción con la app cerrada, mediante componente de notificaciones separado e infraestructura necesaria. | Las tres integraciones son obligatorias en el MVP; proveedor push, alojamiento y detalles operativos se elegirán al abordar la integración, sin investigación extensa previa. |
+| C-08 | Confirmada por el usuario y R-10 | Webhooks y push Android con recepción con la app cerrada, mediante componente de notificaciones separado e infraestructura necesaria. | Las dos integraciones son obligatorias en el MVP; proveedor push, alojamiento y detalles operativos se elegirán al abordar la integración, sin investigación extensa previa. |
 
 OLED, botón y alimentación portátil se conservan como requisitos de referencia del PDF; no hay selección final de pines ni modificación del circuito aprobada. Las comprobaciones eléctricas necesarias se realizan al conectar los componentes.
 
@@ -180,9 +180,11 @@ Restricción: la existencia de ejemplos funcionales de NAT y DoH no constituye e
 
 ### R-10. Cebo de red local, tratamiento de datos sensibles y sistema de alertas
 
+**Cambio confirmado por el usuario el 2026-11-11:** Telegram queda fuera del alcance. Se conservan las alertas en la app, webhooks y push Android con recepción con la app cerrada. Esta instrucción sustituye únicamente el requisito anterior de ese canal; no lo aplaza al backlog.
+
 **Estado: Alcance funcional aprobado por la instrucción vigente del usuario; comprobación funcional durante la implementación.**
 
-**Aclaración incremental:** HTTP, Telnet, detección y clasificación, persistencia y sincronización, MQTT, historial, webhooks, Telegram y push con la app cerrada se integran en iteraciones pequeñas dentro del mismo MVP. Las validaciones pendientes de esta sección se atienden conforme se implementa cada función; las pruebas prolongadas se reservan para después del MVP. No se modifica su política de datos ni de seguridad.
+**Aclaración incremental:** HTTP, Telnet, detección y clasificación, persistencia y sincronización, MQTT, historial, webhooks y push con la app cerrada se integran en iteraciones pequeñas dentro del mismo MVP. Las validaciones pendientes de esta sección se atienden conforme se implementa cada función; las pruebas prolongadas se reservan para después del MVP. No se modifica su política de datos ni de seguridad.
 
 **Decisión:** El módulo Cebo de Sentinel Node implementará un honeypot ligero orientado a detectar intentos de acceso no solicitados dentro de una red local autorizada. Se desarrollará incrementalmente, comenzando con un panel HTTP ficticio, incorporando posteriormente un servicio Telnet simulado y un sistema de alertas locales y externas.
 
@@ -193,7 +195,7 @@ Restricción: la existencia de ejemplos funcionales de NAT y DoH no constituye e
 3. **Registro de eventos:** Se conservarán metadatos como dirección IP de origen, puerto de destino, protocolo, marca de tiempo, tipo de interacción y cantidad de intentos. Los campos recibidos se validarán y limitarán antes de registrarse.
 4. **Clasificación de actividad:** Los eventos se clasificarán según su comportamiento y frecuencia, diferenciando conexiones aisladas, intentos de acceso y actividad repetitiva sospechosa. Una conexión individual no constituirá por sí sola evidencia de compromiso.
 5. **Comunicación MQTT:** Los eventos y alertas se publicarán mediante MQTT para su visualización en el dashboard. Se establecerá un contrato compartido que permita agregar posteriormente otros canales de notificación.
-6. **Alertas externas:** Se mantendrán webhook, Telegram y notificaciones push como objetivos del proyecto. Su implementación se realizará mediante un componente de notificaciones separado, con gestión segura de credenciales y mecanismos para evitar alertas repetitivas.
+6. **Alertas externas:** Se mantendrán webhook y notificaciones push como objetivos del proyecto. Su implementación se realizará mediante un componente de notificaciones separado, con gestión segura de credenciales y mecanismos para evitar alertas repetitivas.
 7. **Funcionamiento offline:** Cuando no exista conexión con el broker MQTT, los eventos se conservarán temporalmente en un búfer de capacidad limitada y se sincronizarán al restablecer la comunicación.
 
 **Política de tratamiento de datos:**
@@ -211,7 +213,7 @@ Restricción: la existencia de ejemplos funcionales de NAT y DoH no constituye e
 - Se limitarán conexiones simultáneas, tiempos de espera y tamaño de las solicitudes.
 - No se habilitará exposición pública a internet ni redirección de puertos hacia el Cebo.
 - Al cambiar de modo operativo, se cerrarán los servidores y conexiones del Cebo.
-- Las credenciales utilizadas para MQTT, Telegram o webhooks no se incluirán en el código fuente ni se mostrarán en logs.
+- Las credenciales utilizadas para MQTT, push o webhooks no se incluirán en el código fuente ni se mostrarán en logs.
 
 **Justificación:**
 
@@ -235,7 +237,7 @@ La conservación de metadatos permite identificar patrones sin recopilar contras
 - Validar que no se almacenen accidentalmente datos sensibles.
 - Determinar umbrales de clasificación y mecanismos para reducir alertas repetitivas.
 - Probar almacenamiento temporal y sincronización después de desconexiones.
-- Evaluar el funcionamiento de MQTT, webhook, Telegram y notificaciones móviles en escenarios con y sin conectividad.
+- Evaluar el funcionamiento de MQTT, webhook y notificaciones móviles en escenarios con y sin conectividad.
 
 **Restricción arquitectónica:** El módulo Cebo no implementará vulnerabilidades reales ni proporcionará acceso al sistema. Su funcionamiento estará limitado a la simulación de servicios, detección de interacciones y generación de eventos de seguridad.
 
@@ -263,7 +265,7 @@ La conservación de metadatos permite identificar patrones sin recopilar contras
 - STA en red autorizada, panel HTTP ficticio y Telnet simulado en puerto 23; detectar conexiones, accesos e intentos de autenticación sin ejecutar comandos ni ofrecer administración real.
 - Registrar IP de origen, puerto, protocolo, fecha/hora, calidad temporal, tipo de interacción, cantidad y frecuencia; clasificar comportamiento y sospecha, incluida actividad repetitiva.
 - Historial de eventos/incidentes, métricas y alertas MQTT en tiempo real hacia el dashboard; alertas visibles en la app.
-- Integraciones funcionales con webhooks **y** Telegram **y** push Android con recepción con la app cerrada, incluyendo infraestructura necesaria y control de alertas repetitivas.
+- Integraciones funcionales con webhooks **y** push Android con recepción con la app cerrada, incluyendo infraestructura necesaria y control de alertas repetitivas.
 - Almacenamiento local persistente, búfer circular limitado, conservación de pendientes, recuperación y sincronización MQTT con identificadores y deduplicación.
 - Límites de conexiones, tiempos y tamaños; sin exposición de HTTP/Telnet a Internet ni redirección pública de puertos. No almacenar contraseñas, tokens, cookies, credenciales reales ni cuerpos completos de solicitudes.
 
@@ -293,7 +295,7 @@ No exigir campañas experimentales, benchmarks, desgaste prolongado, carga soste
 
 #### Criterio de finalización
 
-La entrega termina cuando **todas** las funciones obligatorias de los tres módulos funcionan en el ESP32 y la app Android, con sus transportes e infraestructura reales. Incluye comprobación breve de webhook, Telegram, recepción push con la app cerrada, pasarela IPv4 y filtrado/DoH. Cada resultado se acredita en el equipo pertinente.
+La entrega termina cuando **todas** las funciones obligatorias de los tres módulos funcionan en el ESP32 y la app Android, con sus transportes e infraestructura reales. Incluye comprobación breve de webhook, recepción push con la app cerrada, pasarela IPv4 y filtrado/DoH. Cada resultado se acredita en el equipo pertinente.
 
 Comprobar también persistencia ante reinicio breve, desconexión/reconexión, recuperación/deduplicación y exclusión de modos. Mocks, simulación, capturas de interfaz o una única categoría de alerta no acreditan un módulo completo.
 
@@ -333,7 +335,7 @@ La dirección de desarrollo y el alcance están confirmados; los resultados de h
 | H-05 | Implementar DNS local, filtrado y DoH en los incrementos del Sanitizador. | Comprobar resolución, bloqueo, CA/hostname/fecha y fallo de DoH con error DNS visible, conforme a R-08. | Estabilidad prolongada, rendimiento y afinado posteriores a la integración funcional. |
 | H-06 | Implementar todas las detecciones de Escudo y Cebo con heurísticas iniciales razonables y refinarlas al observar problemas. | En etapas 2 y 3: ejemplos breves benignos/sospechosos, Beacon/Deauth/Disassociation, ráfagas, Evil Twin, indicios Karma pasivos y actividad repetitiva HTTP/Telnet. Pruebas focalizadas para parser, clasificación y límites. | Evaluación estadística y ajuste fino después; no eliminar detectores por falta de benchmarks ni convertir SSID duplicado en veredicto malicioso. |
 | H-07 | Persistencia local sencilla y acotada, búfer circular y sincronización con identificación/deduplicación, conforme a R-06 y R-10. | Reutilizar journal NVS de 64 eventos de la base: producir un evento, perder canal, reiniciar brevemente y recuperar pendientes sin duplicar historial; comprobar sobrescritura/gap con pocos registros de prueba. | Desgaste y resistencia prolongada después. Los nuevos módulos no crean otro almacén ni requieren microSD; capacidad finita y pérdidas visibles. |
-| H-08 | Android con Capacitor, BLE, MQTT, dashboard, historial y notificaciones; webhooks, Telegram y push son parte del MVP. | Teléfono real en etapas 1–4: permisos y flujo completo; comprobar cada integración externa y recepción push con la app cerrada. Configurar infraestructura mínima real, no mocks. | Compatibilidad extensa y campañas de segundo plano/estabilidad después. La comprobación mínima con app cerrada sí es obligatoria antes de cerrar el MVP. |
+| H-08 | Android con Capacitor, BLE, MQTT, dashboard, historial y notificaciones; webhooks y push son parte del MVP. | Teléfono real en etapas 1–4: permisos y flujo completo; comprobar cada integración externa y recepción push con la app cerrada. Configurar infraestructura mínima real, no mocks. | Compatibilidad extensa y campañas de segundo plano/estabilidad después. La comprobación mínima con app cerrada sí es obligatoria antes de cerrar el MVP. |
 
 No se han fijado garantías de Mbps o autonomía. La base tiene límites de colas/journal y los nuevos diseños proponen límites adicionales; estos son cotas de implementación, no mediciones de capacidad o estabilidad. Ajustarlos ante fallos básicos, sin crear una ronda previa de benchmarks.
 

@@ -8,7 +8,7 @@ Responsable único: **Persona 3 — firmware Cebo y servidor de notificaciones**
 
 ## Goals / Non-Goals
 
-**Goals:** Webhook y Telegram reales, con dedup/reintentos y estado autenticado; infraestructura mínima documentada.
+**Goals:** Webhook real, con dedup/reintentos y estado autenticado; infraestructura mínima documentada.
 
 **Non-Goals:** implementar otros encargos, recortar funcionalidades acordadas o hacer benchmarks/campañas prolongadas. Los archivos ajenos se solicitan a su dueño. Esta planificación no aplica cambios ni autoriza operaciones Git.
 
@@ -16,9 +16,9 @@ Responsable único: **Persona 3 — firmware Cebo y servidor de notificaciones**
 
 Los acuerdos funcionales de R-04 y R-10 son confirmados. Las elecciones concretas nuevas de este diseño son **propuestas de implementación**, no acuerdos históricos. Los límites iniciales son recomendaciones ajustables ante fallos sin retirar funcionalidad. Revisar con el usuario las elecciones arquitectónicas nuevas antes de aplicar; los detalles no estructurales se resuelven durante implementación.
 
-Propuesta a revisar: componente pequeño Node.js separado en notifications/, mismo runtime ya usado, paquete y lockfile propios fuera de workspaces para no competir con P4 por el lock raíz. Cliente MQTT de solo lectura events/availability del nodo, TLS validado con cuenta notify-<node> autorizada por P4. No editar broker/ ni firmware. Configuración local .env/secretos ignorados. Webhook HTTPS con lista fija de destino, timeout y autenticación propia opcional; Telegram Bot API por HTTPS con token y chat local, nunca en logs/URL de errores.
+Propuesta a revisar: componente pequeño Node.js separado en notifications/, mismo runtime ya usado, paquete y lockfile propios fuera de workspaces para no competir con P4 por el lock raíz. Cliente MQTT de solo lectura events/availability del nodo, TLS validado con cuenta notify-<node> autorizada por P4. No editar broker/ ni firmware. Configuración local .env/secretos ignorados. Webhook HTTPS con lista fija de destino, timeout y autenticación propia opcional. Las credenciales propias del webhook se mantienen fuera de logs y de las URL de errores.
 
-Enrutador común por event_id; solo alertas según severidad/configuración, sin multiplicar por retransmisión MQTT. Estado simple persistente de hasta512 IDs/24 h, outbox128 con vencimiento24 h y reintentos1–30 s; archivo JSON acotado escrito atómicamente en volumen privado. Control por canal/origen con ventana30 s, supresión/agrupación contabilizada. Evitar una base de datos o cola externa. Entrega webhook y Telegram independientes; HTTP2xx significa aceptado por destino, no leído. Advertir indisponibilidad y descartes al vencer/llenarse la cola. Publicar estado por API HTTPS protegida del contrato; no falsificar eventos del ESP32. Push se añade en cambio propio.
+Enrutador común por event_id; solo alertas según severidad/configuración, sin multiplicar por retransmisión MQTT. Estado simple persistente de hasta512 IDs/24 h, outbox128 con vencimiento24 h y reintentos1–30 s; archivo JSON acotado escrito atómicamente en volumen privado. Control por canal/origen con ventana30 s, supresión/agrupación contabilizada. Evitar una base de datos o cola externa. Entrega webhook con gestión independiente de fallos; HTTP2xx significa aceptado por destino, no leído. Advertir indisponibilidad y descartes al vencer/llenarse la cola. Publicar estado por API HTTPS protegida del contrato; no falsificar eventos del ESP32. Push se añade en cambio propio. El estado final expone únicamente `channels:{webhook,push}`; la biblioteca compartida debe alinearse con esta revisión del alcance antes de integrar los consumidores.
 
 ### Interfaces y propiedad
 
@@ -34,4 +34,4 @@ Archivos de implementación: `notifications/ (servicio Node, package y lockfile 
 
 ## Migration Plan
 
-Trabajar en rama `feat/sentinel-alertas-webhook-telegram`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+Trabajar en rama `feat/sentinel-alertas-webhook`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
