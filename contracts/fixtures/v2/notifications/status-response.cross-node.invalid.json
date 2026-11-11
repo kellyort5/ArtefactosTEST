@@ -13,18 +13,6 @@
       "pending": 0,
       "suppressed": 2
     },
-    "telegram": {
-      "configured": true,
-      "last_delivery": {
-        "event_id": "event-cebo-example",
-        "timestamp": "2026-11-10T12:00:00Z",
-        "status": "failed",
-        "read_status": "unknown",
-        "error": "provider_unavailable"
-      },
-      "pending": 1,
-      "suppressed": 2
-    },
     "push": {
       "configured": false,
       "last_delivery": null,

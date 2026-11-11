@@ -60,7 +60,7 @@ export interface NotificationChannelStatus {
 }
 export interface NotificationStatusResponse {
   device_id: string;
-  channels: {webhook: NotificationChannelStatus; telegram: NotificationChannelStatus; push: NotificationChannelStatus};
+  channels: {webhook: NotificationChannelStatus; push: NotificationChannelStatus};
 }
 /** A projection of an already validated original Cebo event; no new ID is generated. */
 export interface NotificationEventReference {
