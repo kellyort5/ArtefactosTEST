@@ -1,5 +1,8 @@
 #include "core.h"
+#include "protocol_v2.h"
 #include "wire.h"
+extern void run_module_tests();
+extern void module_wire_fixtures();
 #include <cassert>
 #include <cstring>
 #include <fstream>
@@ -67,6 +70,41 @@ static std::string ev(uint64_t seq) {
   return out;
 }
 int main(int argc, char **argv) {
+  if (argc == 1) {
+    run_module_tests();
+    MemoryStore store;
+    Journal j(store);
+    Envelope e = {"node-test", "boot-test", 1, 10};
+    e.version = 2;
+    char json[MaxMessage + 1];
+    assert(j.append(ev(1).c_str(), ev(1).size(), 1));
+    assert(
+        serialize(envelope(e, "event",
+                           module_event_payload(2, "system.booted", Mode::Idle,
+                                                nullptr, "{}", "info", true)),
+                  json));
+    assert(j.append(json, strlen(json), 2));
+    Journal recovered(store);
+    recovered.recover();
+    assert(recovered.highest == 2 && recovered.count() == 2);
+    size_t n = sizeof(json);
+    assert(recovered.read(2, json, &n) && strstr(json, "simulated"));
+  }
+  if (argc == 2 && std::string(argv[1]) == "wire2") {
+    module_wire_fixtures();
+    return 0;
+  }
+  if (argc == 3 && std::string(argv[1]) == "v2") {
+    std::ifstream f(argv[2], std::ios::binary);
+    std::stringstream s;
+    s << f.rdbuf();
+    auto data = s.str();
+    auto j = v2::parse(data.c_str(), data.size());
+    const char *type = str(j, "type");
+    bool ok = j && v2::validate(type ? type : "V2Metadata", j);
+    cJSON_Delete(j);
+    return ok ? 0 : 2;
+  }
   if (argc == 3 && std::string(argv[1]) == "parse") {
     std::ifstream f(argv[2], std::ios::binary);
     std::stringstream stream;

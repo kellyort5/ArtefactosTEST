@@ -20,6 +20,8 @@ struct Signal {
   uint16_t connection = 0;
 };
 void start();
+bool register_module(Mode, Module &);
+void register_optional_modules();
 bool post(Signal signal);
 bool submit(Channel channel, const char *json, size_t n, bool authorized,
             bool retained = false, uint32_t session = 0);
