@@ -4,7 +4,7 @@ context: |
   Proyecto: Sentinel Node.
   Leer docs/brief.md como contexto del sistema.
   Fuente de verdad vigente: docs/architecture.md, docs/technical-decisions.md,
-  docs/roadmap.md.
+  docs/roadmap.md y docs/encargos/README.md.
   Plan confirmado: Escudo, Sanitizador y Cebo completos en desarrollo paralelo,
   un responsable de implementación por cambio. El usuario coordina OpenSpec;
   los demás integrantes pueden seguir sus fichas Markdown sin usar el CLI.

@@ -18,7 +18,7 @@ Fuentes de alcance:
 
 La selección de placa está confirmada por el usuario y sustituye las referencias WROOM-32/WROVER del PDF.
 
-**Actualización confirmada por el usuario el 2026-11-10:** desarrollo acelerado e incremental de los tres módulos en paralelo, incluido Auditor/Sanitizador desde la primera ronda. La entrega comprende Escudo, Sanitizador y Cebo con sus funcionalidades completas y app integrada. Un único modo ocupa la radio en cada ESP32. La base existente y sus resultados están documentados en firmware/EVIDENCE.md y docs/core-foundation-check.md. Los cambios funcionales posteriores se planifican por separado.
+**Actualización confirmada por el usuario el 2026-11-10:** desarrollo acelerado e incremental de los tres módulos en paralelo, incluido Auditor/Sanitizador desde la primera ronda. La entrega comprende Escudo, Sanitizador y Cebo con sus funcionalidades completas y app integrada. Un único modo ocupa la radio en cada ESP32. La base existente y sus resultados están documentados en firmware/EVIDENCE.md y docs/core-foundation-check.md. La planificación y los encargos individuales se describen en [encargos/README.md](encargos/README.md).
 
 ## Plataforma física
 
@@ -245,4 +245,4 @@ La implementación progresiva y las políticas de R-08 guían sus cambios. Las c
 
 Las hipótesis H-01 a H-08 registran resultados pendientes, no puertas de investigación previas. Stack, supervisor, alcance completo del MVP y transporte por modo ya están confirmados. Versiones, límites iniciales, pines, proveedor de notificaciones y detalles de contratos se resuelven de manera concreta en sus cambios; solicitar revisión de una decisión arquitectónica nueva importante sin reabrir acuerdos existentes.
 
-Los módulos funcionales se implementarán mediante cambios OpenSpec independientes, revisando sus contratos y criterios desde ramas individuales.
+Los nuevos cambios OpenSpec contienen propuestas de diseño para revisión y tareas de implementación pendientes. Las fichas de docs/encargos permiten trabajar con esos contratos y criterios desde ramas individuales.
