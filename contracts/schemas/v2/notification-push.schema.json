@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentinel.local/contracts/v2/notification-push.schema.json",
+  "type": "object",
+  "properties": {
+    "notification": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "const": "Sentinel Node"
+        },
+        "body": {
+          "const": "Actividad detectada en Cebo. Abre la app para consultar el incidente."
+        }
+      },
+      "required": [
+        "title",
+        "body"
+      ],
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "critical"
+          ]
+        },
+        "route": {
+          "const": "cebo"
+        }
+      },
+      "required": [
+        "device_id",
+        "event_id",
+        "severity",
+        "route"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "notification",
+    "data"
+  ],
+  "additionalProperties": false
+}

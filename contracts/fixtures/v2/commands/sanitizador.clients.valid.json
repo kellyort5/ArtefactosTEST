@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "type": "command",
+  "device_id": "node-example",
+  "boot_id": "boot-example",
+  "message_id": "command-example-18",
+  "seq": 18,
+  "uptime_ms": 1000,
+  "timestamp": null,
+  "time_quality": "unknown",
+  "payload": {
+    "command_id": "command-example-18",
+    "target_boot_id": "boot-example",
+    "expected_revision": 3,
+    "expires_at_uptime_ms": 31000,
+    "operation": "sanitizador.clients",
+    "args": {
+      "after": null,
+      "limit": 4
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "type": "command",
+  "device_id": "node-example",
+  "boot_id": "boot-example",
+  "message_id": "command-example-14",
+  "seq": 14,
+  "uptime_ms": 1000,
+  "timestamp": null,
+  "time_quality": "unknown",
+  "payload": {
+    "command_id": "command-example-14",
+    "target_boot_id": "boot-example",
+    "expected_revision": 3,
+    "expires_at_uptime_ms": 31000,
+    "operation": "sanitizador.audit",
+    "args": {
+      "dns_name": "test.example",
+      "https_url": "https://test.example/health",
+      "portal_url": "http://portal.example/check"
+    }
+  }
+}

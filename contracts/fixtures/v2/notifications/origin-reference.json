@@ -1,0 +1,9 @@
+{
+  "device_id": "node-example",
+  "message_id": "event-cebo-example",
+  "payload": {
+    "name": "cebo.interaction",
+    "profile": "cebo",
+    "severity": "warning"
+  }
+}

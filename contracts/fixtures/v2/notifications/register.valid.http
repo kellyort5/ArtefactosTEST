@@ -1,0 +1,11 @@
+POST /v1/registrations HTTP/1.1
+Host: notifications.example.invalid
+Authorization: Bearer FICTIONAL-NODE-EXAMPLE-NOT-A-CREDENTIAL
+Content-Type: application/json
+
+{"device_id": "node-example", "installation_id": "installation-example", "platform": "android", "token": "FICTIONAL-ANDROID-TOKEN-NOT-USABLE"}
+
+HTTP/1.1 200
+Content-Type: application/json
+
+{"device_id": "node-example", "installation_id": "installation-example", "status": "registered"}

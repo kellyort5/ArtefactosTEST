@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {decodeMessage,encodeMessage,decodeMetadata,makeCommand,fragmentMessage,BleAssembler} from '../dist/src/index.js';
 const fixtures=new URL('../fixtures/',import.meta.url);
-for(const name of await readdir(fixtures)){
+// v2 owns its own fixture tree; preserve the v1 corpus as top-level JSON files.
+for(const name of (await readdir(fixtures)).filter(name=>name.endsWith('.json'))){
  test(name,async()=>{const json=await readFile(new URL(name,fixtures),'utf8');if(name.includes('.valid.'))assert.deepEqual(decodeMessage(encodeMessage(decodeMessage(json))),JSON.parse(json));else assert.throws(()=>decodeMessage(json));});
 }
 test('malformed UTF8, JSON and private fields rejected without echo',()=>{
