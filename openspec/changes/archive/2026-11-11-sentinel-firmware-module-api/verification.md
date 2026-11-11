@@ -20,7 +20,7 @@ Estos resultados prueban lógica y compilación. No acreditan capacidad física 
 
 `pio device list` solo mostró puertos serie genéricos de WSL. La enumeración de Windows mostró COM3 y COM4, ambos «Standard Serial over Bluetooth link»; no se identificó una ESP32 accesible. No se ejecutaron upload, emparejamiento ni transiciones físicas. La casilla 2.2 queda pendiente.
 
-Para completarla, seguir [la guía de integración y verificación](../../../docs/development.md#verificar-este-cambio), registrar la placa/puerto y probar Idle y una transición BLE de ida/vuelta con un consumidor de prueba registrado (sin anunciar servicios completos) o un módulo real. Comprobar ausencia de servicios residuales y registrar ACK/revisión/OLED/botón. No considerar pruebas de host, una simulación ni una aceptación de supuestos como evidencia física. Un consumidor de prueba en la placa solo acredita el recorrido básico de la API, no funcionalidades de detección ni servicios del producto.
+Para completarla, seguir [la guía de integración y verificación](../../../../docs/development.md#verificar-este-cambio), registrar la placa/puerto y probar Idle y una transición BLE de ida/vuelta con un consumidor de prueba registrado (sin anunciar servicios completos) o un módulo real. Comprobar ausencia de servicios residuales y registrar ACK/revisión/OLED/botón. No considerar pruebas de host, una simulación ni una aceptación de supuestos como evidencia física. Un consumidor de prueba en la placa solo acredita el recorrido básico de la API, no funcionalidades de detección ni servicios del producto.
 
 ## Integración con el equipo
 

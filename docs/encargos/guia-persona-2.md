@@ -7,7 +7,7 @@ Tu responsabilidad es el firmware completo del Módulo 2: auditar una red y ofre
 1. [Guía del equipo](guia-equipo.md): entorno de colaboración, contratos, ramas y formato de entrega.
 2. [Arquitectura](../architecture.md), especialmente Sanitizador, recursos y transportes; [R-08, R-11 y H-04/H-05](../technical-decisions.md); [línea paralela del roadmap](../roadmap.md#línea-paralela--auditor-y-sanitizador).
 3. [Ficha de auditoría](sentinel-sanitizador-auditoria.md), su diseño, spec y tareas enlazadas. Hacer lo mismo con cada ficha antes de abordar el siguiente incremento.
-4. [Protocolo funcional](../../contracts/module-protocol.md), sus comandos `sanitizador.*`, estados/métricas y ejemplos de eventos. Leer también el [diseño de API del firmware](../../openspec/changes/sentinel-firmware-module-api/design.md).
+4. [Protocolo funcional](../../contracts/module-protocol.md), sus comandos `sanitizador.*`, estados/métricas y ejemplos de eventos. Leer también el [diseño de API del firmware](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/design.md).
 5. [Preparación del firmware](../firmware.md) y [prueba física de la base](../core-foundation-test-guide.md).
 
 No necesitas instalar OpenSpec ni generar propuestas. Lee los Markdown como requisitos de tu trabajo e informa resultados por los números de tarea de cada ficha; Jefry mantiene el seguimiento oficial.
@@ -16,7 +16,7 @@ No necesitas instalar OpenSpec ni generar propuestas. Lee los Markdown como requ
 
 Creas `firmware/components/sanitizador/`, sus tests en `firmware/test/sanitizador/` y los documentos `docs/modules/sanitizador-*.md` indicados en cada ficha. No hay que crear otro proyecto PlatformIO ni un firmware separado.
 
-Necesitas el contrato revisado y `sentinel-firmware-module-api` de P1 para integrar. La API propuesta todavía debe convertirse en headers y comportamiento reales: confirma la referencia con Jefry. Puedes preparar lógica acotada y tests mientras llega, sin inventar una API incompatible ni declarar integración completa.
+Necesitas el contrato revisado y `sentinel-firmware-module-api` de P1 para integrar. La API real ya está fusionada en develop mediante PR #6: usa [module_api.hpp](../../firmware/components/sentinel_api/include/module_api.hpp) y la [guía de integración](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3). Se archivó con 6/7 tareas y la prueba física 2.2 pendiente; no confundir compilación con validación en la placa.
 
 Solicitas a P1 cambios en `main`, CMake global, `sdkconfig`, radio, supervisor, serializador o journal. Solicitas a P4 cualquier pantalla o cambio del workspace npm. No inicialices/inicies/detengas Wi-Fi por tu cuenta: usa el gestor del núcleo y las netifs prestadas conforme a la API entregada.
 

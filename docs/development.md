@@ -131,7 +131,7 @@ El botón corto rota únicamente los modos registrados (Escudo → Sanitizador �
 
 ### Verificar este cambio
 
-La [evidencia de esta entrega](../openspec/changes/sentinel-firmware-module-api/verification.md) distingue software verificado y prueba física pendiente.
+La [evidencia de esta entrega](../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/verification.md) distingue software verificado y prueba física pendiente.
 
 ```sh
 python3 firmware/test/run_host.py

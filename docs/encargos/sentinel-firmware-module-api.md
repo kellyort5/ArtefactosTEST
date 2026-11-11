@@ -1,6 +1,6 @@
 # Encargo: API de módulos y supervisor
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-firmware-module-api`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** implementación fusionada en develop por PR #6 y archivada con 6/7 tareas; prueba física 2.2 pendiente. **Rama prevista:** `feat/sentinel-firmware-module-api`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 
@@ -8,7 +8,7 @@ Resources y Profile solo ejecutan la base; los otros autores necesitan integrar 
 
 Build ESP-IDF y pruebas de exclusión/gate pasan; API revisada por consumidores; hooks integrables sin editar módulos ajenos.
 
-Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-firmware-module-api/design.md) y los [casos de aceptación](../../openspec/changes/sentinel-firmware-module-api/specs/module-dispatch/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/sentinel-firmware-module-api/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
+Lee primero esta ficha, el [diseño concreto](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/design.md) y los [casos de aceptación](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/specs/module-dispatch/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
 
 ## Dependencias para integrar
 
@@ -50,4 +50,4 @@ El PR debe enlazar esta ficha y la propuesta, describir el cambio e incluir coma
 
 **Criterio de terminación:** Build ESP-IDF y pruebas de exclusión/gate pasan; API revisada por consumidores; hooks integrables sin editar módulos ajenos. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
 
-[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/sentinel-firmware-module-api/proposal.md) · [Tareas](../../openspec/changes/sentinel-firmware-module-api/tasks.md)
+[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/proposal.md) · [Tareas](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/tasks.md)
