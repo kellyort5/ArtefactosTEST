@@ -1,6 +1,6 @@
 # Reparto de Sentinel Node para cuatro integrantes
 
-Estado de la planificación original: **23 propuestas**, con una ficha por cambio en español que se puede seguir sin conocer OpenSpec. Esa planificación no implementó funcionalidades. Desde entonces, `sentinel-module-contracts` tiene implementación y comprobaciones técnicas locales; su revisión final permanece pendiente en la [tarea 2.2](../../openspec/changes/sentinel-module-contracts/tasks.md), con [resultados y límites](../../contracts/evidence-v2.md). Las demás fichas conservan su estado de planificación; consultar sus tareas y evidencia antes de empezar. Esta actualización de guías no ejecuta commits, push ni merges.
+Estado: de los **23 encargos originales**, `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Sus seis requisitos están en la [spec principal](../../openspec/specs/module-protocol/spec.md), con [resultados y límites](../../contracts/evidence-v2.md). Los otros **22 cambios** conservan su estado de planificación; consultar sus tareas y evidencia antes de empezar. La publicación está separada en [PR #2: contratos](https://github.com/Jefry-P/ArtefactosProyecto/pull/2) y [PR #3: planificación y guías](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), ambos hacia develop. Integrar #2 antes de #3; esta publicación no realizó merges.
 
 Verificación de la planificación original: `openspec validate --all --strict --json` aprobó los 24 cambios que estaban presentes (23 nuevos y la base), sin incidencias. Se comprobaron enlaces locales, ausencia de ciclos entre encargos y asignación de un único autor. Es evidencia de aquella planificación, no una afirmación de que todos los módulos estén implementados o físicamente verificados.
 
@@ -36,9 +36,9 @@ Los números no representan esfuerzo equivalente. Persona 4 tiene la mayor varie
 
 ## Antes de implementar: revisión concreta, sin otra investigación extensa
 
-Alcance, stack, transporte por modo y exclusión de modos ya están aprobados. Los siguientes detalles nuevos se presentan como **propuestas para revisión**, según AGENTS.md; no como decisiones tomadas previamente:
+Alcance, stack, transporte por modo, exclusión de modos y contrato v2 ya están aprobados. El contrato del punto 1 está completado; las elecciones de implementación nuevas de los consumidores de los puntos 2 y 3 conservan su condición de **propuestas para revisión**, según AGENTS.md:
 
-1. [Protocolo v2 compatible con la base e historial v1](../../openspec/changes/sentinel-module-contracts/design.md): la biblioteca ya está implementada y probada localmente; consultar [contrato para consumidores](../../contracts/module-protocol.md) y [revisión pendiente](../../contracts/evidence-v2.md). La base conserva v1 hasta que sus consumidores se adapten; no admite campos funcionales por simple adición. `origin` en eventos v2 ya fue aprobado expresamente por el usuario.
+1. [Protocolo v2 compatible con la base e historial v1](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/design.md): biblioteca implementada, probada y aprobada por el usuario; consultar [contrato para consumidores](../../contracts/module-protocol.md) y [evidencia de aprobación](../../contracts/evidence-v2.md). La base conserva v1 hasta que sus consumidores se adapten; no admite campos funcionales por simple adición. `origin` en eventos v2 es obligatorio y conserva el formato histórico v1.
 2. [API de módulos y único propietario de radio/journal](../../openspec/changes/sentinel-firmware-module-api/design.md): concreta las interfaces para que los tres autores integren sin editar el mismo núcleo.
 3. [Componente mínimo Node y API de notificaciones](../../openspec/changes/sentinel-alertas-webhook-telegram/design.md), [FCM servidor](../../openspec/changes/sentinel-alertas-push-servidor/design.md) y [plugin Android](../../openspec/changes/sentinel-app-push/design.md): proveedores/credenciales locales se aprovisionan al implementarlos. No se ha creado un proyecto Firebase ni acreditado entrega real.
 
@@ -47,7 +47,7 @@ Los límites de conexiones, umbrales, cachés y tiempos son recomendaciones inic
 ## Orden de trabajo
 
 1. La [base archivada](../../openspec/changes/archive/2026-11-10-sentinel-core-foundation/closure.md) conserva **26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario** bajo la suposición de que el hardware funciona. Esta aceptación permite continuar sin marcar esas pruebas como realizadas. Cuando se ejecuten, registrar evidencia con la [guía de prueba](../core-foundation-test-guide.md).
-2. Completar la revisión/entrega del contrato implementado y después implementar la API de módulos. Son dos encargos tuyos, separados. Los compañeros leen sus interfaces para preparar su carpeta; no se exige terminar todas las comprobaciones de base para empezar lógica/UI. Confirmar que la referencia compartida contiene los documentos y contratos necesarios: los archivos locales aún no publicados no aparecen en el clon de otro integrante.
+2. Continuar con la API de módulos, consumiendo el contrato aprobado y archivado. Son dos encargos separados: el contrato está terminado y la API sigue pendiente. Los compañeros leen sus interfaces para preparar su carpeta; no se exige terminar todas las comprobaciones de base para empezar lógica/UI. Confirmar que la referencia compartida contiene ambos PR y las dependencias necesarias: publicar no equivale a integrar en develop.
 3. Primera ronda en paralelo: tú descubrimiento Escudo; P2 auditoría; P3 HTTP; P4 adaptación app y broker (dos cambios suyos, uno por rama/PR). Cada uno necesita contrato/API que consuma.
 4. Seguir la cadena interna de cada módulo y las pantallas independientes. La UI puede prepararse con fixtures revisados; sus dependencias de la tabla son de **integración/cierre**, no una prohibición de preparar vistas antes. Un fixture nunca cuenta como funcionalidad integrada.
 5. P3 entrega webhook/Telegram y servidor push; P4 integra recepción Android y prueba con app cerrada. P4 prepara laboratorio desde temprano y consolida evidencia durante todas las rondas.
@@ -160,7 +160,7 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 
 ## Qué queda pendiente y qué se difiere
 
-**Pendiente durante implementación:** verificación física de la base; contratos/API revisados; captura/BLE, NAT+DoH conjunto, detectores y persistencia; cuentas propias de integraciones; CA/SAN LAN y recepción push cerrada. Los diseños no acreditan hardware ni sustituyen pruebas reales.
+**Pendiente durante implementación:** verificación física de la base; revisión/implementación de API de módulos y sus consumidores; captura/BLE, NAT+DoH conjunto, detectores y persistencia; cuentas propias de integraciones; CA/SAN LAN y recepción push cerrada. El contrato está aprobado, pero los diseños no acreditan hardware ni sustituyen pruebas reales.
 
 **Después de la entrega funcional completa:** benchmarks, autonomía, carga prolongada, resistencia flash y campañas extensas de compatibilidad/estabilidad. Ningún detector, servicio, canal de alerta o función del Sanitizador se mueve aquí para declarar éxito antes.
 

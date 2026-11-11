@@ -6,7 +6,7 @@ Tu resultado es entregar las interfaces que consumen los compañeros, el Escudo 
 
 Leer la [guía del equipo](guia-equipo.md), el [reparto](README.md), la [arquitectura](../architecture.md), [R-02 a R-07 y R-11, con H-01 a H-08](../technical-decisions.md) y el [roadmap](../roadmap.md).
 
-Para los contratos, consultar [protocolo v2](../../contracts/module-protocol.md), [notificaciones](../../contracts/notifications.md) y [evidencia](../../contracts/evidence-v2.md). La biblioteca ya tiene implementación y pruebas locales. Su [tarea 2.2](../../openspec/changes/sentinel-module-contracts/tasks.md) sigue abierta por revisión final: verificar ese estado antes de cerrarla. No repetir su implementación, asumir aprobación ni confundir una revisión con autorización de publicación.
+Para los contratos, consultar [protocolo v2](../../contracts/module-protocol.md), [notificaciones](../../contracts/notifications.md), [evidencia](../../contracts/evidence-v2.md) y [spec principal](../../openspec/specs/module-protocol/spec.md). El usuario aprobó el contrato y el cierre de 2.2; el cambio está [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md) y publicado en el PR #2. No repetir su implementación ni confundir publicación con merge.
 
 Revisar [cierre de la base](../../openspec/changes/archive/2026-11-10-sentinel-core-foundation/closure.md) y [prueba física](../core-foundation-test-guide.md). Las pruebas físicas asumidas al archivar la base siguen pendientes de evidencia.
 
@@ -16,7 +16,7 @@ Cada enlace abre una ficha con diseño, specs y tareas oficiales. La rama previs
 
 | Orden | Encargo propio | Trabajo concreto | Entrega que desbloquea |
 | --- | --- | --- | --- |
-| 1 | [sentinel-module-contracts](sentinel-module-contracts.md) | Revisar la entrega v2 existente, compatibilidad v1, 25 operaciones, ACK/páginas, origen, privacidad y contrato HTTP/push. Cerrar la revisión con evidencia y gestionar publicación solo cuando esté autorizada. | P2/P3 conocen mensajes; P4 puede adaptar app/broker; todos comparten fixtures. |
+| 1 — completado | [sentinel-module-contracts](sentinel-module-contracts.md) | Contrato v2 aprobado, publicado y archivado; conservar compatibilidad v1, 25 operaciones, ACK/páginas, origen, privacidad y contrato HTTP/push. Consultar su cierre y reutilizar la biblioteca. | P2/P3 conocen mensajes; P4 puede adaptar app/broker; todos comparten fixtures. |
 | 2 | [sentinel-firmware-module-api](sentinel-firmware-module-api.md) | Publicar `sentinel_api`, hooks/lifetime, registro opcional, dispatcher v2, recursos prestados, eventos/métricas y supervisor. Integrar flags globales de forwarding/NAPT y controles físicos según diseño revisado. | P2/P3 pueden integrar módulos sin editar el núcleo; P4 prueba comandos/capacidades reales. |
 | 3 | [sentinel-escudo-descubrimiento](sentinel-escudo-descubrimiento.md) | Escaneo pasivo 2.4 GHz, catálogo limitado/paginado con SSID/BSSID/canal/RSSI/seguridad, selección y cambio de objetivo por BLE. | P4 conecta catálogo y selección de red. |
 | 4 | [sentinel-escudo-captura](sentinel-escudo-captura.md) | Modo promiscuo, cola limitada, parser Beacon/Deauth/Disassoc y metadatos Probe, prioridad de objetivo, recorrido de canales, cobertura y start/stop. | Flujo de observaciones para todos los detectores y métricas de captura. |
@@ -28,7 +28,7 @@ El encargo 7 espera las dependencias enumeradas en su ficha. No es una autorizac
 
 ## 3. Qué hacer primero
 
-1. Confirmar la revisión y referencia compartible de contratos; separar cualquier aprobación técnica de commit/push/PR. Mantener fuera los cambios ajenos ya existentes en tu copia.
+1. Confirmar con el equipo la referencia que incorpora PR #2 de contratos y PR #3 de planificación; ambos están publicados hacia develop, sin merge automático. El contrato ya está aprobado y archivado. Mantener fuera los cambios ajenos existentes en tu copia.
 2. Revisar con P2/P3 el [diseño de API](../../openspec/changes/sentinel-firmware-module-api/design.md), en particular hooks, parada, callbacks y préstamo de netifs. Solicitar revisión de decisiones arquitectónicas nuevas importantes; resolver detalles rutinarios dentro del diseño acordado.
 3. Entregar la API en un incremento pequeño con build y consumidor mínimo de prueba. Documentar las firmas reales en `docs/development.md` dentro de ese encargo; hoy ese documento todavía explica la base.
 4. Comunicar a P2/P3 la referencia de integración, headers reales, ejemplo de ciclo de vida, flags disponibles y límites. A P4, comunicar cómo leer capacidades y enviar un comando v2 confirmado.

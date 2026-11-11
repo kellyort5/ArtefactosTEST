@@ -1,14 +1,14 @@
 # Encargo: Contratos funcionales compartidos
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** implementación y comprobaciones técnicas publicadas en el [PR #2](https://github.com/Jefry-P/ArtefactosProyecto/pull/2); revisión final del usuario pendiente en la tarea 2.2. Ver [evidencia y límites](../../contracts/evidence-v2.md). **Rama:** `feat/sentinel-module-contracts`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** completado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md), publicado en el [PR #2](https://github.com/Jefry-P/ArtefactosProyecto/pull/2). Ver [evidencia y límites](../../contracts/evidence-v2.md). **Rama:** `feat/sentinel-module-contracts`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 
 La base v1 rechaza campos funcionales nuevos; los tres autores de firmware y la app necesitan un vocabulario común antes de integrar.
 
-Contratos compilados y ejemplos de todas las operaciones/familias aceptados o rechazados según sus límites; revisión explícita antes de consumidores.
+Contratos compilados y ejemplos de todas las operaciones/familias aceptados o rechazados según sus límites; revisión explícita del usuario completada antes de consumidores. Los pasos siguientes conservan la trazabilidad del encargo terminado; no indican que se deba reimplementar.
 
-Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-module-contracts/design.md) y los [casos de aceptación](../../openspec/changes/sentinel-module-contracts/specs/module-protocol/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/sentinel-module-contracts/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
+Lee primero esta ficha, el [diseño concreto](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/design.md) y los [casos de aceptación](../../openspec/specs/module-protocol/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
 
 ## Dependencias para integrar
 
@@ -48,4 +48,4 @@ El PR debe enlazar esta ficha y la propuesta, describir el cambio e incluir coma
 
 **Criterio de terminación:** Contratos compilados y ejemplos de todas las operaciones/familias aceptados o rechazados según sus límites; revisión explícita antes de consumidores. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
 
-[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/sentinel-module-contracts/proposal.md) · [Tareas](../../openspec/changes/sentinel-module-contracts/tasks.md)
+[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/proposal.md) · [Tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/tasks.md)

@@ -31,9 +31,9 @@ Ante una contradicción entre ficha, spec, contrato o decisión aprobada, indica
 ## 2. Estado desde el que parte el equipo
 
 - La base está [archivada con aceptación de pendientes](../../openspec/changes/archive/2026-11-10-sentinel-core-foundation/closure.md): 26/45 tareas verificadas y 19 comprobaciones aceptadas bajo una suposición de funcionamiento físico. No son 19 pruebas realizadas.
-- `sentinel-module-contracts` tiene implementación local y comprobaciones técnicas en [su evidencia](../../contracts/evidence-v2.md); su [tarea 2.2](../../openspec/changes/sentinel-module-contracts/tasks.md) conserva pendiente la revisión final del usuario. Consultar estos archivos para el estado vigente; no rehacer la biblioteca ni asumirla publicada.
+- `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Ver [evidencia](../../contracts/evidence-v2.md) y [spec principal](../../openspec/specs/module-protocol/spec.md). Está publicado en el [PR #2](https://github.com/Jefry-P/ArtefactosProyecto/pull/2); no rehacer la biblioteca ni asumir que un PR abierto ya está integrado.
 - Las otras fichas describen trabajo futuro. La app y firmware de base conservan v1: la existencia de contratos v2 no los convierte automáticamente en consumidores v2.
-- Jefry debe hacer llegar al equipo las fichas, specs y contratos mediante el flujo Git autorizado. Un archivo disponible solo en su copia local no estará en el clon de los compañeros. Confirmar el PR/referencia de partida antes de trabajar.
+- Las fichas/specs/guías están publicadas en el [PR #3](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), con dependencia de #2. Confirmar con Jefry la referencia de partida que incorpora ambas entregas antes de trabajar; no asumir merges por el hecho de estar publicadas.
 
 ## 3. Dónde está cada cosa
 
