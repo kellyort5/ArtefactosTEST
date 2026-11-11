@@ -277,8 +277,8 @@ La conservación de metadatos permite identificar patrones sin recopilar contras
 
 1. **Base compartida:** arranque real, supervisor, MQTT, BLE, contratos y dashboard conectados por incrementos pequeños.
 2. **Escudo funcional completo:** descubrimiento, selección, captura, todos los detectores, registro, sincronización y visualización.
-3. **Cebo funcional completo:** HTTP/Telnet, detección, clasificación, persistencia, MQTT, historial y los tres canales externos de alertas.
-4. **Integración completa:** transiciones, recursos, OLED/botón, recuperación y comprobación funcional final.
+3. **Cebo funcional completo:** HTTP/Telnet, detección, clasificación, persistencia, MQTT, historial, webhook y push móvil.
+4. **Integración completa:** transiciones, recursos, OLED/botón con alertas recientes, recuperación y comprobación funcional final.
 5. **Sanitizador:** auditoría, pasarela IPv4, DNS local y DoH conforme a R-08, en paralelo desde la primera ronda y antes de cerrar la entrega conjunta.
 
 Las líneas de Escudo, Sanitizador, Cebo y aplicación avanzan en paralelo sobre los contratos y servicios compartidos. OLED, botón y recuperación se conectan desde las primeras iteraciones y se comprueban en la integración de los tres modos.
@@ -348,6 +348,8 @@ No se han fijado garantías de Mbps o autonomía. La base tiene límites de cola
 **Trabajo paralelo confirmado:** NAT/DNS/DoH se validan en los cambios del Sanitizador. Las comprobaciones descritas en R-03, R-06, R-07 y R-10 se integran en los encargos de sus responsables conforme a R-11.
 
 ## Tratamiento de cambios respecto al PDF
+
+**Revisión confirmada el 2026-11-11:** corregir la asignación de alertas recientes en OLED conforme a la página 4 del PDF, a cargo de Persona 1 en `sentinel-integracion-tres-modos`, tarea 1.5. Mostrar un resumen de la alerta más reciente sin depender de abrir la app, reutilizando el flujo central y sin añadir otro almacén. El resto del plan se conserva y sus diferencias se registran en la [comparación de alcance](pdf-scope-comparison.md), distinguiendo adaptaciones de limitaciones no demostradas. Esta revisión no añade métricas/campos ni otros requisitos funcionales.
 
 La instrucción vigente del 2026-11-10 incluye los tres módulos completos desde la primera ronda de trabajo. Sustituye la priorización anterior que difería el Módulo 2; no recorta funciones de Escudo/Cebo. El orden de hardware real desde el inicio sustituye la prioridad temporal de simulación descrita en el brief; el componente simulador se conserva separado.
 

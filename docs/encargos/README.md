@@ -8,6 +8,8 @@ Verificación de la planificación original: `openspec validate --all --strict -
 
 Leer primero la [guía común del equipo](guia-equipo.md): cómo encontrar requisitos, consumir contratos, preparar una rama y entregar evidencia sin tener que aprender OpenSpec.
 
+Antes de repartir, consultar la [comparación del alcance con el PDF](../pdf-scope-comparison.md). Las alertas recientes en OLED corresponden a Persona 1, [integración de tres modos](sentinel-integracion-tres-modos.md), tarea **1.5**. Las demás diferencias quedan documentadas sin ampliar las tareas de los compañeros.
+
 | Integrante | Guía y recorrido de trabajo |
 | --- | --- |
 | Persona 1 — Jefry | [Coordinación, contratos, API, Escudo e integración](guia-persona-1.md). Incluye cómo aplicar cada cambio con OpenSpec y hacer seguimiento de las entregas del equipo. |
@@ -148,7 +150,7 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | Webhooks, dedup y control de saturación                     | P3 alertas-webhook                     | P4 app-cebo consulta estado                                   |
 | Push móvil incluso app cerrada                                        | P3 alertas-push-servidor                        | P4 app-push; teléfono real obligatorio                        |
 | TLS/WSS, BLE autenticado, contratos/ACK/replay                        | P1 contratos + API + base                       | P4 broker-lan + app-protocolo-v2                              |
-| OLED/botón, supervisor, cambios seguros y manejo de errores           | P1 firmware-module-api + integracion-tres-modos | P4 pantallas reflejan estado, laboratorio recoge evidencia    |
+| OLED con alertas recientes/botón, supervisor, cambios seguros y errores | P1 firmware-module-api + integracion-tres-modos (alertas OLED: tarea 1.5) | P4 pantallas reflejan estado, laboratorio recoge evidencia    |
 | Datos sensibles, límites y uso solo autorizado                        | Cada autor en su componente                     | P4 laboratorio verifica; no se guardan credenciales recibidas |
 
 

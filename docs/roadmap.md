@@ -92,7 +92,7 @@ La regla temporal anterior de simular antes de integrar hardware queda sustituid
 | 3.3 Persistencia y dashboard | Búfer circular persistente limitado, pendientes, MQTT, identificación/deduplicación, métricas, historial e incidentes en tiempo real; alertas visibles. | Caer/restablecer MQTT y reiniciar brevemente; registros persistidos se recuperan y sincronizan sin duplicación. Comprobar el límite con pocos registros. |
 | 3.4 Webhooks | Componente separado de notificaciones, entrega webhook, control de alertas repetitivas y secretos propios de integración fuera de código/logs. | Recibir una alerta real en el webhook y comprobar supresión/agrupación de repeticiones según política inicial. El push obligatorio se integra en 3.5. |
 | 3.5 Push Android real | Infraestructura necesaria de registro/envío/recepción, integrada con el componente y Capacitor; recepción con la app cerrada. | En teléfono real, cerrar la app y disparar un incidente real del Cebo; comprobar recepción push. Una alerta solo en primer plano no satisface el requisito. |
-| 3.6 Conjunto Cebo | HTTP/Telnet, clasificación, registro, MQTT, historial y los tres canales externos funcionando juntos; estado OLED, control físico y reconexiones. | Recorrido funcional completo y estado de canales visible cuando no haya conectividad. |
+| 3.6 Conjunto Cebo | HTTP/Telnet, clasificación, registro, MQTT, historial, webhook y push funcionando juntos; estado y alertas recientes en OLED, control físico y reconexiones. | Recorrido funcional completo y estado de canales visible cuando no haya conectividad. |
 
 **Dependencias:** supervisor, MQTT seguro, registro y app de etapa 1; la infraestructura de notificaciones se integra en 3.4/3.5. El proveedor y alojamiento se fijan en ese cambio con una solución suficiente y sencilla, sin crear una plataforma adicional innecesaria.
 
@@ -109,7 +109,7 @@ Trabajo:
 - Cambios seguros entre Escudo, Sanitizador, Cebo e Idle mediante el canal disponible, sin modos simultáneos ni servicios residuales; cierre HTTP/Telnet al salir de Cebo, cierre AP/DHCP/NAT/DNS al salir de Sanitizador y ausencia STA/MQTT en Escudo.
 - Reconciliación de comandos/estado si cambia el transporte; autorización, confirmaciones y control de duplicados.
 - Gestión conjunta Wi-Fi/BLE, memoria y conexiones con límites; corregir bloqueos concretos sin optimización anticipada.
-- OLED y botón físico en los tres modos; disponibilidad, errores y reconexión visibles. Conservar la apertura de emparejamiento mediante pulsación larga de la base.
+- OLED y botón físico en los tres modos; disponibilidad, errores, reconexión y resumen de la alerta más reciente visibles, también sin teléfono. Persona 1 lo integra y comprueba en la tarea 1.5 de `sentinel-integracion-tres-modos`. Conservar la prioridad del emparejamiento mediante pulsación larga de la base.
 - Escudo con catálogo/objetivo, todas sus detecciones, gráficas/incidentes, pendientes y sincronización BLE.
 - Cebo con HTTP/Telnet, clasificación, registro persistente e historial MQTT; webhook y push con app cerrada.
 - Sanitizador con auditoría DNS/HTTPS/portal, cliente real usando AP/DHCP/NAT, reglas DNS y DoH validado, clientes/RSSI/tráfico y control BLE.
@@ -171,7 +171,7 @@ Las hipótesis son pendientes de observación, no prerrequisitos de investigaci�
 | Webhooks y control de repetición | 3.4 | Entrega real en webhook; política inicial contra saturación. |
 | Push Android con app cerrada | 3.5 | Infraestructura real y recepción comprobada en teléfono. |
 | Android BLE/MQTT, configuración, gráficos, incidentes, historial | 1–4 | Flujos completos por canal correspondiente, autenticados y confirmados. |
-| OLED, botón, errores, transiciones y recuperación | 1–4 y línea paralela | Operación física y remota coherente en los tres modos. |
+| OLED con alertas recientes, botón, errores, transiciones y recuperación | 1–4 y línea paralela | Operación física y remota coherente en los tres modos; última alerta visible sin abrir la app, con prueba física a cargo de P1. |
 | Auditor/NAT/DNS/DoH y métricas Sanitizador | Línea paralela | Alcance obligatorio del responsable del Módulo 2 y de la integración de los tres modos. |
 
 ## División en cambios OpenSpec pequeños
@@ -189,6 +189,8 @@ Un cambio puede cubrir una parte integrable de una funcionalidad; las tareas sol
 Los encargos enlazan proposal, design, specs y tasks ya preparados para revisión. El coordinador utiliza `$openspec-apply-change` cuando se solicite implementar un cambio concreto; sus compañeros pueden seguir directamente sus fichas sin usar el CLI. No hace falta volver a investigar ni pedir aprobación del alcance o stack ya confirmados. Las decisiones arquitectónicas nuevas propuestas se identifican en el índice y se revisan antes de aplicarlas.
 
 ## Límites y pendientes
+
+La [comparación con el PDF](pdf-scope-comparison.md) registra las diferencias que el usuario indicó conservar. La corrección funcional de esta revisión es únicamente la OLED con alertas recientes; no se añaden a este roadmap otras funcionalidades por el análisis de diferencias.
 
 No se inventan calendario ni nombres de integrantes. Los encargos asignan roles Persona 1–4 y proponen detalles técnicos revisables; no convierten proveedores o capacidades pendientes en hechos aprobados. La base ya fija versiones y GPIO configurables, documentados en firmware. Los límites iniciales recomendados se ajustan ante fallos, sin un estudio previo.
 

@@ -4,6 +4,8 @@
 
 Este documento conserva la exploración y la estrategia vigente confirmada por el usuario. Registra el alcance y las decisiones aprobadas; no acredita funcionalidades implementadas ni sustituye las specs de cada cambio. Se complementa con [decisiones técnicas](technical-decisions.md) y [roadmap](roadmap.md).
 
+La [comparación con el PDF](pdf-scope-comparison.md) documenta las adaptaciones y limitaciones conservadas tras su revisión. El usuario pidió corregir específicamente las alertas recientes en OLED, asignadas a Persona 1 en la integración de los tres modos.
+
 Los estados usados en los tres documentos son:
 
 - **Confirmada:** instrucción expresa del usuario o requisito de referencia del brief/PDF. Se identifica su procedencia; no implica que el hardware haya sido validado.
@@ -145,7 +147,7 @@ El acuse del transporte no acredita aplicación del comando ni recepción final 
 | Cebo | HTTP/Telnet simulados, detección, clasificación y límites de recursos. |
 | Registro | Persistencia circular limitada, pendientes, recuperación y deduplicación. |
 | Adaptadores | Validar y transportar contratos, sin decidir modos por separado. |
-| Interfaz física | Mostrar estado y tramitar órdenes del botón mediante el supervisor. |
+| Interfaz física | Mostrar estado y resumen de la alerta más reciente, y tramitar órdenes del botón mediante el supervisor. |
 
 **Recomendación de implementación conservada:** callbacks breves y colas acotadas. No fijar prioridades, afinidades ni optimizaciones sin necesidad funcional.
 
@@ -159,7 +161,7 @@ Todas estas funciones forman parte del MVP, conforme a R-03 y la instrucción vi
 - Ráfagas de desautenticación, desconexiones sospechosas y heurísticas Evil Twin comparando BSSID del mismo SSID, canales, RSSI y seguridad. No asumir que SSID duplicado significa ataque.
 - Indicios compatibles con Karma observables pasivamente, con sus limitaciones documentadas; sin pruebas activas para forzar una conclusión.
 - Eventos, métricas y alertas BLE; gráficos de actividad/volumen, tabla de incidentes con red, canal y tiempo, historial y recuperación de pendientes tras desconexión.
-- Estado OLED y control físico por botón.
+- Estado y resumen de alerta reciente en OLED, y control físico por botón.
 
 **Restricciones conservadas:** sin asociación a la red auditada, MQTT directo, NAT ni auditoría DNS/HTTPS. Alertas como indicios cuando no sean concluyentes; ausencia de alertas no certifica una red segura.
 

@@ -33,9 +33,29 @@ El sistema SHALL conservar historial y recuperar canales tras una desconexión/r
 - **WHEN** se corta BLE/MQTT y reinicia brevemente
 - **THEN** los eventos retenidos reaparecen con identidad estable y pérdidas explícitas
 
+### Requirement: Alertas recientes en OLED
+
+El sistema SHALL mostrar en la OLED un resumen de la alerta más reciente con módulo de origen, tipo y referencia temporal disponible, sin secretos y sin depender de que la app esté abierta o conectada. La presentación SHALL actualizarse con nuevas alertas e indicar explícitamente cuando no exista ninguna.
+
+#### Scenario: Alerta visible sin teléfono
+
+- **WHEN** un módulo genera una alerta real sin teléfono conectado
+- **THEN** la OLED muestra su resumen con el origen y tipo correctos mientras el módulo continúa funcionando
+- **AND** si falta hora UTC, la pantalla usa una referencia relativa o indica hora desconocida sin inventar una fecha
+
+#### Scenario: Ausencia y actualización de alertas
+
+- **WHEN** el dispositivo no tiene alertas recientes y después recibe dos alertas sucesivas
+- **THEN** muestra primero la ausencia de alertas y después actualiza el resumen con la más reciente sin mezclar sus módulos de origen
+
+#### Scenario: Emparejamiento con alerta reciente
+
+- **WHEN** existe una alerta reciente y se abre la ventana física de emparejamiento
+- **THEN** el código de emparejamiento mantiene su prioridad y al terminar vuelve la presentación normal con la alerta reciente
+
 ### Requirement: Entrega funcional completa
 
-La entrega SHALL integrar todo R-03, R-08 y R-10 en ESP32/app, incluidos los tres canales externos y push cerrado.
+La entrega SHALL integrar todo R-03, R-08 y R-10 en ESP32/app, incluidos webhook, push con la app cerrada y alertas recientes en OLED.
 
 #### Scenario: Entrega funcional completa verificable
 
