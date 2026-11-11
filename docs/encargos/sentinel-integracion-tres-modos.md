@@ -8,6 +8,8 @@ Cambios aislados no acreditan recursos compartidos, transiciones, OLED/botón y 
 
 Tres modos completos e integrados, controles físicos y recuperación reales; fallos por componente devueltos a su autor.
 
+**Asignación explícita de Persona 1:** integrar las alertas recientes en la OLED, como exige la página 4 del PDF. Mostrar un resumen de la alerta más reciente con módulo de origen, tipo y referencia temporal disponible, también sin teléfono conectado. Reutilizar eventos/journal del núcleo y conservar la pantalla de emparejamiento; el detalle histórico continúa en la app.
+
 Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-integracion-tres-modos/design.md) y los [casos de aceptación](../../openspec/changes/sentinel-integracion-tres-modos/specs/system-integration/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/sentinel-integracion-tres-modos/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
 
 ## Dependencias para integrar
@@ -40,6 +42,7 @@ Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por ram
 2. **1.2** Verificar matriz de parada/liberación y errores con tests focalizados; documentar recursos por modo en docs/integration-three-modes.md.
 3. **1.3** Integrar OLED/botón con estados de tres módulos; comprobar físicamente modo, error, emparejamiento largo y vuelta Idle por comando sin secretos.
 4. **1.4** Reconciliar canales, boot/revisión y journal en transiciones; probar IDs estables y rechazo de comandos viejos.
+5. **1.5** Integrar el resumen de la alerta más reciente en OLED desde el flujo central; comprobar físicamente origen/tipo/tiempo disponible, ausencia de alertas, actualización con una nueva alerta, operación sin teléfono y prioridad del emparejamiento, sin secretos ni bloqueos.
 ### Comprobación final
 
 1. **2.1** Ejecutar builds y pruebas críticas de firmware, contratos y app; registrar resultados y fallos por dueño sin cambiar código ajeno.
@@ -51,6 +54,6 @@ Antes de editar, revisa `git branch --show-current` y `git status --short`; usa 
 
 El PR debe enlazar esta ficha y la propuesta, describir el cambio e incluir comandos/resultados, hardware/red autorizada cuando aplique, IDs de eventos sin secretos y pruebas pendientes explícitas. Otro integrante revisa. Los commits usan Conventional Commits. No incluir `.env`, claves, tokens, dependencias o compilaciones; conservar código/configuración fuente y lockfiles. El coordinador no ejecuta commits, push, merges ni borra ramas sin autorización explícita.
 
-**Criterio de terminación:** Tres modos completos e integrados, controles físicos y recuperación reales; fallos por componente devueltos a su autor. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
+**Criterio de terminación:** Tres modos completos e integrados, controles físicos, alertas recientes en OLED y recuperación reales; fallos por componente devueltos a su autor. Una pantalla, fixture o mock aislado no acredita integración real. La tarea 1.5 requiere observación de la OLED física, no solo de logs o dashboard. No marcar hardware o recepción push como comprobados si no se ejecutaron.
 
 [Volver al reparto](README.md) · [Propuesta](../../openspec/changes/sentinel-integracion-tres-modos/proposal.md) · [Tareas](../../openspec/changes/sentinel-integracion-tres-modos/tasks.md)

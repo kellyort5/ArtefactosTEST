@@ -22,9 +22,11 @@ Cada enlace abre una ficha con diseño, specs y tareas oficiales. La rama previs
 | 4 | [sentinel-escudo-captura](sentinel-escudo-captura.md) | Modo promiscuo, cola limitada, parser Beacon/Deauth/Disassoc y metadatos Probe, prioridad de objetivo, recorrido de canales, cobertura y start/stop. | Flujo de observaciones para todos los detectores y métricas de captura. |
 | 5 | [sentinel-escudo-detectores](sentinel-escudo-detectores.md) | Ráfagas Deauth, desconexión sospechosa, Evil Twin contextual e indicios Karma pasivos. Conectar los cuatro al parser, eventos y métricas v2. | P4 puede integrar todos los incidentes; P4 recibe casos positivos/negativos para laboratorio. |
 | 6 | [sentinel-escudo-recuperacion](sentinel-escudo-recuperacion.md) | Journal compartido, recuperación tras BLE/reinicio, cursor/gap y cobertura. Intentar captura+BLE concurrentes; si fallan, pausa controlada con cobertura visible y todas las funciones conservadas. | Cierre del Escudo y prueba conjunta de historial sin duplicados. |
-| 7 | [sentinel-integracion-tres-modos](sentinel-integracion-tres-modos.md) | Registrar módulos entregados, verificar parada/exclusión, OLED/botón, reconciliación de estado/transportes/journal y recorrido final de tres modos. | Entrega conjunta de ESP32/app/alertas con evidencia de todos. |
+| 7 | [sentinel-integracion-tres-modos](sentinel-integracion-tres-modos.md) | Registrar módulos entregados, verificar parada/exclusión, OLED/botón y resumen de la alerta más reciente, reconciliación de estado/transportes/journal y recorrido final de tres modos. | Entrega conjunta de ESP32/app/alertas con evidencia de todos. |
 
 El encargo 7 espera las dependencias enumeradas en su ficha. No es una autorización para programar las pantallas o reparar el código Sanitizador/Cebo de otro autor.
+
+La **tarea 1.5 del encargo 7 es tuya**: conectar las alertas del núcleo a la OLED y comprobar su resumen físicamente, sin depender de abrir la app. Cubrir ausencia de alertas, sustitución por una nueva, módulo de origen, tiempo disponible y prioridad del código de emparejamiento. Las demás diferencias respecto al PDF se documentan en la [comparación de alcance](../pdf-scope-comparison.md); no se añaden nuevas funciones por esa revisión.
 
 ## 3. Qué hacer primero
 

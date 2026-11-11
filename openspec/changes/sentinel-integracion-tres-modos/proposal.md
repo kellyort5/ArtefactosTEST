@@ -8,6 +8,7 @@ Cambios aislados no acreditan recursos compartidos, transiciones, OLED/botón y 
 
 - Responsable único: **Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
 - Entregar integración final de los tres modos conforme a R-03, R-05, R-06, R-07, R-08, R-10 y R-11.
+- Asignar a Persona 1 las alertas recientes en OLED conforme a la página 4 del PDF: mostrar un resumen de la alerta más reciente sin depender de abrir la app y comprobarlo en la pantalla física.
 - Cierre observable: Tres modos completos e integrados, controles físicos y recuperación reales; fallos por componente devueltos a su autor.
 - Dependencias de integración: `sentinel-escudo-recuperacion`, `sentinel-sanitizador-doh`, `sentinel-cebo-eventos-historial`, `sentinel-app-escudo`, `sentinel-app-sanitizador`, `sentinel-app-push`, `sentinel-broker-lan`.
 - Esta propuesta solo planifica. No implementa funcionalidades ajenas a la capacidad ni modifica la evidencia de la base.
