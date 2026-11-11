@@ -1,6 +1,6 @@
 # Encargo: Contratos funcionales compartidos
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-module-contracts`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** implementación y comprobaciones técnicas publicadas en el [PR #2](https://github.com/Jefry-P/ArtefactosProyecto/pull/2); revisión final del usuario pendiente en la tarea 2.2. Ver [evidencia y límites](../../contracts/evidence-v2.md). **Rama:** `feat/sentinel-module-contracts`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 

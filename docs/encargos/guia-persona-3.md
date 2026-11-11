@@ -1,6 +1,6 @@
 # Guía de Persona 3 — Cebo y servidor de alertas
 
-Entregas el Módulo 3 completo y el componente que envía webhook, y push. Persona 4 hace la UI y recibe el push en Android; tú implementas el envío en servidor. El Cebo es un servicio ficticio seguro en una LAN autorizada, sin administración real ni ejecución de comandos.
+Entregas el Módulo 3 completo y el componente que envía webhook, Telegram y push. Persona 4 hace la UI y recibe el push en Android; tú implementas el envío en servidor. El Cebo es un servicio ficticio seguro en una LAN autorizada, sin administración real ni ejecución de comandos.
 
 ## 1. Qué leer antes de programar
 
@@ -54,13 +54,13 @@ Una rama `feat/<nombre completo del cambio>` y un PR por encargo. No abrir dos i
 4. Documentar umbrales/retención; comprobar HTTP/Telnet reales y recepción MQTT con identidad autorizada.
 5. Cortar/restaurar broker y reiniciar brevemente; recuperar eventos con mismo ID y huecos visibles si se sobreescribió el anillo, sin duplicar incidentes.
 
-### D. sentinel-alertas-webhook
+### D. sentinel-alertas-webhook-telegram
 
 [Ficha, diseño, spec y tareas](sentinel-alertas-webhook-telegram.md). Requiere contratos, broker LAN y eventos Cebo.
 
 1. Crear componente Node mínimo con package/lockfile y Compose propios. Consumir MQTT TLS con rol de lectura limitado a nodos autorizados; pedir ACL a P4.
 2. Implementar enrutado, dedup y outbox persistente acotada con reintentos/vencimiento. No convertirlo en una plataforma histórica adicional.
-3. Integrar webhook HTTPS con destinos/cuentas propios configurados fuera de Git. Mantener independientes los fallos de cada canal.
+3. Integrar webhook HTTPS y Telegram con destinos/cuentas propios configurados fuera de Git. Mantener independientes los fallos de cada canal.
 4. Implementar estado por HTTPS con autenticación por nodo y CORS explícito conforme al contrato; no devolver tokens/destinos privados.
 5. Documentar configuración/arranque/retención en `notifications/README.md` y documento del módulo. Recibir una alerta de un incidente real en ambos destinos, repetirlo y comprobar supresión y recuperación limitada.
 
@@ -119,6 +119,6 @@ No exponer HTTP/Telnet a Internet ni abrir puertos del router. Limitar recursos 
 | P2 | Acordar turnos de ESP32; no modificar Sanitizador ni ejecutar ambos modos a la vez en una placa. |
 | P4 | Recibir broker TLS/WSS y rol mínimo; entregar API de estado/registro y servidor push. Él implementa la UI, registro Android y recepción/tap. |
 
-Tu cierre requiere servicios reales, eventos válidos, persistencia/replay sin secretos, webhook recibidos y envío push real con evidencia coordinada de recepción Android. Entregar por número de tarea, comandos y resultados; P4 consolida y Jefry mantiene OpenSpec. Usa el [formato de entrega](guia-equipo.md#6-rutina-por-tarea-y-entrega) y conserva pendientes físicos como PENDIENTE.
+Tu cierre requiere servicios reales, eventos válidos, persistencia/replay sin secretos, webhook y Telegram recibidos y envío push real con evidencia coordinada de recepción Android. Entregar por número de tarea, comandos y resultados; P4 consolida y Jefry mantiene OpenSpec. Usa el [formato de entrega](guia-equipo.md#6-rutina-por-tarea-y-entrega) y conserva pendientes físicos como PENDIENTE.
 
 [Volver al reparto](README.md) · [Guía del equipo](guia-equipo.md)
