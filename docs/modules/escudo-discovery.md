@@ -2,7 +2,7 @@
 
 Responsable: Persona 1. Cambio: [sentinel-escudo-descubrimiento](../../openspec/changes/sentinel-escudo-descubrimiento/proposal.md). Se integra con la [API de módulos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) y el [contrato v2](../../contracts/module-protocol.md). El firmware incluye `firmware/components/escudo/` y habilita `CONFIG_SENTINEL_MODULE_ESCUDO=y` en defaults y configuración mantenida.
 
-Este incremento implementa descubrimiento y objetivo en el ESP32. Captura, detectores y recuperación específica del Escudo corresponden a sus cambios siguientes: sus capacidades siguen en `false` y `escudo.capture_start` y `escudo.capture_stop` devuelven `not_implemented`. El catálogo no clasifica amenazas ni interpreta SSID duplicados como maliciosos.
+Este incremento implementa descubrimiento y objetivo en el ESP32. Captura, detectores y recuperación específica del Escudo corresponden a sus cambios siguientes: sus capacidades siguen en `false` y el núcleo rechaza las órdenes de captura según el contexto y la disponibilidad del componente. El catálogo no clasifica amenazas ni interpreta SSID duplicados como maliciosos.
 
 ## Recorrido y operaciones
 
