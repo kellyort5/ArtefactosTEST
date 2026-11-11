@@ -6,7 +6,7 @@
 
 La implementación incremental determina el orden, no una reducción del alcance. Evil Twin, indicios Karma pasivos, Telnet, almacenamiento persistente, sincronización, webhooks, Telegram y push con la app cerrada no son ampliaciones posteriores al MVP.
 
-**Sanitizador desde la primera ronda:** su responsable implementa auditoría, pasarela IPv4, filtrado DNS y DoH conforme a R-08 mientras avanzan Escudo, Cebo y app. Las propuestas funcionales posteriores concretarán las dependencias.
+**Sanitizador desde la primera ronda:** su responsable implementa auditoría, pasarela IPv4, filtrado DNS y DoH conforme a R-08 mientras avanzan Escudo, Cebo y app. La [asignación por cambio](encargos/README.md) concreta el orden y las dependencias.
 
 Referencias: [arquitectura](architecture.md), [R-11 e hipótesis](technical-decisions.md), [brief](brief.md) y PDF identificado en arquitectura. Las decisiones funcionales de R-03, R-06, R-07 y R-10 se conservan; cambia la programación de su implementación y validación.
 
@@ -176,7 +176,7 @@ Las hipótesis son pendientes de observación, no prerrequisitos de investigaci�
 
 ## División en cambios OpenSpec pequeños
 
-Cada cambio funcional posterior tendrá un único autor. La base archivada conserva su seguimiento y sus validaciones pendientes aceptadas. La división prevista es:
+La planificación se concreta en [23 cambios con un autor por cambio](encargos/README.md). La base existente conserva su seguimiento independiente. La división es:
 
 - Base: arranque/configuración S3; supervisor y periféricos; contratos y BLE/Android; MQTT seguro; registro persistente.
 - Escudo: catálogo/selección; captura/parser; detectores; dashboard BLE; recuperación/coexistencia.
@@ -186,7 +186,7 @@ Cada cambio funcional posterior tendrá un único autor. La base archivada conse
 
 Un cambio puede cubrir una parte integrable de una funcionalidad; las tareas solo se marcan completas por el comportamiento que especifique ese cambio. Toda parte pendiente mantiene trazabilidad al alcance final del MVP. No mover funcionalidades prioritarias al backlog posterior para declarar éxito antes.
 
-Los encargos funcionales deberán enlazar proposal, design, specs y tasks para revisión. El coordinador utiliza `$openspec-apply-change` cuando se solicite implementar un cambio concreto; sus compañeros pueden seguir directamente sus fichas sin usar el CLI. No hace falta volver a investigar ni pedir aprobación del alcance o stack ya confirmados. Las decisiones arquitectónicas nuevas se revisan en el diseño de cada cambio antes de aplicarlas.
+Los encargos enlazan proposal, design, specs y tasks ya preparados para revisión. El coordinador utiliza `$openspec-apply-change` cuando se solicite implementar un cambio concreto; sus compañeros pueden seguir directamente sus fichas sin usar el CLI. No hace falta volver a investigar ni pedir aprobación del alcance o stack ya confirmados. Las decisiones arquitectónicas nuevas propuestas se identifican en el índice y se revisan antes de aplicarlas.
 
 ## Límites y pendientes
 

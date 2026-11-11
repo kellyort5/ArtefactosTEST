@@ -4,7 +4,7 @@
 
 Este documento conserva decisiones y alternativas de la exploración y registra la estrategia de desarrollo acelerado aprobada por el usuario. Solo las instrucciones expresas y las aprobaciones existentes se presentan como acuerdos. Las etiquetas **Confirmada**, **Recomendación** e **Hipótesis pendiente de validar** tienen el significado definido en [arquitectura](architecture.md#estado-y-fuentes). El [roadmap](roadmap.md) propone cuándo resolverlas.
 
-La referencia funcional es [brief.md](brief.md) y el PDF identificado en arquitectura. La instrucción del 2026-11-10 mantiene la ESP32-S3-DevKitC-1 N16R8 e incorpora Auditor/Sanitizador al desarrollo paralelo desde la primera ronda. La entrega comprende los tres módulos completos y la aplicación. Los encargos funcionales posteriores se publicarán por separado.
+La referencia funcional es [brief.md](brief.md) y el PDF identificado en arquitectura. La instrucción del 2026-11-10 mantiene la ESP32-S3-DevKitC-1 N16R8 e incorpora Auditor/Sanitizador al desarrollo paralelo desde la primera ronda. La entrega comprende los tres módulos completos y la aplicación. El reparto y sus dependencias figuran en [encargos/README.md](encargos/README.md).
 
 ## Decisiones confirmadas y requisitos de referencia
 

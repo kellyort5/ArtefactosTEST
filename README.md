@@ -28,6 +28,7 @@ Workspaces npm privados: `app/` y `contracts/`, un solo `package-lock.json`. `fi
 - [Evidencia de app y contratos](app/evidence.md)
 - [Comprobación integral](docs/core-foundation-check.md)
 - [Guía de prueba con ESP32 y Android](docs/core-foundation-test-guide.md)
+- [Reparto para cuatro integrantes: 23 cambios y encargos individuales](docs/encargos/README.md)
 - [Brief](docs/brief.md), [arquitectura](docs/architecture.md), [decisiones](docs/technical-decisions.md), [roadmap](docs/roadmap.md) y [contribución](CONTRIBUTING.md)
 
 Los secretos de laboratorio se suministran en ejecución y permanecen en rutas ignoradas y RAM según el diseño. Todas las pruebas de redes requieren un entorno propio/autorizado. El usuario autorizó continuar con teléfono, ESP32 y emulador Android. La guía de prueba indica las comprobaciones y el informe integral conserva sus resultados observados.
