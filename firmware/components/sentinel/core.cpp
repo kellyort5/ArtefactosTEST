@@ -1,4 +1,5 @@
 #include "core.h"
+#include "protocol_v2.h"
 #include <cctype>
 #include <cmath>
 #include <cstdio>
@@ -154,7 +155,9 @@ static bool characters(const cJSON *o, const char *k, size_t min, size_t max) {
       ++n;
   return n >= min && n <= max;
 }
-static bool json_text_valid(const char *bytes, size_t n) {
+bool json_text_valid(const char *bytes, size_t n, bool extended) {
+  if (!bytes || !n || n > MaxMessage)
+    return false;
   bool quoted = false;
   unsigned depth = 0;
   for (size_t i = 0; i < n; ++i) {
@@ -191,11 +194,12 @@ static bool json_text_valid(const char *bytes, size_t n) {
     if (!c)
       return false;
     if (!quoted) {
-      if (c == '[' || c == ']')
+      if (!extended && (c == '[' || c == ']'))
         return false;
-      if (c == '{' && ++depth > 3)
+      if ((c == '{' || (extended && c == '[')) &&
+          ++depth > (extended ? 32U : 3U))
         return false;
-      if (c == '}') {
+      if (c == '}' || (extended && c == ']')) {
         if (!depth)
           return false;
         --depth;
@@ -378,6 +382,24 @@ const char *Command::parse(const char *bytes, size_t n) {
     return "invalid_message";
   return nullptr;
 }
+const char *Command::parse_v2(const char *bytes, size_t n) {
+  root = v2::parse(bytes, n);
+  if (!root)
+    return "invalid_message";
+  auto p = cJSON_GetObjectItemCaseSensitive(root, "payload");
+  if (id_valid(str(p, "command_id")))
+    snprintf(id, sizeof(id), "%s", str(p, "command_id"));
+  version = number(root, "version");
+  if (version != 2)
+    return "unsupported_version";
+  if (!v2::validate("command", root))
+    return "invalid_message";
+  snprintf(operation, sizeof(operation), "%s", str(p, "operation"));
+  revision = number(p, "expected_revision");
+  expiry = number(p, "expires_at_uptime_ms");
+  args = cJSON_GetObjectItemCaseSensitive(p, "args");
+  return nullptr;
+}
 const char *operation_error(const Command &c) {
   if (!strcmp(c.operation, "start_capture") ||
       !strcmp(c.operation, "start_honeypot") ||
@@ -389,11 +411,13 @@ const char *operation_error(const Command &c) {
 const char *CommandGate::check(const Command &c, const char *device,
                                const char *boot, uint64_t rev, uint64_t now,
                                bool authorized, bool retained,
-                               const uint8_t digest[32],
-                               const Result **cached) {
+                               const uint8_t digest[32], const Result **cached,
+                               const char *admission_error) {
   *cached = nullptr;
-  if (!authorized || retained)
+  if (!authorized)
     return "unauthorized";
+  if (retained)
+    return c.version == 2 ? "invalid_message" : "unauthorized";
   if (strcmp(str(c.root, "device_id"), device))
     return "unauthorized";
   auto p = cJSON_GetObjectItemCaseSensitive(c.root, "payload");
@@ -402,6 +426,8 @@ const char *CommandGate::check(const Command &c, const char *device,
     return "wrong_boot";
   if (c.expiry <= now || c.expiry - now > 30000)
     return "expired";
+  if (admission_error)
+    return admission_error;
   for (auto &e : entries)
     if (e.used && !strcmp(e.id, c.id)) {
       if (memcmp(e.digest, digest, 32))
@@ -492,7 +518,7 @@ int Button::update(bool down, uint64_t now) {
   return 0;
 }
 static bool record(const char *data, size_t n, uint64_t *cursor) {
-  if (!n || n > MaxMessage || !json_text_valid(data, n))
+  if (!n || n > MaxMessage || !json_text_valid(data, n, true))
     return false;
   const char *end = nullptr;
   auto j = cJSON_ParseWithLengthOpts(data, n, &end, false);
@@ -542,6 +568,8 @@ static bool record(const char *data, size_t n, uint64_t *cursor) {
                                     : ((!strcmp(quality, "app_sync") ||
                                         !strcmp(quality, "network_sync")) &&
                                        utc_valid(str(j, "timestamp"))));
+  if (number(j, "version") == 2)
+    ok = v2::clean(j) && v2::validate("event", j);
   if (ok)
     *cursor = number(p, "journal_seq");
   cJSON_Delete(j);
@@ -644,7 +672,10 @@ Result Journal::page(uint64_t after, size_t limit, uint64_t *out,
   return r;
 }
 const char *profile_name(Profile p) {
-  return p == Profile::Escudo ? "escudo" : p == Profile::Cebo ? "cebo" : "idle";
+  return p == Profile::Escudo        ? "escudo"
+         : p == Profile::Cebo        ? "cebo"
+         : p == Profile::Sanitizador ? "sanitizador"
+                                     : "idle";
 }
 const char *requested_profile(const char *mode, Profile *out) {
   if (!mode)

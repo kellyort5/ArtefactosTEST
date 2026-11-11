@@ -24,3 +24,18 @@ for path in sorted((repo / 'contracts/fixtures').glob('*.json')):
     result = subprocess.run([str(binary), 'parse', str(path)], capture_output=True, text=True, cwd=repo)
     assert (result.returncode == 0) == ('.valid.' in path.name), path.name
 print('Shared command fixtures -> C++ cJSON parser: PASS')
+
+# Same native predicates compiled into the ESP32; exercise all v2 core fixtures.
+checked=0
+for path in sorted((repo/'contracts/fixtures/v2').rglob('*.json')):
+    if 'notifications' in path.parts:
+        continue
+    data=json.loads(path.read_text())
+    if not data.get('type') and 'max_message_bytes' not in data:
+        continue
+    result=subprocess.run([str(binary),'v2',str(path)],capture_output=True,cwd=repo)
+    assert (result.returncode==0)==('.valid.' in path.name),path
+    checked+=1
+print(f'Shared v2 fixtures -> native schema/semantic validation: PASS ({checked})')
+wire=subprocess.check_output([str(binary),'wire2'],cwd=repo)
+subprocess.run(['node','--input-type=module','-e',node.replace('decodeMessage','decodeModuleMessage')],input=wire,cwd=repo,env=env,check=True)

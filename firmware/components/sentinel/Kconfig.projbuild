@@ -16,3 +16,15 @@ config SENTINEL_BUTTON
     range 0 48
     default 4
 endmenu
+
+menu "Sentinel optional modules"
+config SENTINEL_MODULE_ESCUDO
+    bool "Register escudo component (must exist)"
+    default n
+config SENTINEL_MODULE_SANITIZADOR
+    bool "Register sanitizador component (must exist)"
+    default n
+config SENTINEL_MODULE_CEBO
+    bool "Register cebo component (must exist)"
+    default n
+endmenu

@@ -1,5 +1,6 @@
 #pragma once
 #include "cJSON.h"
+#include "module_api.hpp"
 #include <cstddef>
 #include <cstdint>
 namespace sentinel {
@@ -9,6 +10,7 @@ constexpr uint64_t MaxInteger = 9007199254740991ULL;
 uint64_t monotonic_ms();
 void wipe(void *p, size_t n);
 bool id_valid(const char *s);
+bool json_text_valid(const char *, size_t, bool extended = false);
 bool utc_valid(const char *s);
 bool mqtt_uri_valid(const char *s);
 bool integer(const cJSON *j, uint64_t min = 0, uint64_t max = MaxInteger);
@@ -45,6 +47,8 @@ struct Command {
   cJSON *root = nullptr, *args = nullptr;
   char id[65] = {}, operation[32] = {};
   uint64_t revision = 0, expiry = 0;
+  unsigned version = 1;
+  const char *parse_v2(const char *, size_t);
   ~Command();
   const char *parse(const char *bytes, size_t n);
 };
@@ -59,6 +63,7 @@ struct Result {
   bool more = false, gap = false;
   uint64_t cursors[8] = {};
   size_t count = 0;
+  char body[ModuleJsonBytes + 1] = {};
 };
 struct CacheEntry {
   bool used = false;
@@ -75,7 +80,8 @@ public:
   const char *check(const Command &, const char *device, const char *boot,
                     uint64_t revision, uint64_t now, bool authorized,
                     bool retained, const uint8_t digest[32],
-                    const Result **cached);
+                    const Result **cached,
+                    const char *admission_error = nullptr);
   void remember(const Command &, const uint8_t digest[32], const Result &);
   void remember_id(const char *id, const uint8_t digest[32], const Result &);
   const char *lookup(const char *id, const uint8_t digest[32],
@@ -121,7 +127,7 @@ public:
   size_t count() const;
   Result page(uint64_t after, size_t limit, uint64_t *cursors, size_t *n) const;
 };
-enum class Profile { Idle, Escudo, Cebo };
+using Profile = Mode;
 const char *profile_name(Profile);
 const char *requested_profile(const char *mode, Profile *out);
 struct Resources {
@@ -129,6 +135,9 @@ struct Resources {
   virtual bool stop_network() = 0;
   virtual bool network_released() const = 0;
   virtual bool start_cebo() = 0;
+  virtual bool start_profile(Profile p) {
+    return p != Profile::Cebo || start_cebo();
+  }
 };
 struct Runtime {
   Profile profile = Profile::Idle;

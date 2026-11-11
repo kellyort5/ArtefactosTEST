@@ -10,9 +10,11 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "mbedtls/sha256.h"
+#include "module_runtime.h"
 #include "network.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include "protocol_v2.h"
 #include "sentinel.h"
 #include "wire.h"
 #include <algorithm>
@@ -25,8 +27,67 @@ namespace sentinel {
 uint64_t monotonic_ms() { return esp_timer_get_time() / 1000; }
 static char device_id[65] = {}, boot_id[65] = {};
 static Runtime runtime;
+static Profile previous_profile = Profile::Idle;
+static bool button_transition_pending = false;
 static Network network;
 static CommandGate gate;
+static std::atomic<uint64_t> dropped_messages{0};
+static ModuleSupervisor modules(runtime, network);
+static ModuleOutputQueue module_outputs;
+class CoreContext : public ModuleContext {
+  Profile mode;
+  ModuleLease lease;
+
+public:
+  explicit CoreContext(Profile p) : mode(p), lease(modules, p, network) {}
+  uint64_t now_ms() const override { return monotonic_ms(); }
+  ModuleResources &resources() override { return lease; }
+  bool emit_event(const char *name, const char *severity, const char *details,
+                  bool simulated) override {
+    if (!modules.active(mode) || !name || !severity || !details ||
+        strlen(name) >= 40 || strlen(severity) >= 12 ||
+        strlen(details) > ModuleJsonBytes)
+      return false;
+    ModuleOutput out;
+    out.mode = mode;
+    out.simulated = simulated;
+    strcpy(out.name, name);
+    strcpy(out.severity, severity);
+    strcpy(out.json, details);
+    return module_outputs.push(out);
+  }
+  bool publish_metrics(uint32_t interval, const char *values) override {
+    if (!modules.active(mode) || !values || strlen(values) > ModuleJsonBytes)
+      return false;
+    ModuleOutput out;
+    out.mode = mode;
+    out.metric = true;
+    out.interval_ms = interval;
+    strcpy(out.json, values);
+    return module_outputs.push(out);
+  }
+};
+static CoreContext escudo_context(Profile::Escudo),
+    sanitizador_context(Profile::Sanitizador), cebo_context(Profile::Cebo);
+static bool registration_open = false;
+bool register_module(Mode mode, Module &m) {
+  if (!registration_open)
+    return false;
+  auto &ctx = mode == Profile::Escudo        ? escudo_context
+              : mode == Profile::Sanitizador ? sanitizador_context
+                                             : cebo_context;
+  bool ok = modules.add(mode, m, ctx);
+  if (!ok)
+    runtime.error = "resource_error";
+  return ok;
+}
+static struct TransitionCommand {
+  bool pending = false;
+  Result result;
+  Channel channel = Channel::Ble;
+  uint32_t session = 0;
+  uint8_t digest[32] = {};
+} transition_command;
 static bool has_oled = false, has_button = false;
 static std::atomic<bool> has_time{false};
 static std::atomic<uint64_t> message_seq{0};
@@ -87,6 +148,7 @@ struct BusyResult {
   uint32_t session;
   bool cache = false, lookup_only = false;
   uint64_t expiry = 0;
+  char operation[32] = {};
   uint8_t digest[32] = {};
   const char *status = "rejected";
 };
@@ -115,6 +177,7 @@ static Envelope context(char timestamp[33]) {
       e.quality = "app_sync";
     }
   }
+  e.version = 2;
   return e;
 }
 static bool send_raw(Channel ch, const char *json, size_t n, uint32_t session,
@@ -129,9 +192,10 @@ static bool send_payload(Channel ch, const char *type, cJSON *p,
   bool ok = serialize(envelope(context(timestamp), type, p), json);
   if (ok)
     ok = send_raw(ch, json, strlen(json), session,
-                  !strcmp(type, "ack")     ? "acks"
-                  : !strcmp(type, "event") ? "events"
-                                           : "state");
+                  !strcmp(type, "ack")       ? "acks"
+                  : !strcmp(type, "event")   ? "events"
+                  : !strcmp(type, "metrics") ? "metrics"
+                                             : "state");
   return ok;
 }
 static void update_snapshot() {
@@ -139,7 +203,7 @@ static void update_snapshot() {
     return;
   xSemaphoreTake(snapshot_lock, portMAX_DELAY);
   snprintf(snapshot, sizeof(snapshot),
-           "{\"version\":1,\"device_id\":\"%s\",\"boot_id\":\"%s\","
+           "{\"version\":2,\"device_id\":\"%s\",\"boot_id\":\"%s\","
            "\"revision\":%llu,\"uptime_ms\":%llu,\"max_message_bytes\":2048}",
            device_id, boot_id,
            static_cast<unsigned long long>(runtime.revision),
@@ -162,14 +226,17 @@ bool post(Signal s) {
     return false;
   Request r;
   r.signal = s;
-  return xQueueSend(requests, &r, 0) == pdTRUE;
+  bool ok = xQueueSend(requests, &r, 0) == pdTRUE;
+  if (!ok)
+    ++dropped_messages;
+  return ok;
 }
 static void busy(Channel ch, const char *data, size_t n, bool authorized,
                  bool retained, uint32_t session) {
   if (!authorized || retained)
     return;
   Command c;
-  if (c.parse(data, n))
+  if (c.parse_v2(data, n))
     return;
   char json[257];
   if (!metadata(json, sizeof(json)))
@@ -180,6 +247,7 @@ static void busy(Channel ch, const char *data, size_t n, bool authorized,
   auto p = cJSON_GetObjectItemCaseSensitive(c.root, "payload");
   uint64_t now = monotonic_ms();
   if (strcmp(str(c.root, "device_id"), device_id) ||
+      strcmp(str(c.root, "boot_id"), boot_id) ||
       strcmp(str(p, "target_boot_id"), boot_id) || c.expiry <= now ||
       c.expiry - now > 30000)
     return;
@@ -191,6 +259,7 @@ static void busy(Channel ch, const char *data, size_t n, bool authorized,
   // resource manager.
   BusyResult report{r, ch, session};
   report.expiry = c.expiry;
+  strcpy(report.operation, c.operation);
   report.cache = digest_command(c, report.digest);
   if (busy_results)
     xQueueSend(busy_results, &report, 0);
@@ -200,7 +269,7 @@ bool submit(Channel ch, const char *json, size_t n, bool auth, bool retained,
   if (!requests || !n || n > MaxMessage)
     return false;
   Command c;
-  const char *validation = c.parse(json, n);
+  const char *validation = c.parse_v2(json, n);
   uint8_t hash[32] = {};
   bool identified = !validation && auth && !retained;
   auto payload = cJSON_GetObjectItemCaseSensitive(c.root, "payload");
@@ -222,6 +291,7 @@ bool submit(Channel ch, const char *json, size_t n, bool auth, bool retained,
     report.channel = ch;
     report.session = session;
     report.expiry = c.expiry;
+    strcpy(report.operation, c.operation);
     report.lookup_only = slot == -2;
     memcpy(report.digest, hash, 32);
     report.status = slot == -2 ? "accepted" : "rejected";
@@ -232,6 +302,7 @@ bool submit(Channel ch, const char *json, size_t n, bool auth, bool retained,
   }
   wipe(hash, sizeof(hash));
   if (slot < 0) {
+    ++dropped_messages;
     busy(ch, json, n, auth, retained, session);
     return false;
   }
@@ -252,28 +323,28 @@ bool submit(Channel ch, const char *json, size_t n, bool auth, bool retained,
   portENTER_CRITICAL(&pool_lock);
   pending.release(slot);
   portEXIT_CRITICAL(&pool_lock);
+  ++dropped_messages;
   busy(ch, json, n, auth, retained, session);
   return false;
 }
 static void state(Channel ch, uint32_t session = 0) {
   send_payload(ch, "state",
-               state_payload(runtime, ble_status(), network.wifi_state,
-                             network.mqtt_state, has_oled, has_button,
-                             store.ready && !journal.degraded,
-                             strcmp(ble_status(), "stopped") != 0),
+               module_state_payload(runtime, modules, ble_status(),
+                                    network.wifi_state, network.mqtt_state,
+                                    has_oled, has_button,
+                                    store.ready && !journal.degraded),
                session);
 }
 static void publish_state() {
   if (!network.connected())
     return;
   char timestamp[33], json[MaxMessage + 1];
-  if (serialize(
-          envelope(context(timestamp), "state",
-                   state_payload(runtime, ble_status(), network.wifi_state,
-                                 network.mqtt_state, has_oled, has_button,
-                                 store.ready && !journal.degraded,
-                                 strcmp(ble_status(), "stopped") != 0)),
-          json))
+  if (serialize(envelope(context(timestamp), "state",
+                         module_state_payload(
+                             runtime, modules, ble_status(), network.wifi_state,
+                             network.mqtt_state, has_oled, has_button,
+                             store.ready && !journal.degraded)),
+                json))
     network.publish("state", json, strlen(json), 1, true);
 }
 static void event(const char *name, const char *code = nullptr) {
@@ -283,9 +354,19 @@ static void event(const char *name, const char *code = nullptr) {
   }
   char timestamp[33], json[MaxMessage + 1];
   uint64_t cursor = journal.highest + 1;
-  if (!serialize(envelope(context(timestamp), "event",
-                          event_payload(cursor, name, runtime.profile, code)),
-                 json) ||
+  char details[96];
+  snprintf(details, sizeof(details), "{\"previous_profile\":\"%s\"}",
+           profile_name(previous_profile));
+  if (!serialize(
+          envelope(context(timestamp), "event",
+                   module_event_payload(
+                       cursor, name, runtime.profile, code,
+                       !strcmp(name, "system.error")
+                           ? "{\"resource\":\"system\"}"
+                       : !strcmp(name, "system.profile_changed") ? details
+                                                                 : "{}",
+                       code ? "error" : "info")),
+          json) ||
       !journal.append(json, strlen(json), cursor)) {
     runtime.error = "resource_error";
     return;
@@ -308,7 +389,7 @@ static bool page(Channel ch, const Result &r, uint32_t session) {
 static void handle(Request &r) {
   auto &slot = slots[r.slot];
   Command c;
-  const char *error = c.parse(slot.bytes, slot.size);
+  const char *error = c.parse_v2(slot.bytes, slot.size);
   Result result;
   result.revision = runtime.revision;
   if (!*c.id) { // Malformed orders without a usable correlation ID get only a
@@ -319,7 +400,8 @@ static void handle(Request &r) {
   strcpy(result.id, c.id);
   if (error) {
     result.error = error;
-    send_payload(r.channel, "ack", ack_payload(result, "rejected"), r.session);
+    send_payload(r.channel, "ack", module_ack_payload(result, "rejected"),
+                 r.session);
     return;
   }
   if (r.channel == Channel::Ble && r.session != ble_session())
@@ -327,12 +409,15 @@ static void handle(Request &r) {
   uint8_t hash[32] = {};
   if (!digest_command(c, hash)) {
     result.error = "resource_error";
-    send_payload(r.channel, "ack", ack_payload(result, "rejected"), r.session);
+    send_payload(r.channel, "ack", module_ack_payload(result, "rejected"),
+                 r.session);
     return;
   }
   const Result *cached = nullptr;
+  const char *channel_error =
+      v2::admission(c, r.channel, runtime.profile, true, false);
   error = gate.check(c, device_id, boot_id, runtime.revision, monotonic_ms(),
-                     r.authorized, r.retained, hash, &cached);
+                     r.authorized, r.retained, hash, &cached, channel_error);
   if (!error &&
       (!strcmp(c.operation, "configure_connectivity") ||
        !strcmp(c.operation, "set_time")) &&
@@ -342,7 +427,19 @@ static void handle(Request &r) {
     result.error = error;
     if (!strcmp(error, "revision_conflict"))
       gate.remember(c, hash, result);
-    send_payload(r.channel, "ack", ack_payload(result, "rejected"), r.session);
+    send_payload(r.channel, "ack", module_ack_payload(result, "rejected"),
+                 r.session);
+    return;
+  }
+  if (transition_command.pending &&
+      !strcmp(c.id, transition_command.result.id)) {
+    result.error =
+        memcmp(hash, transition_command.digest, 32) ? "id_conflict" : nullptr;
+    send_payload(
+        r.channel, "ack",
+        module_ack_payload(result, result.error ? "rejected" : "accepted"),
+        r.session);
+    wipe(hash, sizeof(hash));
     return;
   }
   if (cached) {
@@ -350,25 +447,41 @@ static void handle(Request &r) {
       return;
     if (!strcmp(c.operation, "get_state"))
       state(r.channel, r.session);
-    send_payload(r.channel, "ack",
-                 ack_payload(*cached, cached->error ? "rejected" : "applied"),
-                 r.session);
+    send_payload(
+        r.channel, "ack",
+        module_ack_payload(*cached, cached->error ? "rejected" : "applied"),
+        r.session);
     return;
   }
-  error = operation_error(c);
+  error = modules.transitioning() ? "busy" : nullptr;
   if (error) {
     result.error = error;
     gate.remember(c, hash, result);
-    send_payload(r.channel, "ack", ack_payload(result, "rejected"), r.session);
+    send_payload(r.channel, "ack", module_ack_payload(result, "rejected"),
+                 r.session);
     return;
   }
-  send_payload(r.channel, "ack", ack_payload(result, "accepted"), r.session);
+  send_payload(r.channel, "ack", module_ack_payload(result, "accepted"),
+               r.session);
   if (!strcmp(c.operation, "set_mode")) {
     const char *mode = str(c.args, "mode");
     Profile target;
-    error = requested_profile(mode, &target);
+    if (!strcmp(mode, "sanitizador"))
+      target = Profile::Sanitizador;
+    else
+      error = requested_profile(mode, &target);
     if (!error) {
-      error = runtime.transition(target, network);
+      previous_profile = runtime.profile;
+      error = modules.transition(target, monotonic_ms());
+      if (!error && modules.transitioning()) {
+        transition_command.pending = true;
+        transition_command.result = result;
+        transition_command.channel = r.channel;
+        transition_command.session = r.session;
+        memcpy(transition_command.digest, hash, 32);
+        wipe(hash, sizeof(hash));
+        return;
+      }
       if (!error) {
         strcpy(runtime.last_command, c.id);
         event("system.profile_changed");
@@ -435,15 +548,32 @@ static void handle(Request &r) {
       else if (!send_raw(r.channel, json, len, r.session, "events"))
         error = "busy";
     }
-  } else
-    error = "not_implemented";
+  } else {
+    ModuleReply reply;
+    error = modules.dispatch(c, reply);
+    if (!error) {
+      if (reply.job)
+        snprintf(result.body, sizeof(result.body),
+                 "{\"kind\":\"job\",\"job_id\":\"%s\"}", c.id);
+      else
+        snprintf(result.body, sizeof(result.body), "%s", reply.result);
+      if (strcmp(c.operation, "escudo.networks") &&
+          strcmp(c.operation, "sanitizador.clients") &&
+          strcmp(c.operation, "sanitizador.rules.list") &&
+          strcmp(c.operation, "sanitizador.audit_result") &&
+          strcmp(c.operation, "cebo.stats"))
+        ++runtime.revision;
+      strcpy(runtime.last_command, c.id);
+    }
+  }
   result.error = error;
   result.revision = runtime.revision;
   gate.remember(c, hash, result);
   wipe(hash, sizeof(hash));
   update_snapshot();
   send_payload(r.channel, "ack",
-               ack_payload(result, error ? "rejected" : "applied"), r.session);
+               module_ack_payload(result, error ? "rejected" : "applied"),
+               r.session);
   publish_state();
 }
 static bool identity() {
@@ -482,6 +612,26 @@ static void supervisor(void *) {
         rejected.status = "rejected";
         rejected.cache = rejected.lookup_only = false;
       }
+      if (rejected.expiry > monotonic_ms()) {
+        Command c;
+        strcpy(c.operation, rejected.operation);
+        if (auto denied = v2::admission(c, rejected.channel, runtime.profile,
+                                        true, false)) {
+          rejected.result.error = denied;
+          rejected.status = "rejected";
+          rejected.cache = rejected.lookup_only = false;
+        }
+      }
+      if ((rejected.cache || rejected.lookup_only) &&
+          transition_command.pending &&
+          !strcmp(rejected.result.id, transition_command.result.id)) {
+        rejected.result.error =
+            memcmp(rejected.digest, transition_command.digest, 32)
+                ? "id_conflict"
+                : nullptr;
+        rejected.status = rejected.result.error ? "rejected" : "accepted";
+        rejected.cache = rejected.lookup_only = false;
+      }
       if (rejected.cache || rejected.lookup_only) {
         const char *conflict =
             gate.lookup(rejected.result.id, rejected.digest, &known);
@@ -499,11 +649,11 @@ static void supervisor(void *) {
         if (sent)
           send_payload(
               rejected.channel, "ack",
-              ack_payload(*known, known->error ? "rejected" : "applied"),
+              module_ack_payload(*known, known->error ? "rejected" : "applied"),
               rejected.session);
       } else
         send_payload(rejected.channel, "ack",
-                     ack_payload(rejected.result, rejected.status),
+                     module_ack_payload(rejected.result, rejected.status),
                      rejected.session);
     }
     Request r;
@@ -519,10 +669,14 @@ static void supervisor(void *) {
       } else
         switch (r.signal.kind) {
         case Kind::ShortPress: {
-          auto target = runtime.profile == Profile::Escudo ? Profile::Cebo
-                                                           : Profile::Escudo;
-          const char *e = runtime.transition(target, network);
-          event(e ? "system.error" : "system.profile_changed", e);
+          if (modules.transitioning())
+            break;
+          auto target = modules.next();
+          previous_profile = runtime.profile;
+          const char *e = modules.transition(target, monotonic_ms());
+          button_transition_pending = modules.transitioning();
+          if (!button_transition_pending)
+            event(e ? "system.error" : "system.profile_changed", e);
           update_snapshot();
           state(Channel::Ble);
           publish_state();
@@ -575,6 +729,60 @@ static void supervisor(void *) {
       if (action && !post({action == 2 ? Kind::PairWindow : Kind::ShortPress}))
         runtime.error = "busy";
     }
+    modules.tick(now);
+    if (button_transition_pending && !modules.transitioning()) {
+      button_transition_pending = false;
+      event(runtime.error ? "system.error" : "system.profile_changed",
+            runtime.error);
+      state(Channel::Ble);
+      publish_state();
+    }
+    if (transition_command.pending && !modules.transitioning()) {
+      auto &t = transition_command;
+      t.result.error = runtime.error;
+      t.result.revision = runtime.revision;
+      if (!runtime.error)
+        strcpy(runtime.last_command, t.result.id);
+      event(runtime.error ? "system.error" : "system.profile_changed",
+            runtime.error);
+      gate.remember_id(t.result.id, t.digest, t.result);
+      send_payload(
+          t.channel, "ack",
+          module_ack_payload(t.result, t.result.error ? "rejected" : "applied"),
+          t.session);
+      wipe(t.digest, sizeof(t.digest));
+      t.pending = false;
+      state(Channel::Ble);
+      publish_state();
+    }
+    ModuleOutput output;
+    if (module_outputs.pop(output)) {
+      auto payload =
+          output.metric
+              ? cJSON_CreateObject()
+              : module_event_payload(journal.highest + 1, output.name,
+                                     output.mode, nullptr, output.json,
+                                     output.severity, output.simulated);
+      if (output.metric) {
+        cJSON_AddStringToObject(payload, "scope", profile_name(output.mode));
+        cJSON_AddNumberToObject(payload, "interval_ms", output.interval_ms);
+        cJSON_AddItemToObject(payload, "values",
+                              v2::parse(output.json, strlen(output.json)));
+      }
+      char timestamp[33], json[MaxMessage + 1];
+      if (serialize(envelope(context(timestamp),
+                             output.metric ? "metrics" : "event", payload),
+                    json)) {
+        if (output.metric ||
+            journal.append(json, strlen(json), journal.highest + 1)) {
+          ble_send(json, strlen(json));
+          network.publish(output.metric ? "metrics" : "events", json,
+                          strlen(json), output.metric ? 0 : 1, false);
+        } else
+          runtime.error = "resource_error";
+      } else
+        runtime.error = "invalid_message";
+    }
     network.tick(now, has_time);
     update_snapshot();
     bool online = network.connected();
@@ -597,15 +805,28 @@ static void supervisor(void *) {
       } else
         ++replay;
     }
-    if (online && now - last_metrics >= 5000) {
+    if ((online || !strcmp(ble_status(), "connected")) &&
+        now - last_metrics >= 5000) {
       auto p = cJSON_CreateObject();
-      cJSON_AddNumberToObject(p, "free_heap_bytes", esp_get_free_heap_size());
-      cJSON_AddNumberToObject(p, "min_free_heap_bytes",
+      cJSON_AddStringToObject(p, "scope", "system");
+      cJSON_AddNumberToObject(p, "interval_ms", 5000);
+      auto values = cJSON_AddObjectToObject(p, "values");
+      cJSON_AddNumberToObject(values, "free_heap_bytes",
+                              esp_get_free_heap_size());
+      cJSON_AddNumberToObject(values, "min_free_heap_bytes",
                               esp_get_minimum_free_heap_size());
-      cJSON_AddNumberToObject(p, "journal_count", journal.count());
+      cJSON_AddNumberToObject(values, "journal_count", journal.count());
+      cJSON_AddNumberToObject(values, "queue_count",
+                              uxQueueMessagesWaiting(requests));
+      cJSON_AddNumberToObject(values, "dropped_messages",
+                              dropped_messages.load() + network.dropped());
+      cJSON_AddNumberToObject(values, "dropped_events",
+                              module_outputs.dropped());
       char timestamp[33], json[MaxMessage + 1];
-      if (serialize(envelope(context(timestamp), "metrics", p), json))
+      if (serialize(envelope(context(timestamp), "metrics", p), json)) {
+        ble_send(json, strlen(json));
         network.publish("metrics", json, strlen(json), 0, false);
+      }
       last_metrics = now;
     }
     if (has_oled && now - last_screen >= 500 && now >= passkey_until) {
@@ -685,6 +906,9 @@ void start() {
     runtime.phase = "error";
     runtime.error = "resource_error";
   }
+  registration_open = true;
+  register_optional_modules();
+  registration_open = false;
   update_snapshot();
   ble_init();
   event("system.booted");
