@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "type": "command",
+  "device_id": "node-example",
+  "boot_id": "boot-example",
+  "message_id": "msg-1",
+  "seq": 1,
+  "uptime_ms": 1000,
+  "timestamp": null,
+  "time_quality": "unknown",
+  "payload": {
+    "command_id": "cmd-1",
+    "target_boot_id": "boot-example",
+    "expected_revision": 0,
+    "expires_at_uptime_ms": 31000,
+    "operation": "configure_connectivity",
+    "args": {
+      "ssid": "LAB-EXAMPLE",
+      "wifi_password": "example-only",
+      "mqtt_uri": "mqtts://broker.example:8883",
+      "mqtt_username": "node-example",
+      "mqtt_password": "example-only",
+      "ca_certificate": "-----BEGIN CERTIFICATE-----\nEXAMPLE\n-----END CERTIFICATE-----\n"
+    }
+  }
+}

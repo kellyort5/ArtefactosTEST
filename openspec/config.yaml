@@ -1,0 +1,42 @@
+schema: spec-driven
+
+context: |
+  Proyecto: Sentinel Node.
+  Leer docs/brief.md como contexto del sistema.
+  Fuente de verdad vigente: docs/architecture.md, docs/technical-decisions.md,
+  docs/roadmap.md.
+  Plan confirmado: Escudo, Sanitizador y Cebo completos en desarrollo paralelo,
+  un responsable de implementación por cambio. El usuario coordina OpenSpec;
+  los demás integrantes pueden seguir sus fichas Markdown sin usar el CLI.
+
+  Arquitectura:
+  - Firmware: ESP32, C/C++
+  - Middleware: Eclipse Mosquitto con Docker.
+  - Frontend: React, Vite, Tailwind, Zustand y Capacitor.
+  - Comunicación: MQTT y BLE.
+
+  Reglas:
+  - Redactar las especificaciones en español.
+  - Mantener un solo modo operativo activo.
+  - Implementar sobre hardware real por incrementos y comprobar funcionamiento brevemente.
+  - Mantener pruebas focalizadas de lógica crítica; simulador separado como apoyo.
+  - No reducir alcance para cerrar un MVP parcial ni exigir benchmarks previos.
+  - No dar por implementadas capacidades de hardware sin pruebas.
+  - Evitar introducir funcionalidades fuera del alcance acordado.
+
+rules:
+  proposal:
+    - Indicar objetivos, alcance y exclusiones.
+    - Identificar riesgos técnicos y dependencias.
+  specs:
+    - Incluir escenarios verificables y criterios de aceptación.
+  tasks:
+    - Dividir las implementaciones en tareas pequeñas.
+    - Incluir pruebas y documentación.
+
+operations:
+  apply:
+    guidance:
+      - Ejecutar las pruebas disponibles.
+      - Reportar errores y limitaciones.
+      - No incorporar secretos al repositorio.

@@ -1,0 +1,39 @@
+{
+ "name": "@sentinel/app",
+ "version": "0.1.0",
+ "private": true,
+ "type": "module",
+ "scripts": {
+  "dev": "vite --host 0.0.0.0",
+  "build": "tsc --noEmit && vite build",
+  "preview": "vite preview",
+  "android:sync": "cap sync android",
+  "android:assemble": "cd android && ./gradlew assembleDebug",
+  "test": "node --import tsx --test test/*.test.ts",
+  "check:wss": "node --import tsx --test checks/wss.ts",
+  "check:browser": "node checks/browser.mjs"
+ },
+ "dependencies": {
+  "@capacitor-community/bluetooth-le": "8.3.0",
+  "@capacitor/android": "8.6.0",
+  "@capacitor/core": "8.6.0",
+  "@sentinel/contracts": "0.1.0",
+  "mqtt": "5.16.1",
+  "react": "19.3.1",
+  "react-dom": "19.3.1",
+  "zustand": "5.1.0"
+ },
+ "devDependencies": {
+  "@capacitor/cli": "8.6.0",
+  "@tailwindcss/vite": "4.3.5",
+  "@types/react": "19.3.0",
+  "@types/react-dom": "19.3.0",
+  "@vitejs/plugin-react": "5.2.0",
+  "fake-indexeddb": "6.2.8",
+  "playwright": "1.65.0",
+  "tailwindcss": "4.3.5",
+  "tsx": "4.23.15",
+  "typescript": "5.9.3",
+  "vite": "7.3.7"
+ }
+}

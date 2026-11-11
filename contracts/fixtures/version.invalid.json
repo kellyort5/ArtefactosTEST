@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "type": "state",
+  "device_id": "node-example",
+  "boot_id": "boot-example",
+  "message_id": "msg-1",
+  "seq": 1,
+  "uptime_ms": 1000,
+  "timestamp": null,
+  "time_quality": "unknown",
+  "payload": {
+    "profile": "idle",
+    "phase": "idle",
+    "revision": 0,
+    "last_command_id": null,
+    "transport": {
+      "ble": "advertising",
+      "wifi": "disconnected",
+      "mqtt": "disconnected"
+    },
+    "peripherals": {
+      "oled": false,
+      "button": true
+    },
+    "capabilities": {
+      "ble_control": true,
+      "mqtt_control": true,
+      "event_journal": true,
+      "oled": false,
+      "button": true,
+      "capture": false,
+      "detectors": false,
+      "honeypot_http": false,
+      "honeypot_telnet": false,
+      "notifications": false,
+      "sanitizador": false
+    },
+    "error": null
+  }
+}
