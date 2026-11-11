@@ -1,0 +1,18 @@
+menu "Sentinel peripherals"
+config SENTINEL_SDA
+    int "OLED SDA GPIO"
+    range 0 48
+    default 8
+config SENTINEL_SCL
+    int "OLED SCL GPIO"
+    range 0 48
+    default 9
+config SENTINEL_OLED_ADDRESS
+    hex "SSD1306 I2C address"
+    range 0x03 0x77
+    default 0x3c
+config SENTINEL_BUTTON
+    int "External active-low button GPIO"
+    range 0 48
+    default 4
+endmenu

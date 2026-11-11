@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentinel.local/contracts/v1/state.schema.json",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "type": {
+      "const": "state"
+    },
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "boot_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "message_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "uptime_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "timestamp": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?!0000-)[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,12})?Z$",
+          "maxLength": 32
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "time_quality": {
+      "enum": [
+        "unknown",
+        "app_sync",
+        "network_sync"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "enum": [
+            "idle",
+            "escudo",
+            "cebo"
+          ]
+        },
+        "phase": {
+          "enum": [
+            "idle",
+            "transitioning",
+            "ready",
+            "error"
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "last_command_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "ble": {
+              "enum": [
+                "stopped",
+                "advertising",
+                "connected"
+              ]
+            },
+            "wifi": {
+              "enum": [
+                "disconnected",
+                "connecting",
+                "connected",
+                "error"
+              ]
+            },
+            "mqtt": {
+              "enum": [
+                "disconnected",
+                "connecting",
+                "connected",
+                "error"
+              ]
+            }
+          },
+          "required": [
+            "ble",
+            "wifi",
+            "mqtt"
+          ],
+          "additionalProperties": false
+        },
+        "peripherals": {
+          "type": "object",
+          "properties": {
+            "oled": {
+              "type": "boolean"
+            },
+            "button": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "oled",
+            "button"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": {
+          "type": "object",
+          "properties": {
+            "ble_control": {
+              "type": "boolean"
+            },
+            "mqtt_control": {
+              "type": "boolean"
+            },
+            "event_journal": {
+              "type": "boolean"
+            },
+            "oled": {
+              "type": "boolean"
+            },
+            "button": {
+              "type": "boolean"
+            },
+            "capture": {
+              "const": false
+            },
+            "detectors": {
+              "const": false
+            },
+            "honeypot_http": {
+              "const": false
+            },
+            "honeypot_telnet": {
+              "const": false
+            },
+            "notifications": {
+              "const": false
+            },
+            "sanitizador": {
+              "const": false
+            }
+          },
+          "required": [
+            "ble_control",
+            "mqtt_control",
+            "event_journal",
+            "oled",
+            "button",
+            "capture",
+            "detectors",
+            "honeypot_http",
+            "honeypot_telnet",
+            "notifications",
+            "sanitizador"
+          ],
+          "additionalProperties": false
+        },
+        "error": {
+          "enum": [
+            null,
+            "invalid_message",
+            "unsupported_version",
+            "unauthorized",
+            "wrong_boot",
+            "expired",
+            "revision_conflict",
+            "busy",
+            "id_conflict",
+            "not_implemented",
+            "resource_error"
+          ]
+        }
+      },
+      "required": [
+        "profile",
+        "phase",
+        "revision",
+        "last_command_id",
+        "transport",
+        "peripherals",
+        "capabilities",
+        "error"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "version",
+    "type",
+    "device_id",
+    "boot_id",
+    "message_id",
+    "seq",
+    "uptime_ms",
+    "timestamp",
+    "time_quality",
+    "payload"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "time_quality": {
+            "const": "unknown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "timestamp": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?!0000-)[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,12})?Z$",
+            "maxLength": 32
+          }
+        }
+      }
+    }
+  ]
+}

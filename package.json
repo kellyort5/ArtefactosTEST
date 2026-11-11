@@ -1,0 +1,10 @@
+{
+  "name": "sentinel-node", "version": "0.1.0", "private": true,
+  "workspaces": ["app", "contracts"], "engines": {"node": ">=24 <25"}, "packageManager": "npm@11.8.0",
+  "scripts": {
+    "dev": "npm run dev -w app", "build": "npm run build -w contracts && npm run build -w app",
+    "check:contracts": "npm run check -w contracts", "test:app": "npm test -w app",
+    "android:sync": "npm run build && npm run android:sync -w app",
+    "android:assemble": "npm run android:assemble -w app"
+  }
+}
