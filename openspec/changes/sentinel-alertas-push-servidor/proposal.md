@@ -9,7 +9,7 @@ La recepción con Android cerrado requiere proveedor push y registro seguro de i
 - Responsable único: **Persona 3 — firmware Cebo y servidor de notificaciones**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
 - Entregar push: registro y envío en servidor conforme a R-10 y H-08.
 - Cierre observable: API real de registro/baja y envío FCM; aceptación verificada y recepción final a cargo del encargo Android.
-- Dependencias de integración: `sentinel-alertas-webhook-telegram`.
+- Dependencias de integración: `sentinel-alertas-webhook`.
 - Esta propuesta solo planifica. No implementa funcionalidades ajenas a la capacidad ni modifica la evidencia de la base.
 
 ## Capabilities

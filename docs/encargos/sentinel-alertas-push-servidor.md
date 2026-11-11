@@ -12,7 +12,7 @@ Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-al
 
 ## Dependencias para integrar
 
-- [sentinel-alertas-webhook-telegram](sentinel-alertas-webhook-telegram.md)
+- [sentinel-alertas-webhook](sentinel-alertas-webhook.md)
 
 Puedes preparar estructura/lógica/UI con fixtures del contrato revisado mientras llegan las dependencias. Marca esos resultados como fixtures; cerrar este encargo requiere el resultado real indicado. Si falta una interfaz, avisa a su dueño; no la inventes en tu carpeta ni modifiques archivos ajenos.
 

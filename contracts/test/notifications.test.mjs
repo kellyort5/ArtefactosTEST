@@ -150,8 +150,20 @@ test('status distinguishes provider acceptance and unknown reading; errors and c
     const body = structuredClone(status); change(body.channels.webhook);
     assert.throws(() => decode(body), sanitized);
   }
-  const failed = structuredClone(status); failed.channels.telegram.last_delivery.error = null;
+  const failed = structuredClone(status);
+  failed.channels.webhook.last_delivery = {...failed.channels.webhook.last_delivery, status: 'failed', error: null};
   assert.throws(() => decode(failed), sanitized);
+});
+
+test('status requires webhook and push only and rejects a retired channel', () => {
+  const decode = body => notifications.decodeNotificationStatusResponse(JSON.stringify(body), node);
+  assert.deepEqual(Object.keys(decode(status).channels).sort(), ['push', 'webhook']);
+  for (const name of ['webhook', 'push']) {
+    const missing = structuredClone(status); delete missing.channels[name];
+    assert.throws(() => decode(missing), sanitized);
+  }
+  const extra = structuredClone(status); extra.channels.telegram = structuredClone(extra.channels.webhook);
+  assert.throws(() => decode(extra), sanitized);
 });
 
 test('HTTP fixtures specify create/renew/delete/status and cross-node rejection without operating a server', async () => {

@@ -9,7 +9,7 @@ Los servicios Cebo requieren visualización MQTT en tiempo real, historial y vis
 - Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
 - Entregar app: cebo, historial y alertas conforme a R-04, R-06, R-10 y H-08.
 - Cierre observable: Cebo real visible por MQTT, control confirmado, historial y alertas internas/estado externo.
-- Dependencias de integración: `sentinel-app-protocolo-v2`, `sentinel-cebo-eventos-historial`, `sentinel-alertas-webhook-telegram`.
+- Dependencias de integración: `sentinel-app-protocolo-v2`, `sentinel-cebo-eventos-historial`, `sentinel-alertas-webhook`.
 - Esta propuesta solo planifica. No implementa funcionalidades ajenas a la capacidad ni modifica la evidencia de la base.
 
 ## Capabilities

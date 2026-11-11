@@ -58,7 +58,7 @@ Las restricciones de memoria y las funciones USB/UART se contrastaron con la [gu
 | `app/` | React/Vite/Tailwind/Zustand con Capacitor Android; BLE, mqtt.js, dashboard, historial y notificaciones. | Solo presenta como aplicado un comando confirmado por el nodo; diferencia datos simulados y reales. |
 | `simulator/` | Apoyo ligero para contratos, fixtures y reproducción de eventos. | No es una etapa previa obligatoria ni acredita una función de hardware. |
 | `contracts/` | Contratos versionados de estados, métricas, incidentes, comandos y confirmaciones. | Ruta y formato de archivos por concretar en cambios pequeños. |
-| Componente de notificaciones de R-10 | Consumir eventos autorizados, controlar repetición y entregar webhooks, Telegram y push móvil. | Separado de la detección y del firmware; proveedor, ruta y alojamiento por concretar al implementar. No requiere diseñar una plataforma histórica compleja. |
+| Componente de notificaciones de R-10 | Consumir eventos autorizados, controlar repetición y entregar webhooks y push móvil. | Separado de la detección y del firmware; proveedor, ruta y alojamiento por concretar al implementar. No requiere diseñar una plataforma histórica compleja. |
 
 **Stack confirmado:** PlatformIO + ESP-IDF + FreeRTOS con C/C++, Mosquitto/Docker y React/Vite/Tailwind/Zustand/Capacitor Android. Se seleccionan y fijan versiones compatibles en el primer incremento; se reutilizan componentes oficiales adecuados antes de crear alternativas propias.
 
@@ -89,7 +89,7 @@ CEBO DE RED LOCAL
                            MQTT/WSS  [Notificaciones]
                                   |       |
                                   v       +--> [Webhook]
-                            [App Android] +--> [Telegram]
+                            [App Android]       |
                                   ^       |
                                   |       v
                                   +--- [Push movil]
@@ -102,7 +102,7 @@ CEBO DE RED LOCAL
 
 El control remoto utiliza el canal disponible. En Escudo no se enviarán órdenes al nodo por MQTT ni se lo asociará a una red para recuperar ese canal. Al pasar a Cebo se establece la conexión autorizada y MQTT; al volver a Escudo se detienen servicios y conexión Wi-Fi. La app reconcilia el resultado de una transición si se interrumpe el canal que la inició.
 
-Internet y broker accesible son condiciones distintas: MQTT puede operar mediante un broker en LAN sin Internet. Webhooks, Telegram y push externos dependen de conectividad e infraestructura; mostrar su indisponibilidad no sustituye su implementación.
+Internet y broker accesible son condiciones distintas: MQTT puede operar mediante un broker en LAN sin Internet. Webhooks y push externos dependen de conectividad e infraestructura; mostrar su indisponibilidad no sustituye su implementación.
 
 ### Contratos y entrega
 
@@ -173,7 +173,7 @@ Todas estas funciones forman parte del MVP, conforme a R-10 y la instrucción vi
 - Detección de conexiones, accesos e intentos de autenticación, sin ejecutar comandos ni exponer administración real.
 - IP de origen, puerto, protocolo, fecha/hora, calidad temporal, tipo de interacción, cantidad y frecuencia; clasificación y detección de repetición/patrones sospechosos.
 - Eventos/métricas MQTT, dashboard en tiempo real, historial, incidentes y alertas visibles.
-- Integraciones reales con webhooks, Telegram y notificaciones push Android, incluyendo recepción con la aplicación cerrada y control de repetición.
+- Integraciones reales con webhooks y notificaciones push Android, incluyendo recepción con la aplicación cerrada y control de repetición.
 - Registro local persistente con búfer circular limitado, conservación de pendientes, sincronización al recuperar MQTT e identificación/deduplicación.
 
 **Restricciones conservadas:** redes propias o autorizadas, límites de conexiones/tiempos/tamaños, servicios sin exposición pública ni redirección de puertos, sin contraseñas/tokens/credenciales reales ni cuerpos completos registrados. Una conexión aislada no demuestra compromiso. Al salir del modo se cierran servidores y conexiones.
@@ -211,7 +211,7 @@ Zustand conserva el estado de interfaz; IndexedDB continúa como alternativa por
 
 **Confirmado:** React, Vite, Tailwind, Zustand y Capacitor Android; BLE/MQTT según modo, catálogo y selección/configuración de redes, comandos confirmados, gráficos, métricas, incidentes, alertas, historial y notificaciones. Mostrar datos antiguos y pérdidas de cobertura.
 
-El canal push debe entregar al teléfono con la app cerrada mediante infraestructura real; las alertas en primer plano no lo sustituyen. Webhooks y Telegram son integraciones adicionales obligatorias, no alternativas excluyentes. El componente de notificaciones controla repetición y separa secretos propios de integración del firmware, repositorio y logs. Proveedor y mecanismo de registro del dispositivo se fijan al abordar ese cambio acotado; no se adjudica aquí una tecnología no aprobada.
+El canal push debe entregar al teléfono con la app cerrada mediante infraestructura real; las alertas en primer plano no lo sustituyen. El webhook sigue siendo una integración adicional obligatoria. El componente de notificaciones controla repetición y separa secretos propios de integración del firmware, repositorio y logs. Proveedor y mecanismo de registro del dispositivo se fijan al abordar ese cambio acotado; no se adjudica aquí una tecnología no aprobada.
 
 Comprobar funcionalmente cada canal, incluida app cerrada, antes de cerrar el MVP. Las campañas extensas de compatibilidad, segundo plano y estabilidad pueden hacerse después. Cuando Android o la conectividad impidan una entrega, registrar la condición y corregir fallos básicos sin prometer recepción incondicional.
 
