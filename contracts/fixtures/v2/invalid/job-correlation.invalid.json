@@ -1,0 +1,1 @@
+{"version":2,"type":"ack","device_id":"node-example","boot_id":"boot-example","message_id":"ack-wrong-job","seq":1,"uptime_ms":1000,"timestamp":null,"time_quality":"unknown","payload":{"command_id":"cmd-example","status":"applied","revision":3,"error":null,"result":{"kind":"job","job_id":"other-job"}}}

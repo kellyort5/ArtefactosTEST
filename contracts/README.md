@@ -1,4 +1,12 @@
-# Contratos Sentinel v1
+# Contratos Sentinel v1 y v2
+
+La API v1 de la base se conserva: sus esquemas, tipos y funciones siguen rechazando mensajes v2. Para nuevas funciones usar las entradas explícitas de [protocolo v2](module-protocol.md); para historial mixto, `decodeAnyMessage` conserva versión e identidad originales. Los [contratos HTTP y push](notifications.md) son independientes del sobre ESP32 y no implementan un servidor ni envío de notificaciones.
+
+[Evidencia, revisión técnica y pendientes de cierre](evidence-v2.md).
+
+Este paquete define y valida mensajes. La ejecución de modos, el cache de resultados del firmware, la autenticación efectiva de transportes y el servidor de notificaciones corresponden a sus cambios de implementación. No se presentan pruebas de contrato como evidencia física o entrega push real.
+
+## Base v1
 
 Interfaz compartida de la base aprobada D-04/D-05/D-06/D-07. JSON UTF-8, **máximo 2048 bytes** por mensaje completo (no caracteres). JSON Schema 2020-12 en `schemas/v1/`. Campos no declarados se rechazan, incluidos secretos en salidas públicas. Ejemplos exclusivamente ficticios. No hay detectores, captura, honeypot, NAT o notificaciones en esta base.
 

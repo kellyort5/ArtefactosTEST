@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "type": "command",
+  "device_id": "node-example",
+  "boot_id": "boot-example",
+  "message_id": "command-example-4",
+  "seq": 4,
+  "uptime_ms": 1000,
+  "timestamp": null,
+  "time_quality": "unknown",
+  "payload": {
+    "command_id": "command-example-4",
+    "target_boot_id": "boot-example",
+    "expected_revision": 3,
+    "expires_at_uptime_ms": 31000,
+    "operation": "set_time",
+    "args": {
+      "timestamp": "2026-11-10T12:00:00Z"
+    }
+  }
+}

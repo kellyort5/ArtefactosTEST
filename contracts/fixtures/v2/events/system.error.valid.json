@@ -1,0 +1,1 @@
+{"version":2,"type":"event","device_id":"node-example","boot_id":"boot-example","message_id":"system.error","seq":1,"uptime_ms":1000,"timestamp":null,"time_quality":"unknown","payload":{"journal_seq":1,"name":"system.error","profile":"cebo","code":"capacity_exceeded","severity":"critical","details":{"resource":"queue"},"origin":"simulated"}}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentinel.local/contracts/v2/notification-registration-response.schema.json",
+  "type": "object",
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+    },
+    "installation_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+    },
+    "status": {
+      "const": "registered"
+    }
+  },
+  "required": [
+    "device_id",
+    "installation_id",
+    "status"
+  ],
+  "additionalProperties": false
+}

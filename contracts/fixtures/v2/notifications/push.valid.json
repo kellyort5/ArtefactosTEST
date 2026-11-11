@@ -1,0 +1,12 @@
+{
+  "notification": {
+    "title": "Sentinel Node",
+    "body": "Actividad detectada en Cebo. Abre la app para consultar el incidente."
+  },
+  "data": {
+    "device_id": "node-example",
+    "event_id": "event-cebo-example",
+    "severity": "warning",
+    "route": "cebo"
+  }
+}
