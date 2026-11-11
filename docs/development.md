@@ -75,7 +75,7 @@ El firmware de esta rama anuncia **metadata v2** y recibe órdenes v2 conforme a
 | Persona 2 | `firmware/components/sanitizador/` | `sentinel_sanitizador_module()` | `CONFIG_SENTINEL_MODULE_SANITIZADOR=y` |
 | Persona 3 | `firmware/components/cebo/` | `sentinel_cebo_module()` | `CONFIG_SENTINEL_MODULE_CEBO=y` |
 
-Cada factory devuelve `sentinel::Module*` con vida de todo el arranque; puede devolver `nullptr` si la implementación no está disponible. El `CMakeLists.txt` del componente declara `REQUIRES sentinel_api` y sus dependencias oficiales necesarias. El núcleo añade la dependencia del componente y llama la factory al habilitar la opción; no hace falta editar `runtime.cpp`, crear otro supervisor ni modificar `firmware/src/main.cpp`. Activar una opción sin incluir su componente debe producir un error de build. Las tres opciones están deshabilitadas por defecto: esta entrega no anuncia módulos funcionales ficticios.
+Cada factory devuelve `sentinel::Module*` con vida de todo el arranque; puede devolver `nullptr` si la implementación no está disponible. El `CMakeLists.txt` del componente declara `REQUIRES sentinel_api` y sus dependencias oficiales necesarias. El núcleo añade la dependencia del componente y llama la factory al habilitar la opción; no hace falta editar `runtime.cpp`, crear otro supervisor ni modificar `firmware/src/main.cpp`. Activar una opción sin incluir su componente debe producir un error de build. El descubrimiento de Escudo está habilitado por defecto desde su incremento; Sanitizador y Cebo permanecen deshabilitados hasta incorporar sus componentes. Captura y detectores continúan con capacidades falsas hasta sus respectivas implementaciones.
 
 Ejemplo de punto de entrada para un componente futuro (adaptar el nombre; no es una implementación del módulo):
 
@@ -117,6 +117,8 @@ Usar `context.resources()` desde los hooks del supervisor; no llamar `esp_wifi_i
 
 `ApConfig.ipv4/netmask` usan orden de red. El gestor conserva los netifs durante todo el boot. `CONFIG_LWIP_IP_FORWARD` y `CONFIG_LWIP_IPV4_NAPT` están habilitados en defaults y configuración mantenida; habilitar compilación no activa NAPT. El gestor solo permite NAPT en Sanitizador con AP y dirección de upstream, y lo desactiva antes de liberar la red. Esto prepara la integración de Persona 2; no acredita el funcionamiento de su pasarela.
 
+`RadioEvent::ScanComplete` conserva `scan_status` (0 si ESP-IDF completó el scan) y `scan_count`. `read_scan_results(out,capacity,count)` distingue error de lectura de un catálogo vacío; `scan_results()` se conserva para consumidores previos.
+
 `resources.poll(RadioEvent&)` entrega copias desde una cola de **8** entradas sin bloqueo: final de scan, conexión/desconexión STA, dirección IPv4 obtenida, clientes AP y metadatos/tramas. Los frames conservan hasta **512 bytes**, longitud original, canal, RSSI y tiempo; comprobar truncamiento antes de parsear. `scan_results()` entrega como máximo **32** registros por consulta; las enumeraciones de seguridad son las oficiales del ESP-IDF fijado. El módulo procesa estas copias en `tick()` y mantiene sus propios límites. `resources.dropped()` informa saturación. No interpretar una pausa, pérdida de cola o tramo truncado como evidencia concluyente de ataque.
 
 ### Eventos, métricas y persistencia
@@ -143,3 +145,5 @@ python3 firmware/test/check_config.py
 El host prueba un consumidor mínimo, exclusión y timeout, gate, capacidades ausentes, concesiones de radio, validación, saturación y recuperación mixta v1/v2 del journal. `check_contracts.py` contrasta fixtures v1/v2 y salidas C++ con el codec AJV real. Son comprobaciones de lógica; no acreditan radio, OLED ni flash reales.
 
 Para cerrar la tarea física 2.2, conectar la placa, registrar puerto/build, arrancar y leer metadata v2 por BLE autorizado. Comprobar Idle, rechazos de modos ausentes y, con un consumidor de prueba registrado que no anuncie servicios completos (o un módulo real), transición de ida/vuelta por `set_mode` sin sockets, MQTT, captura ni NAPT residuales. Registrar ACK, perfil, revisión y pantalla; verificar botón corto y pulsación larga. Las pruebas de host o un puerto Bluetooth genérico de Windows no sustituyen esta comprobación. Un consumidor de prueba en la placa solo verifica el ciclo de vida de la API, no acredita detecciones ni servicios del producto.
+
+El incremento de descubrimiento se documenta en [Escudo: descubrimiento y selección](modules/escudo-discovery.md), con órdenes v2, límites y prueba física pendiente.

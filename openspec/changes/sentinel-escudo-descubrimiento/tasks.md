@@ -1,13 +1,13 @@
 # Tasks
 
-Responsable único de todas las casillas: **Persona 1**. Estado inicial: todo pendiente; propuesta lista para revisión, sin implementación.
+Responsable único de todas las casillas: **Persona 1**. Estado: 4/6 tareas verificadas por software; pruebas físicas 2.1 y 2.2 pendientes por instrucción del usuario. Ver [evidencia](verification.md).
 
 ## 1. Catálogo y selección
 
-- [ ] 1.1 Registrar hooks Escudo y scan pasivo mediante gestor; compilar y verificar callback de fin sin asociación.
-- [ ] 1.2 Implementar catálogo limitado y páginas v2; comprobar casos de SSID oculto, duplicado BSSID y overflow con fixtures focalizados.
-- [ ] 1.3 Implementar selección/cambio y ACK; verificar rechazo de BSSID/canal inconsistente sin mutar objetivo.
-- [ ] 1.4 Documentar operaciones y datos no observables en docs/modules/escudo-discovery.md; cotejar ejemplos con contratos.
+- [x] 1.1 Registrar hooks Escudo y scan pasivo mediante gestor; compilar y verificar callback de fin sin asociación.
+- [x] 1.2 Implementar catálogo limitado y páginas v2; comprobar casos de SSID oculto, duplicado BSSID y overflow con fixtures focalizados.
+- [x] 1.3 Implementar selección/cambio y ACK; verificar rechazo de BSSID/canal inconsistente sin mutar objetivo.
+- [x] 1.4 Documentar operaciones y datos no observables en docs/modules/escudo-discovery.md; cotejar ejemplos con contratos.
 
 ## 2. Comprobación del incremento
 

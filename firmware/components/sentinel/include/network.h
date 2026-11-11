@@ -34,6 +34,7 @@ public:
   bool set_channel(uint8_t) override;
   bool scan_passive() override;
   size_t scan_results(ScanNetwork *, size_t) override;
+  bool read_scan_results(ScanNetwork *, size_t, size_t &) override;
   bool capture(bool) override;
   bool configure_upstream(const UpstreamConfig &) override;
   bool configure_ap(const ApConfig &) override;
