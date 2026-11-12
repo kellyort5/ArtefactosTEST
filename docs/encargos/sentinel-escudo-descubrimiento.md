@@ -1,6 +1,6 @@
 # Encargo: Escudo: descubrimiento y objetivo
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** implementación de software y build verificados (4/6 tareas); pruebas físicas 2.1 y 2.2 pendientes. Ver [guía](../modules/escudo-discovery.md). **Rama prevista:** `feat/sentinel-escudo-descubrimiento`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** fusionado por PR #7 y archivado con 4/6 tareas; pruebas físicas 2.1 y 2.2 pendientes. Ver [guía](../modules/escudo-discovery.md). **Rama prevista:** `feat/sentinel-escudo-descubrimiento`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 
@@ -8,7 +8,7 @@ El perfil Escudo actual solo declara estado; necesita catálogo pasivo y selecci
 
 Catálogo y objetivo reales por BLE; selección confirmada; ausencia de asociación/MQTT.
 
-Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-escudo-descubrimiento/design.md) y los [casos de aceptación](../../openspec/changes/sentinel-escudo-descubrimiento/specs/escudo-discovery/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/sentinel-escudo-descubrimiento/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
+Lee primero esta ficha, el [diseño concreto](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/design.md) y los [casos de aceptación](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/specs/escudo-discovery/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
 
 ## Dependencias para integrar
 
@@ -45,4 +45,4 @@ El PR debe enlazar esta ficha y la propuesta, describir el cambio e incluir coma
 
 **Criterio de terminación:** Catálogo y objetivo reales por BLE; selección confirmada; ausencia de asociación/MQTT. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
 
-[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/sentinel-escudo-descubrimiento/proposal.md) · [Tareas](../../openspec/changes/sentinel-escudo-descubrimiento/tasks.md)
+[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/proposal.md) · [Tareas](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/tasks.md)

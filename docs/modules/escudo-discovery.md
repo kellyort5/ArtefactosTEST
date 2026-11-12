@@ -1,8 +1,8 @@
 # Escudo: descubrimiento y selección
 
-Responsable: Persona 1. Cambio: [sentinel-escudo-descubrimiento](../../openspec/changes/sentinel-escudo-descubrimiento/proposal.md). Se integra con la [API de módulos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) y el [contrato v2](../../contracts/module-protocol.md). El firmware incluye `firmware/components/escudo/` y habilita `CONFIG_SENTINEL_MODULE_ESCUDO=y` en defaults y configuración mantenida.
+Responsable: Persona 1. Cambio: [sentinel-escudo-descubrimiento](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/proposal.md). Se integra con la [API de módulos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) y el [contrato v2](../../contracts/module-protocol.md). El firmware incluye `firmware/components/escudo/` y habilita `CONFIG_SENTINEL_MODULE_ESCUDO=y` en defaults y configuración mantenida.
 
-Este incremento implementa descubrimiento y objetivo en el ESP32. Captura, detectores y recuperación específica del Escudo corresponden a sus cambios siguientes: sus capacidades siguen en `false` y el núcleo rechaza las órdenes de captura según el contexto y la disponibilidad del componente. El catálogo no clasifica amenazas ni interpreta SSID duplicados como maliciosos.
+Este incremento implementó descubrimiento y objetivo en el ESP32 y se encuentra archivado con pruebas físicas pendientes. La [captura](escudo-capture.md) se integra en su siguiente cambio; `capture` refleja su implementación y `detectors` permanece falso hasta conectar los detectores. El catálogo no clasifica amenazas ni interpreta SSID duplicados como maliciosos.
 
 ## Recorrido y operaciones
 
@@ -38,7 +38,7 @@ Seleccionar o cambiar usando exactamente SSID/BSSID/canal del catálogo completo
 {"operation":"escudo.select_target","args":{"ssid":"LAB","bssid":"02:00:00:00:00:01","channel":6}}
 ```
 
-El ACK aplicado devuelve `{kind:"escudo.target",target:{ssid,bssid,channel,capture_status:"stopped"}}` y se emite `escudo.target`. El gestor cambia de canal; el módulo solo reemplaza el objetivo tras validar la tupla y completar ese paso. BSSID no observado, SSID distinto, canal inconsistente o fallo del gestor no borran el objetivo anterior. No se asocia al AP seleccionado.
+El ACK aplicado devuelve `{kind:"escudo.target",target:{ssid,bssid,channel,capture_status}}`, con el estado real de captura, y se emite `escudo.target`. El gestor cambia de canal; el módulo solo reemplaza el objetivo tras validar la tupla y completar ese paso. BSSID no observado, SSID distinto, canal inconsistente o fallo del gestor no borran el objetivo anterior. No se asocia al AP seleccionado.
 
 Una nueva exploración reemplaza el catálogo y conserva el objetivo seleccionado hasta que se cambie explícitamente. Salir a Idle y volver a Escudo reinicia catálogo/objetivo en RAM; no se promete persistencia de configuración. Los eventos ya emitidos usan el journal compartido de 64 entradas.
 
@@ -80,10 +80,10 @@ El usuario autorizó continuar conservando estas comprobaciones pendientes. No s
 
 1. Conectar ESP32-S3 N16R8, OLED y botón según [cableado](../firmware.md). Identificar el puerto real y ejecutar upload/monitor; no asumir un nombre de puerto.
 2. Abrir la ventana de emparejamiento con el botón largo de 3 s y conectar un cliente BLE autorizado que use v2 y el framing común. La app necesita su adaptador v2 del encargo de Persona 4.
-3. Leer metadata y `get_state`: Idle al arrancar. Cambiar a Escudo y consultar `scan_status:"idle"`, objetivo null y capacidades de captura/detectores falsas.
+3. Leer metadata y `get_state`: Idle al arrancar. Cambiar a Escudo y consultar `scan_status:"idle"`, objetivo null y capacidades acordes con los incrementos realmente incluidos.
 4. Solicitar un scan en LAN propia/autorizada. Registrar command/job/scan ID y ACK; consultar estado durante el scan para confirmar que el control BLE responde.
 5. Recibir `escudo.networks`, consultar todas las páginas y cotejar SSID/BSSID/canal/RSSI/seguridad con la red propia. Documentar datos no observables y límites, sin inventar resultados.
 6. Seleccionar una tupla observada, comprobar ACK/estado/evento y enviar luego una tupla inconsistente. El objetivo válido debe conservarse. Probar cambio a otro BSSID observado si hay uno disponible.
 7. Verificar que no hubo asociación, dirección IP ni MQTT del nodo durante Escudo. Registrar evidencia del monitor/estado y, si se observa tráfico, hacerlo únicamente en la LAN autorizada; una compilación no prueba ausencia de probes reales.
 8. Iniciar otro scan y solicitar Idle antes de finalizar. Confirmar el ACK de modo y ausencia de recursos residuales; volver a Escudo y repetir un scan completo.
-9. Registrar puerto/build, cliente BLE, IDs y observaciones en la [evidencia del cambio](../../openspec/changes/sentinel-escudo-descubrimiento/verification.md). Mantener abiertas las casillas físicas hasta demostrar estos pasos. La transición también puede aportar evidencia para la tarea 2.2 pendiente de la [API archivada](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/tasks.md).
+9. Registrar puerto/build, cliente BLE, IDs y observaciones en la [evidencia del cambio](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/verification.md). Mantener abiertas las casillas físicas hasta demostrar estos pasos. La transición también puede aportar evidencia para la tarea 2.2 pendiente de la [API archivada](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/tasks.md).

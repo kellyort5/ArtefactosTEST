@@ -1,6 +1,6 @@
 # Encargo: Escudo: captura, parser y canales
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-escudo-captura`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** implementación y build verificados (4/6 tareas); pruebas físicas 2.1 y 2.2 pendientes. Ver [guía](../modules/escudo-capture.md). **Rama prevista:** `feat/sentinel-escudo-captura`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "capture_ingress.h"
 #include "core.h"
 #include "esp_netif.h"
 #include "freertos/FreeRTOS.h"
@@ -7,6 +8,7 @@
 #include <atomic>
 namespace sentinel {
 class Network : public Resources, public ModuleResources {
+  CaptureIngress ingress;
   esp_netif_t *sta_handle = nullptr, *ap_handle = nullptr;
   Profile owner = Profile::Idle;
   bool associating = false, ap_active = false, napt_active = false,
@@ -36,6 +38,10 @@ public:
   size_t scan_results(ScanNetwork *, size_t) override;
   bool read_scan_results(ScanNetwork *, size_t, size_t &) override;
   bool capture(bool) override;
+  uint32_t capture_generation() const override { return ingress.generation(); }
+  uint64_t capture_dropped() const override { return ingress.dropped(); }
+  uint16_t allowed_channels() const override;
+  void frame(const uint8_t *, size_t, bool, uint8_t, int8_t);
   bool configure_upstream(const UpstreamConfig &) override;
   bool configure_ap(const ApConfig &) override;
   bool napt(bool) override;
