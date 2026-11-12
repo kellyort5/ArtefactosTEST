@@ -16,7 +16,12 @@ sources=[fw/'components/sentinel'/s for s in ('core.cpp','wire.cpp','digest.cpp'
 sources += [fw/'components/escudo'/s for s in ('discovery.cpp','module.cpp','capture.cpp','frame_parser.cpp','channel_scheduler.cpp','detectors.cpp')]
 crypto=ctypes.util.find_library('crypto')
 if not crypto:raise SystemExit('Install the system OpenSSL runtime for native command digests.')
-for name in ('discovery_test','capture_test','detectors_test'):
+for name in ('discovery_test','capture_test','detectors_test','recovery_test'):
     binary=cache/name
     subprocess.run(['c++',*flags,'-std=c++17','-g','-Wall','-Wextra','-Wno-misleading-indentation',*['-I'+str(p) for p in includes],*[str(s) for s in sources],str(fw/'test/escudo'/(name+'.cpp')),str(cache/'cJSON.o'),'-l:'+crypto,'-o',str(binary)],check=True)
-    subprocess.run([str(binary)],cwd=repo,check=True)
+    if name == 'recovery_test':
+        with tempfile.TemporaryDirectory(prefix='sentinel-recovery-') as directory:
+            for phase in ('write','recover','checks'):
+                subprocess.run([str(binary),phase,directory],cwd=repo,check=True)
+    else:
+        subprocess.run([str(binary)],cwd=repo,check=True)

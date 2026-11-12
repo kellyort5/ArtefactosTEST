@@ -100,4 +100,10 @@ public:
   uint64_t dropped() const { return lost.load(); }
 };
 bool validate_output(const ModuleOutput &);
+struct Envelope;
+// Supervisor-only commit boundary, shared by production and focused tests.
+// A successful event is durable before any transport attempts to deliver it.
+// Replays use Journal::read and never call this function again.
+const char *persist_module_event(Journal &, const ModuleOutput &,
+                                 const Envelope &, char out[MaxMessage + 1]);
 } // namespace sentinel

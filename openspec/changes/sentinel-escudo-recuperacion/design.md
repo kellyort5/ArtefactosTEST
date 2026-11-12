@@ -34,3 +34,9 @@ Archivos de implementación: `firmware/components/escudo/ (coverage, reconnect y
 ## Migration Plan
 
 Trabajar en rama `feat/sentinel-escudo-recuperacion`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+
+## Concreción aprobada para la implementación
+
+El usuario autorizó ampliar este cambio a `firmware/components/sentinel/include/module_runtime.h`, `module_runtime.cpp` y `runtime.cpp` para extraer la rutina existente de serialización/persistencia de eventos a un helper interno compartido por firmware y pruebas. Se conserva el journal NVS, contratos, supervisor, transportes y orden persistir-antes-de-entregar. No se crea un segundo almacenamiento ni se cambia la API pública de módulos. La ampliación permite probar el camino de producción del núcleo, propiedad de Persona 1, dentro de las tareas 1.1/1.2; sustituye únicamente la restricción de carpetas correspondiente de esta planificación.
+
+El usuario autorizó continuar con software conservando pruebas físicas pendientes. Las tareas 1.3, 2.1 y 2.2 no se completan con fixtures. La concurrencia se mantiene como primera opción; no se añade pausa automática sin un fallo físico bloqueante observado. Ver [guía de recuperación](../../../docs/modules/escudo-recovery.md).
