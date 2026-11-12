@@ -20,7 +20,7 @@ Usar el scan pasivo oficial ESP-IDF de 2.4 GHz, solicitado al gestor, sin conect
 
 ### Interfaces y propiedad
 
-Contrato único: [protocolo funcional](../../../contracts/module-protocol.md) y [spec principal](../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
+Contrato único: [protocolo funcional](../../../contracts/module-protocol.md) y [spec principal](../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../archive/2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
 
 Archivos de implementación: `firmware/components/escudo/ (module, discovery, target y CMake)`, `firmware/test/escudo/`, `docs/modules/escudo-discovery.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
 
@@ -32,3 +32,12 @@ Archivos de implementación: `firmware/components/escudo/ (module, discovery, ta
 ## Migration Plan
 
 Trabajar en rama `feat/sentinel-escudo-descubrimiento`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+
+
+### Concreción de implementación (2026-11-11)
+
+El componente exporta la factory prevista por `sentinel_api` y habilita `CONFIG_SENTINEL_MODULE_ESCUDO` en la configuración global para registrar descubrimiento real; captura/detectores permanecen falsos. La edición de defaults y sdkconfig es necesaria para la tarea 1.1 y sigue siendo propiedad de P1.
+
+La integración 1.1 requiere conservar el estado y número del callback de fin de scan en `RadioEvent`, y añadir `read_scan_results` con retorno de éxito para distinguir un error SDK de cero redes. Se amplían de forma compatible `sentinel_api`, la concesión y `Network`; no se añaden drivers, supervisores ni instancias de transporte. La API anterior `scan_results` permanece disponible. Estos archivos compartidos se incluyen en el alcance de integración del incremento, junto con la guía de desarrollo que explica la interfaz.
+
+La instantánea se limita a 32 BSSID. Las páginas tienen 1–4 entradas y un presupuesto conservador de 1280 bytes antes del sobre; se reduce la cantidad, sin truncar campos. Un nuevo scan invalida cursores anteriores. PMF se publica `unknown`: el resultado de scan del SDK no expone ese dato; las tramas/IE se tratarán en captura. Un timeout inicial de 10 s deja error visible y exige pasar por Idle antes de repetir, para evitar atribuir una finalización tardía al siguiente job. Esto no modifica las funcionalidades acordadas.

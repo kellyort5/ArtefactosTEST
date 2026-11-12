@@ -29,6 +29,11 @@ static void wifi_event(void *, esp_event_base_t base, int32_t id, void *data) {
     e.kind = id == WIFI_EVENT_SCAN_DONE       ? RadioEvent::Kind::ScanComplete
              : id == WIFI_EVENT_STA_CONNECTED ? RadioEvent::Kind::Connected
                                               : RadioEvent::Kind::Disconnected;
+    if (id == WIFI_EVENT_SCAN_DONE) {
+      auto done = static_cast<wifi_event_sta_scan_done_t *>(data);
+      e.scan_status = done->status;
+      e.scan_count = done->number;
+    }
     radio_owner->notify(e);
   }
   if (base == WIFI_EVENT && radio_owner &&
@@ -466,13 +471,21 @@ bool Network::scan_passive() {
   return esp_wifi_scan_start(&config, false) == ESP_OK;
 }
 size_t Network::scan_results(ScanNetwork *out, size_t capacity) {
+  size_t count = 0;
+  return read_scan_results(out, capacity, count) ? count : 0;
+}
+bool Network::read_scan_results(ScanNetwork *out, size_t capacity,
+                                size_t &count) {
+  count = 0;
   if (owner != Profile::Escudo || !out || !capacity || capacity > 32)
-    return 0;
+    return false;
   wifi_ap_record_t records[32] = {};
-  uint16_t count = capacity;
-  if (esp_wifi_scan_get_ap_records(&count, records) != ESP_OK)
-    return 0;
-  for (size_t i = 0; i < count; ++i) {
+  uint16_t total = capacity;
+  if (esp_wifi_scan_get_ap_records(&total, records) != ESP_OK) {
+    esp_wifi_clear_ap_list();
+    return false;
+  }
+  for (size_t i = 0; i < total; ++i) {
     auto &a = out[i];
     auto &b = records[i];
     a = {};
@@ -484,7 +497,8 @@ size_t Network::scan_results(ScanNetwork *out, size_t capacity) {
     a.pairwise_cipher = b.pairwise_cipher;
     a.group_cipher = b.group_cipher;
   }
-  return count;
+  count = total;
+  return true;
 }
 bool Network::capture(bool enabled) {
   if (owner != Profile::Escudo || !sta)

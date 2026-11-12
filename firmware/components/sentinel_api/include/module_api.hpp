@@ -54,6 +54,8 @@ struct RadioEvent {
     ApClientConnected,
     ApClientDisconnected
   } kind;
+  uint32_t scan_status = 0;
+  uint16_t scan_count = 0;
   uint32_t ipv4 = 0, netmask = 0, gateway = 0;
   uint8_t peer[6] = {};
   uint64_t uptime_ms = 0;
@@ -68,6 +70,13 @@ public:
   virtual bool set_channel(uint8_t) = 0;
   virtual bool scan_passive() = 0;
   virtual size_t scan_results(ScanNetwork *, size_t capacity) = 0;
+  // Distinguishes a successful empty catalog from a driver read failure.
+  // Default preserves existing consumers; the ESP-IDF manager overrides it.
+  virtual bool read_scan_results(ScanNetwork *out, size_t capacity,
+                                 size_t &count) {
+    count = scan_results(out, capacity);
+    return true;
+  }
   virtual bool capture(bool enabled) = 0;
   virtual bool configure_upstream(const UpstreamConfig &) = 0;
   virtual bool configure_ap(const ApConfig &) = 0;

@@ -17,7 +17,7 @@ Cada enlace abre una ficha con diseño, specs y tareas oficiales. La rama previs
 | Orden | Encargo propio | Trabajo concreto | Entrega que desbloquea |
 | --- | --- | --- | --- |
 | 1 — completado | [sentinel-module-contracts](sentinel-module-contracts.md) | Contrato v2 aprobado, publicado y archivado; conservar compatibilidad v1, 25 operaciones, ACK/páginas, origen, privacidad y contrato HTTP/push. Consultar su cierre y reutilizar la biblioteca. | P2/P3 conocen mensajes; P4 puede adaptar app/broker; todos comparten fixtures. |
-| 2 | [sentinel-firmware-module-api](sentinel-firmware-module-api.md) | Publicar `sentinel_api`, hooks/lifetime, registro opcional, dispatcher v2, recursos prestados, eventos/métricas y supervisor. Integrar flags globales de forwarding/NAPT y controles físicos según diseño revisado. | P2/P3 pueden integrar módulos sin editar el núcleo; P4 prueba comandos/capacidades reales. |
+| 2 — software entregado; física pendiente | [sentinel-firmware-module-api](sentinel-firmware-module-api.md) | Publicar `sentinel_api`, hooks/lifetime, registro opcional, dispatcher v2, recursos prestados, eventos/métricas y supervisor. Integrar flags globales de forwarding/NAPT y controles físicos según diseño revisado. | P2/P3 pueden integrar módulos sin editar el núcleo; P4 prueba comandos/capacidades reales. |
 | 3 | [sentinel-escudo-descubrimiento](sentinel-escudo-descubrimiento.md) | Escaneo pasivo 2.4 GHz, catálogo limitado/paginado con SSID/BSSID/canal/RSSI/seguridad, selección y cambio de objetivo por BLE. | P4 conecta catálogo y selección de red. |
 | 4 | [sentinel-escudo-captura](sentinel-escudo-captura.md) | Modo promiscuo, cola limitada, parser Beacon/Deauth/Disassoc y metadatos Probe, prioridad de objetivo, recorrido de canales, cobertura y start/stop. | Flujo de observaciones para todos los detectores y métricas de captura. |
 | 5 | [sentinel-escudo-detectores](sentinel-escudo-detectores.md) | Ráfagas Deauth, desconexión sospechosa, Evil Twin contextual e indicios Karma pasivos. Conectar los cuatro al parser, eventos y métricas v2. | P4 puede integrar todos los incidentes; P4 recibe casos positivos/negativos para laboratorio. |
@@ -31,8 +31,8 @@ La **tarea 1.5 del encargo 7 es tuya**: conectar las alertas del núcleo a la OL
 ## 3. Qué hacer primero
 
 1. Confirmar con el equipo la referencia que incorpora PR #2 de contratos y PR #3 de planificación; ambos están publicados hacia develop, sin merge automático. El contrato ya está aprobado y archivado. Mantener fuera los cambios ajenos existentes en tu copia.
-2. Revisar con P2/P3 el [diseño de API](../../openspec/changes/sentinel-firmware-module-api/design.md), en particular hooks, parada, callbacks y préstamo de netifs. Solicitar revisión de decisiones arquitectónicas nuevas importantes; resolver detalles rutinarios dentro del diseño acordado.
-3. Entregar la API en un incremento pequeño con build y consumidor mínimo de prueba. Documentar las firmas reales en `docs/development.md` dentro de ese encargo; hoy ese documento todavía explica la base.
+2. Revisar con P2/P3 el [diseño de API](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/design.md), en particular hooks, parada, callbacks y préstamo de netifs. Solicitar revisión de decisiones arquitectónicas nuevas importantes; resolver detalles rutinarios dentro del diseño acordado.
+3. Entregar la API en un incremento pequeño con build y consumidor mínimo de prueba. Documentar las firmas reales en `docs/development.md` dentro de ese encargo; la API real ya está documentada allí y fusionada en develop mediante PR #6.
 4. Comunicar a P2/P3 la referencia de integración, headers reales, ejemplo de ciclo de vida, flags disponibles y límites. A P4, comunicar cómo leer capacidades y enviar un comando v2 confirmado.
 5. Comenzar descubrimiento Escudo mientras P2 avanza auditoría, P3 HTTP y P4 app/broker. Mantener revisiones acotadas para no convertirte en una cola de aprobaciones de cada línea.
 
@@ -52,7 +52,7 @@ Eres autor de `contracts/`, núcleo `sentinel`, futuro `sentinel_api`, `main`, c
 Las 23 propuestas ya existen. No volver a proponerlas ni aplicar todas juntas. Antes de cada cambio, revisar sus artefactos y dependencias. En una sesión con las skills del repositorio puedes pedir, por ejemplo:
 
 ```text
-$openspec-apply-change sentinel-firmware-module-api
+$openspec-apply-change sentinel-escudo-descubrimiento
 Lee AGENTS.md, su ficha, diseño, specs y tareas. Implementa solo este cambio,
 preserva trabajo ajeno y verifica compilación y comportamiento básico.
 No hagas commit, push, merge ni archivo sin autorización explícita.
@@ -61,9 +61,9 @@ No hagas commit, push, merge ni archivo sin autorización explícita.
 Después, repetir con cada nombre de la tabla cuando corresponda. Esa línea es una instrucción para el asistente, no un comando de shell. Para consultar desde terminal:
 
 ```sh
-openspec status --change sentinel-firmware-module-api --json
-openspec instructions apply --change sentinel-firmware-module-api --json
-openspec validate sentinel-firmware-module-api --strict --json
+openspec status --change sentinel-escudo-descubrimiento --json
+openspec instructions apply --change sentinel-escudo-descubrimiento --json
+openspec validate sentinel-escudo-descubrimiento --strict --json
 ```
 
 Para P2/P3/P4: pedir tarea numerada, resultado, referencia y evidencia. Leer la línea original de `tasks.md`, contrastarla con el comportamiento y marcar únicamente lo demostrado. Una aceptación de pendientes se documenta como aceptación, sin convertirla en prueba realizada. Si cambia alcance/interfaz, mantener ficha, diseño, spec y contrato coherentes antes del consumidor.

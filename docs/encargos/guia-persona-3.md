@@ -7,7 +7,7 @@ Entregas el Módulo 3 completo y el componente que envía webhook y push. Person
 1. [Guía del equipo](guia-equipo.md) y [reparto](README.md): carpetas, dependencias, ramas, contratos y evidencias.
 2. [Arquitectura](../architecture.md), especialmente Cebo/persistencia/notificaciones; [R-04, R-06, R-10, R-11 y H-06/H-07/H-08](../technical-decisions.md).
 3. Tu [ficha HTTP](sentinel-cebo-http.md) y su diseño/spec/tareas; repetir esta lectura para cada encargo posterior.
-4. [Protocolo v2](../../contracts/module-protocol.md), [contrato de notificaciones](../../contracts/notifications.md) y [API de módulos propuesta](../../openspec/changes/sentinel-firmware-module-api/design.md).
+4. [Protocolo v2](../../contracts/module-protocol.md), [contrato de notificaciones](../../contracts/notifications.md) y [API de módulos propuesta](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/design.md).
 5. [Firmware](../firmware.md), [broker](../../broker/README.md) y [guía física](../core-foundation-test-guide.md).
 
 No tienes que aprender OpenSpec ni generar cambios: las propuestas están preparadas. Sigue las tareas numeradas de las fichas y entrega evidencia a Jefry para el seguimiento oficial.

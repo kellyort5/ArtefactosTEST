@@ -607,7 +607,7 @@ CONFIG_SENTINEL_BUTTON=4
 #
 # Sentinel optional modules
 #
-# CONFIG_SENTINEL_MODULE_ESCUDO is not set
+CONFIG_SENTINEL_MODULE_ESCUDO=y
 # CONFIG_SENTINEL_MODULE_SANITIZADOR is not set
 # CONFIG_SENTINEL_MODULE_CEBO is not set
 # end of Sentinel optional modules

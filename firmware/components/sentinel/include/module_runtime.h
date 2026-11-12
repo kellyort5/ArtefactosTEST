@@ -48,6 +48,11 @@ public:
   size_t scan_results(ScanNetwork *p, size_t n) override {
     return allowed() ? radio.scan_results(p, n) : 0;
   }
+  bool read_scan_results(ScanNetwork *out, size_t capacity,
+                         size_t &count) override {
+    count = 0;
+    return allowed() && radio.read_scan_results(out, capacity, count);
+  }
   bool capture(bool b) override { return allowed() && radio.capture(b); }
   bool configure_upstream(const UpstreamConfig &c) override {
     return allowed() && radio.configure_upstream(c);
