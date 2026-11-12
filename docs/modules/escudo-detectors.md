@@ -1,6 +1,6 @@
 # Escudo: detectores y evidencia pasiva
 
-Responsable: Persona 1. Cambio: [sentinel-escudo-detectores](../../openspec/changes/sentinel-escudo-detectores/proposal.md). Consume la [captura real](escudo-capture.md), el parser y el supervisor existentes. Las cuatro familias están conectadas al mismo flujo del firmware; las pruebas de host usan fixtures y no acreditan recepción física.
+Responsable: Persona 1. Cambio: [sentinel-escudo-detectores](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/proposal.md). Consume la [captura real](escudo-capture.md), el parser y el supervisor existentes. Las cuatro familias están conectadas al mismo flujo del firmware; las pruebas de host usan fixtures y no acreditan recepción física.
 
 ## Activación e integración
 
@@ -75,4 +75,4 @@ El usuario autorizó continuar manteniendo esta comprobación pendiente. No se m
 2. Escanear una red propia, seleccionarla e iniciar captura. Conservar build, ACK y estado con `capture_status:"running"` y `capabilities.detectors:true`.
 3. Recibir métricas BLE, observar crecimiento de Beacons benignos y cobertura. Confirmar con depurador en `Detectors::ingest` que las observaciones reales del parser alcanzan los detectores; registrar evidencia sin bloquear prolongadamente el supervisor ni confundir una pausa de depuración con rendimiento normal.
 4. Detener/reanudar desde BLE; comprobar que no se mezclan generaciones. No se requiere emitir ataques para esta comprobación: los casos sospechosos están cubiertos por pruebas de lógica; el ensayo real verifica el flujo de captura benigno y BLE.
-5. Conservar resultados en [verification.md](../../openspec/changes/sentinel-escudo-detectores/verification.md). Siguen abiertos los pendientes físicos de captura, descubrimiento y API. El laboratorio autorizado y la integración con app completa corresponden a sus encargos.
+5. Conservar resultados en [verification.md](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/verification.md). Siguen abiertos los pendientes físicos de captura, descubrimiento y API. El laboratorio autorizado y la integración con app completa corresponden a sus encargos.

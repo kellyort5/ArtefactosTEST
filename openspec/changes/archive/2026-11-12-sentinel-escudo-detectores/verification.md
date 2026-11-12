@@ -6,7 +6,7 @@ Responsable: Persona 1. Rama: `feat/sentinel-escudo-detectores`. Fecha: 2026-11-
 
 Los cuatro detectores están conectados a la captura/parser y a los eventos/métricas v2 del firmware. La implementación usa el supervisor, recursos, cola de salida, journal y BLE comunes. No incorpora detecciones a través de MQTT, asociación Wi-Fi ni tráfico activo. Los ejemplos sospechosos se prueban con bytes locales, sin emitir paquetes.
 
-La prueba física **2.1 permanece pendiente**, por instrucción del usuario de continuar conservándola. No se ha grabado la placa ni demostrado recepción BLE real en este incremento. Tampoco se completan los pendientes de [captura](../archive/2026-11-12-sentinel-escudo-captura/closure.md), descubrimiento o API por transitividad.
+La prueba física **2.1 permanece pendiente**, por instrucción del usuario de continuar conservándola. No se ha grabado la placa ni demostrado recepción BLE real en este incremento. Tampoco se completan los pendientes de [captura](../2026-11-12-sentinel-escudo-captura/closure.md), descubrimiento o API por transitividad.
 
 ## Evidencia de software
 
@@ -16,7 +16,7 @@ La prueba física **2.1 permanece pendiente**, por instrucción del usuario de c
 | 1.2 Evil Twin | Duplicado benigno, canal/RSSI aislados, combinación canal/RSSI, degradación de seguridad y PMF, unknown, referencia expirada y candidato anterior a referencia actualizada. |
 | 1.3 Karma | Tres SSID correlacionados positivos; una red repetida, respuesta sin solicitud, cliente/canal distintos, expiración y patrón sin relación con el objetivo no disparan Karma. |
 | 1.4 Integración | Órdenes v2 reales del componente de host; fixtures → ingreso/cola → parser → módulo → cuatro incidentes tipados, métricas y capacidades. Sink de host marca origen simulated; firmware usa origen real por contexto. Saturación no bloquea y cuenta pérdidas. |
-| 1.5 Documentación | [Guía del módulo](../../../docs/modules/escudo-detectors.md): criterios, límites, ventanas, enfriamiento, retención acotada, significado de métricas, evidencia insuficiente y recorrido físico. |
+| 1.5 Documentación | [Guía del módulo](../../../../docs/modules/escudo-detectors.md): criterios, límites, ventanas, enfriamiento, retención acotada, significado de métricas, evidencia insuficiente y recorrido físico. |
 | 2.1 Hardware | Solo la parte de compilación está comprobada; faltan observaciones benignas de placa pasando por detectores y recepción BLE real. Casilla abierta. |
 
 Comandos reproducibles, desde la raíz con Node 24 y el entorno PlatformIO del proyecto:

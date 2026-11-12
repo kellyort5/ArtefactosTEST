@@ -2,7 +2,7 @@
 
 ## Context
 
-Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../archive/2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
+Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../../docs/technical-decisions.md), [arquitectura](../../../../docs/architecture.md) y [encargos](../../../../docs/encargos/README.md).
 
 Responsable único: **Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware**. Dependencias para integrar: `sentinel-escudo-captura`. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
 
@@ -22,7 +22,7 @@ Karma: correlacionar Probe Request/Response observables, SSID solicitados y resp
 
 ### Interfaces y propiedad
 
-Contrato único: [protocolo funcional](../../../contracts/module-protocol.md) y [spec principal](../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../archive/2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
+Contrato único: [protocolo funcional](../../../../contracts/module-protocol.md) y [spec principal](../../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
 
 Archivos de implementación: `firmware/components/escudo/ (detectors y evidence)`, `firmware/test/escudo/`, `docs/modules/escudo-detectors.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
 
@@ -37,6 +37,6 @@ Trabajar en rama `feat/sentinel-escudo-detectores`, incorporar dependencias revi
 
 ## Concreción del incremento
 
-Se reutilizan `Capture`, `Observation`, el supervisor, `ModuleContext` y los mensajes v2; no hay cambio arquitectónico ni contrato adicional. [Guía de implementación](../../../docs/modules/escudo-detectors.md) con límites y criterios iniciales: tres SSID correlacionados/10 s para Karma, solicitud/respuesta hasta 2 s; referencia Evil Twin hasta 30 s, degradación de seguridad/PMF o canal distinto junto a diferencia RSSI ≥20 dB. Tablas/ventanas limitadas y enfriamiento por familia/BSSID. Son detalles ajustables, no exactitud validada.
+Se reutilizan `Capture`, `Observation`, el supervisor, `ModuleContext` y los mensajes v2; no hay cambio arquitectónico ni contrato adicional. [Guía de implementación](../../../../docs/modules/escudo-detectors.md) con límites y criterios iniciales: tres SSID correlacionados/10 s para Karma, solicitud/respuesta hasta 2 s; referencia Evil Twin hasta 30 s, degradación de seguridad/PMF o canal distinto junto a diferencia RSSI ≥20 dB. Tablas/ventanas limitadas y enfriamiento por familia/BSSID. Son detalles ajustables, no exactitud validada.
 
 El flujo interno de captura alimenta siempre los detectores; el observador opcional se conserva adicionalmente. Los contadores se integran en las métricas existentes de captura y las pérdidas de incidentes en `coverage.dropped_events`. El journal y el transporte siguen siendo compartidos. La documentación de captura/encargos se actualiza para reflejar la dependencia archivada y evitar anunciar detectores ausentes. El usuario autorizó continuar con la prueba física 2.1 pendiente; no se modifica su casilla ni el alcance.
