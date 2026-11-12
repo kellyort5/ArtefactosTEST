@@ -149,3 +149,5 @@ Para cerrar la tarea física 2.2, conectar la placa, registrar puerto/build, arr
 El incremento de descubrimiento se documenta en [Escudo: descubrimiento y selección](modules/escudo-discovery.md), con órdenes v2, límites y prueba física pendiente.
 
 La [guía de captura](modules/escudo-capture.md) detalla control BLE, parser, generaciones y cobertura. La API añade `capture_generation()`, `capture_dropped()` y `allowed_channels()`; cada contexto conserva la concesión del modo. `RadioEvent::generation` identifica la captura que produjo la copia, sin modificar mensajes v2 ni introducir otro driver.
+
+La [guía de detectores](modules/escudo-detectors.md) documenta las cuatro heurísticas conectadas al parser, sus umbrales/límites, enfriamiento, incidentes y contadores v2. La capacidad implementada no acredita recepción BLE física; la tarea 2.1 sigue pendiente hasta registrar el recorrido real.

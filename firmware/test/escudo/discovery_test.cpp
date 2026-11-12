@@ -106,7 +106,7 @@ static const char *target =
 static void module_tests() {
   Harness h;
   assert(h.supervisor.capabilities().capture &&
-         !h.supervisor.capabilities().detectors);
+         h.supervisor.capabilities().detectors);
   h.state();
   auto scan = h.command_text("escudo.scan", "{}", "scan-main");
   auto denied = h.send(scan, false);

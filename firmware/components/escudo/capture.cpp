@@ -65,9 +65,10 @@ void Capture::metrics(uint64_t now, bool force) {
   cJSON_AddNumberToObject(p, "deauth", s.deauth);
   cJSON_AddNumberToObject(p, "disassoc", s.disassoc);
   auto alerts = cJSON_AddObjectToObject(p, "alerts");
+  size_t family = 0;
   for (auto key : {"deauth_burst", "suspicious_disconnect", "evil_twin",
                    "karma_indication"})
-    cJSON_AddNumberToObject(alerts, key, 0);
+    cJSON_AddNumberToObject(alerts, key, s.alerts[family++]);
   if (running())
     cJSON_AddNumberToObject(p, "channel", scheduler.channel());
   else

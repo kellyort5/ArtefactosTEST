@@ -5,7 +5,7 @@ repo=pathlib.Path(__file__).resolve().parents[3]
 subprocess.run(['python3',str(repo/'firmware/test/escudo/run_host.py')],cwd=repo,check=True)
 subprocess.run(['npm','run','build','-w','contracts'],cwd=repo,check=True)
 wires=[]
-for name in ('discovery_test','capture_test'):
+for name in ('discovery_test','capture_test','detectors_test'):
     wires.append(subprocess.check_output([str(pathlib.Path(tempfile.gettempdir())/'sentinel-escudo-host'/name),'wire'],cwd=repo))
 node=r'''
 import assert from 'node:assert/strict';
@@ -23,7 +23,7 @@ for(const line of text.trim().split('\n')) {
 }
 const meta={version:2,device_id:'node-example',boot_id:'boot-example',revision:1,uptime_ms:1000,max_message_bytes:2048};
 let examples=0;
-for(const doc of ['docs/modules/escudo-discovery.md','docs/modules/escudo-capture.md'])
+for(const doc of ['docs/modules/escudo-discovery.md','docs/modules/escudo-capture.md','docs/modules/escudo-detectors.md'])
 for(const [,body] of readFileSync(doc,'utf8').matchAll(/```json\n([\s\S]*?)\n```/g)) {
   makeModuleCommand(meta,JSON.parse(body),`doc-example-${++examples}`);
 }

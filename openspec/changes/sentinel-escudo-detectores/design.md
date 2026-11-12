@@ -34,3 +34,9 @@ Archivos de implementación: `firmware/components/escudo/ (detectors y evidence)
 ## Migration Plan
 
 Trabajar en rama `feat/sentinel-escudo-detectores`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+
+## Concreción del incremento
+
+Se reutilizan `Capture`, `Observation`, el supervisor, `ModuleContext` y los mensajes v2; no hay cambio arquitectónico ni contrato adicional. [Guía de implementación](../../../docs/modules/escudo-detectors.md) con límites y criterios iniciales: tres SSID correlacionados/10 s para Karma, solicitud/respuesta hasta 2 s; referencia Evil Twin hasta 30 s, degradación de seguridad/PMF o canal distinto junto a diferencia RSSI ≥20 dB. Tablas/ventanas limitadas y enfriamiento por familia/BSSID. Son detalles ajustables, no exactitud validada.
+
+El flujo interno de captura alimenta siempre los detectores; el observador opcional se conserva adicionalmente. Los contadores se integran en las métricas existentes de captura y las pérdidas de incidentes en `coverage.dropped_events`. El journal y el transporte siguen siendo compartidos. La documentación de captura/encargos se actualiza para reflejar la dependencia archivada y evitar anunciar detectores ausentes. El usuario autorizó continuar con la prueba física 2.1 pendiente; no se modifica su casilla ni el alcance.

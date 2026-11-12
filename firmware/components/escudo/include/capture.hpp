@@ -3,6 +3,7 @@
 #include "frame_parser.hpp"
 namespace sentinel::escudo {
 struct CaptureStats {
+  uint64_t alerts[4] = {};
   uint64_t beacons = 0, deauth = 0, disassoc = 0, probe_requests = 0,
            probe_responses = 0;
   uint64_t coverage_ms = 0, paused_ms = 0, dropped_frames = 0,
@@ -37,6 +38,12 @@ public:
   void fail(uint64_t now);
   void tick(uint64_t now);
   void ingest(const RadioEvent &);
+  void detection(size_t family, bool delivered) {
+    if (family < 4)
+      ++counters.alerts[family];
+    if (!delivered)
+      ++counters.dropped_events;
+  }
   bool running() const;
   bool needs_release() const { return driver; }
   const char *status() const { return state; }

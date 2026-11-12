@@ -156,7 +156,7 @@ struct Context : ModuleContext {
   ModuleLease lease;
   uint64_t now = 1000, seq = 0;
   bool sink_ready = true;
-  std::vector<std::string> events;
+  std::vector<std::string> events, metrics;
   explicit Context(ModuleSupervisor &s, Radio &r) : lease(s, Mode::Escudo, r) {}
   uint64_t now_ms() const override { return now; }
   ModuleResources &resources() override { return lease; }
@@ -202,6 +202,7 @@ struct Context : ModuleContext {
     cJSON_AddNumberToObject(payload, "interval_ms", interval);
     cJSON_AddItemToObject(payload, "values", cJSON_Parse(values));
     assert(serialize(envelope(env, "metrics", payload), wire));
+    metrics.emplace_back(wire);
     if (emit_wire)
       std::cout << wire << '\n';
     return true;

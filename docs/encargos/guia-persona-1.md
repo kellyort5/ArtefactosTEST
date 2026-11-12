@@ -52,7 +52,7 @@ Eres autor de `contracts/`, núcleo `sentinel`, futuro `sentinel_api`, `main`, c
 Las 23 propuestas ya existen. No volver a proponerlas ni aplicar todas juntas. Antes de cada cambio, revisar sus artefactos y dependencias. En una sesión con las skills del repositorio puedes pedir, por ejemplo:
 
 ```text
-$openspec-apply-change sentinel-escudo-captura
+$openspec-apply-change sentinel-escudo-detectores
 Lee AGENTS.md, su ficha, diseño, specs y tareas. Implementa solo este cambio,
 preserva trabajo ajeno y verifica compilación y comportamiento básico.
 No hagas commit, push, merge ni archivo sin autorización explícita.
@@ -61,9 +61,9 @@ No hagas commit, push, merge ni archivo sin autorización explícita.
 Después, repetir con cada nombre de la tabla cuando corresponda. Esa línea es una instrucción para el asistente, no un comando de shell. Para consultar desde terminal:
 
 ```sh
-openspec status --change sentinel-escudo-captura --json
-openspec instructions apply --change sentinel-escudo-captura --json
-openspec validate sentinel-escudo-captura --strict --json
+openspec status --change sentinel-escudo-detectores --json
+openspec instructions apply --change sentinel-escudo-detectores --json
+openspec validate sentinel-escudo-detectores --strict --json
 ```
 
 Para P2/P3/P4: pedir tarea numerada, resultado, referencia y evidencia. Leer la línea original de `tasks.md`, contrastarla con el comportamiento y marcar únicamente lo demostrado. Una aceptación de pendientes se documenta como aceptación, sin convertirla en prueba realizada. Si cambia alcance/interfaz, mantener ficha, diseño, spec y contrato coherentes antes del consumidor.
