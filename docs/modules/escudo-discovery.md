@@ -2,7 +2,7 @@
 
 Responsable: Persona 1. Cambio: [sentinel-escudo-descubrimiento](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/proposal.md). Se integra con la [API de módulos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) y el [contrato v2](../../contracts/module-protocol.md). El firmware incluye `firmware/components/escudo/` y habilita `CONFIG_SENTINEL_MODULE_ESCUDO=y` en defaults y configuración mantenida.
 
-Este incremento implementa descubrimiento y objetivo en el ESP32. Captura, detectores y recuperación específica del Escudo corresponden a sus cambios siguientes: sus capacidades siguen en `false` y el núcleo rechaza las órdenes de captura según el contexto y la disponibilidad del componente. El catálogo no clasifica amenazas ni interpreta SSID duplicados como maliciosos.
+Este incremento implementó descubrimiento y objetivo en el ESP32 y se encuentra archivado con pruebas físicas pendientes. La [captura](escudo-capture.md) se integra en su siguiente cambio; `capture` refleja su implementación y `detectors` permanece falso hasta conectar los detectores. El catálogo no clasifica amenazas ni interpreta SSID duplicados como maliciosos.
 
 ## Recorrido y operaciones
 
@@ -80,7 +80,7 @@ El usuario autorizó continuar conservando estas comprobaciones pendientes. No s
 
 1. Conectar ESP32-S3 N16R8, OLED y botón según [cableado](../firmware.md). Identificar el puerto real y ejecutar upload/monitor; no asumir un nombre de puerto.
 2. Abrir la ventana de emparejamiento con el botón largo de 3 s y conectar un cliente BLE autorizado que use v2 y el framing común. La app necesita su adaptador v2 del encargo de Persona 4.
-3. Leer metadata y `get_state`: Idle al arrancar. Cambiar a Escudo y consultar `scan_status:"idle"`, objetivo null y capacidades de captura/detectores falsas.
+3. Leer metadata y `get_state`: Idle al arrancar. Cambiar a Escudo y consultar `scan_status:"idle"`, objetivo null y capacidades acordes con los incrementos realmente incluidos.
 4. Solicitar un scan en LAN propia/autorizada. Registrar command/job/scan ID y ACK; consultar estado durante el scan para confirmar que el control BLE responde.
 5. Recibir `escudo.networks`, consultar todas las páginas y cotejar SSID/BSSID/canal/RSSI/seguridad con la red propia. Documentar datos no observables y límites, sin inventar resultados.
 6. Seleccionar una tupla observada, comprobar ACK/estado/evento y enviar luego una tupla inconsistente. El objetivo válido debe conservarse. Probar cambio a otro BSSID observado si hay uno disponible.

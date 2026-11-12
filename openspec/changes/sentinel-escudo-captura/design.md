@@ -34,3 +34,12 @@ Archivos de implementación: `firmware/components/escudo/ (capture, frame_parser
 ## Migration Plan
 
 Trabajar en rama `feat/sentinel-escudo-captura`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+
+
+### Concreción de integración (2026-11-11)
+
+El callback y la cola son del gestor existente; `CaptureIngress` concentra copia acotada, contador y época fuera de cualquier dependencia de parser/JSON. Para la tarea 1.1 se amplían de forma compatible `sentinel_api`, su concesión y `Network` con generación, descartes y máscara del país. Son archivos compartidos bajo propiedad de P1 y necesarios para rechazar copias de una captura cerrada. No se crea otro controlador ni otra tarea Wi-Fi. El CMake raíz registra la dependencia del listado de fuentes del componente para que la compilación incorpore parser, captura y scheduler.
+
+El parser entrega `Observation` acotada a un sink interno del supervisor para que el siguiente cambio conecte todos los detectores. El transporte conserva el contrato v2: métricas Escudo y eventos de cobertura; no se inventa un mensaje de tramas crudas ni se publican detecciones ficticias. Las métricas se intentan cada segundo y al cerrar un tramo de canal; la cobertura se registra en cambios de estado y cada 5 s, sin un evento persistente por trama/salto. Los límites y el significado de tiempo de controlador, ausencia del objetivo y pérdidas se documentan en la guía.
+
+Un rescan pausa captura y la reanuda con nueva generación; una orden de parada durante el scan cancela esa reanudación. Un objetivo inválido no interrumpe la captura. Al cambiar a un objetivo válido se cierra la generación anterior, se valida el canal del país y solo tras arrancar se actualiza el objetivo. Un fallo SDK conserva error visible y no se presenta como continuidad ni liberación confirmada.

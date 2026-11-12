@@ -1,4 +1,5 @@
 #pragma once
+#include "capture.hpp"
 #include "module_api.hpp"
 namespace sentinel::escudo {
 constexpr size_t CatalogCapacity = 32;
@@ -27,6 +28,8 @@ public:
 class Escudo final : public Module {
   ModuleContext *context = nullptr;
   Catalog catalog;
+  Capture capture_engine;
+  bool stop_requested = false, resume_after_scan = false;
   bool active = false, has_target = false, networks_pending = false,
        target_pending = false;
   bool scan_needs_restart = false;
@@ -35,9 +38,13 @@ class Escudo final : public Module {
   Entry selected = {};
   const char *diagnostic = nullptr;
   void complete_scan(const RadioEvent &);
+  void finish_stop(uint64_t);
   void flush_event();
 
 public:
+  void observe(ObservationSink sink, void *arg) {
+    capture_engine.observe(sink, arg);
+  }
   bool init(ModuleContext &) override;
   bool start() override;
   void request_stop() override;

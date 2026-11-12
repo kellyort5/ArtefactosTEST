@@ -184,6 +184,7 @@ const char *Network::configure(const cJSON *args) {
 bool Network::stop_network() {
   if (napt_active && !napt(false))
     return false;
+  ingress.close();
   if (promiscuous && esp_wifi_set_promiscuous(false) != ESP_OK)
     return false;
   promiscuous = false;
@@ -421,22 +422,31 @@ bool Network::publish(const char *suffix, const char *data, size_t n, int qos,
 
 namespace sentinel {
 static void capture_frame(void *packet, wifi_promiscuous_pkt_type_t type) {
-  if (!radio_owner || type == WIFI_PKT_MISC)
+  if (!radio_owner || !packet || type != WIFI_PKT_MGMT)
     return;
   auto p = static_cast<wifi_promiscuous_pkt_t *>(packet);
-  RadioEvent e = {};
-  e.kind = RadioEvent::Kind::Frame;
-  e.uptime_ms = monotonic_ms();
-  e.channel = p->rx_ctrl.channel;
-  e.rssi = p->rx_ctrl.rssi;
-  e.original_length = p->rx_ctrl.sig_len;
-  e.length = std::min<size_t>(e.original_length, sizeof(e.bytes));
-  memcpy(e.bytes, p->payload, e.length);
-  radio_owner->notify(e);
+  // sig_len includes the four-byte FCS (pinned ESP-IDF rx_ctrl definition).
+  size_t size = p->rx_ctrl.sig_len;
+  radio_owner->frame(p->payload, size >= 4 ? size - 4 : 0,
+                     p->rx_ctrl.rx_state == 0, p->rx_ctrl.channel,
+                     p->rx_ctrl.rssi);
+}
+void Network::frame(const uint8_t *bytes, size_t n, bool valid, uint8_t channel,
+                    int8_t rssi) {
+  RadioEvent e;
+  if (ingress.copy(bytes, n, valid, channel, rssi, monotonic_ms(), e))
+    notify(e);
 }
 void Network::notify(const RadioEvent &e) {
-  if (!radio_queue || xQueueSend(radio_queue, &e, 0) != pdTRUE)
+  if (e.kind == RadioEvent::Kind::Frame && !ingress.current(e.generation)) {
+    ingress.drop();
+    return;
+  }
+  if (!radio_queue || xQueueSend(radio_queue, &e, 0) != pdTRUE) {
     ++radio_dropped;
+    if (e.kind == RadioEvent::Kind::Frame)
+      ingress.drop();
+  }
 }
 bool Network::poll(RadioEvent &e) {
   return radio_queue && xQueueReceive(radio_queue, &e, 0) == pdTRUE;
@@ -459,6 +469,7 @@ bool Network::start_profile(Profile p) {
 }
 bool Network::set_channel(uint8_t channel) {
   return owner == Profile::Escudo && sta && channel >= 1 && channel <= 14 &&
+         (allowed_channels() & (1U << (channel - 1))) &&
          esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE) == ESP_OK;
 }
 bool Network::scan_passive() {
@@ -500,13 +511,42 @@ bool Network::read_scan_results(ScanNetwork *out, size_t capacity,
   count = total;
   return true;
 }
+uint16_t Network::allowed_channels() const {
+  if (owner != Profile::Escudo || !sta)
+    return 0;
+  wifi_country_t country = {};
+  if (esp_wifi_get_country(&country) != ESP_OK)
+    return 0;
+  uint16_t mask = 0;
+  unsigned end = unsigned(country.schan) + country.nchan;
+  for (unsigned c = country.schan; c < end && c <= 14; ++c)
+    if (c)
+      mask |= 1U << (c - 1);
+  return mask;
+}
 bool Network::capture(bool enabled) {
   if (owner != Profile::Escudo || !sta)
     return false;
+  if (enabled && promiscuous && ingress.generation())
+    return true;
+  ingress.close(); // copied frames of the prior epoch can no longer be admitted
+  if (!enabled) {
+    if (promiscuous && esp_wifi_set_promiscuous(false) != ESP_OK)
+      return false;
+    promiscuous = false;
+    return true;
+  }
+  wifi_promiscuous_filter_t filter = {};
+  filter.filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT;
   if (esp_wifi_set_promiscuous_rx_cb(capture_frame) != ESP_OK ||
-      esp_wifi_set_promiscuous(enabled) != ESP_OK)
+      esp_wifi_set_promiscuous_filter(&filter) != ESP_OK)
     return false;
-  promiscuous = enabled;
+  ingress.open();
+  if (esp_wifi_set_promiscuous(true) != ESP_OK) {
+    ingress.close();
+    return false;
+  }
+  promiscuous = true;
   return true;
 }
 bool Network::configure_upstream(const UpstreamConfig &cfg) {

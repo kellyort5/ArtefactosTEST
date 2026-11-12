@@ -54,6 +54,15 @@ public:
     return allowed() && radio.read_scan_results(out, capacity, count);
   }
   bool capture(bool b) override { return allowed() && radio.capture(b); }
+  uint32_t capture_generation() const override {
+    return allowed() ? radio.capture_generation() : 0;
+  }
+  uint64_t capture_dropped() const override {
+    return allowed() ? radio.capture_dropped() : 0;
+  }
+  uint16_t allowed_channels() const override {
+    return allowed() ? radio.allowed_channels() : 0;
+  }
   bool configure_upstream(const UpstreamConfig &c) override {
     return allowed() && radio.configure_upstream(c);
   }

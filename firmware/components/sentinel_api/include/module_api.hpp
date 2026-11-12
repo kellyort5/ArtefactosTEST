@@ -54,6 +54,7 @@ struct RadioEvent {
     ApClientConnected,
     ApClientDisconnected
   } kind;
+  uint32_t generation = 0; // capture epoch; zero is closed
   uint32_t scan_status = 0;
   uint16_t scan_count = 0;
   uint32_t ipv4 = 0, netmask = 0, gateway = 0;
@@ -78,6 +79,10 @@ public:
     return true;
   }
   virtual bool capture(bool enabled) = 0;
+  virtual uint32_t capture_generation() const { return 0; }
+  virtual uint64_t capture_dropped() const { return 0; }
+  // Channel n is bit (n-1). Zero means the regulatory plan is unavailable.
+  virtual uint16_t allowed_channels() const { return 0; }
   virtual bool configure_upstream(const UpstreamConfig &) = 0;
   virtual bool configure_ap(const ApConfig &) = 0;
   virtual bool napt(bool enabled) = 0;
