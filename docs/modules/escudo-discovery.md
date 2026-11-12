@@ -38,7 +38,7 @@ Seleccionar o cambiar usando exactamente SSID/BSSID/canal del catálogo completo
 {"operation":"escudo.select_target","args":{"ssid":"LAB","bssid":"02:00:00:00:00:01","channel":6}}
 ```
 
-El ACK aplicado devuelve `{kind:"escudo.target",target:{ssid,bssid,channel,capture_status:"stopped"}}` y se emite `escudo.target`. El gestor cambia de canal; el módulo solo reemplaza el objetivo tras validar la tupla y completar ese paso. BSSID no observado, SSID distinto, canal inconsistente o fallo del gestor no borran el objetivo anterior. No se asocia al AP seleccionado.
+El ACK aplicado devuelve `{kind:"escudo.target",target:{ssid,bssid,channel,capture_status}}`, con el estado real de captura, y se emite `escudo.target`. El gestor cambia de canal; el módulo solo reemplaza el objetivo tras validar la tupla y completar ese paso. BSSID no observado, SSID distinto, canal inconsistente o fallo del gestor no borran el objetivo anterior. No se asocia al AP seleccionado.
 
 Una nueva exploración reemplaza el catálogo y conserva el objetivo seleccionado hasta que se cambie explícitamente. Salir a Idle y volver a Escudo reinicia catálogo/objetivo en RAM; no se promete persistencia de configuración. Los eventos ya emitidos usan el journal compartido de 64 entradas.
 
