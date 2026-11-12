@@ -11,7 +11,7 @@ Fecha: 2026-11-11. Persona 1. Rama: `feat/sentinel-escudo-captura`, creada desde
 - `PATH=/home/jefry/.nvm/versions/node/v24.13.1/bin:$PATH python3 firmware/test/check_contracts.py`: PASS. Conserva las regresiones del núcleo/API, fixtures v1 y 69 fixtures v2; serialización C++ validada por el codec compartido.
 - El callback SDK solo adapta FCS/estado y llama a copia/cola sin espera. Inspección: no hay JSON, flash, logs ni parser en esa ruta; solo el gestor inicia/detiene el driver. El módulo no llama a `esp_wifi_connect`, no transmite probes y no publica MQTT.
 - Los contadores se contrastan con reloj controlado: prioridad 800/200 ms, suma real de tiempo del controlador, pausa sin captura y rechazo de generaciones antiguas. No es una medición de RF, convivencia, carga sostenida o estabilidad de hardware.
-- [Guía](../../../docs/modules/escudo-capture.md), enlaces y `git diff --check` revisados. OpenSpec valida el cambio y las diez specs principales.
+- [Guía](../../../../docs/modules/escudo-capture.md), enlaces y `git diff --check` revisados. OpenSpec valida el cambio y las diez specs principales.
 
 La API compartida se amplió únicamente para generaciones, descartes y máscara de canales, según las necesidades de la tarea 1.1. Conserva interfaces anteriores y dueño único de radio, sin añadir tecnologías, procesos ni formatos de mensajes.
 

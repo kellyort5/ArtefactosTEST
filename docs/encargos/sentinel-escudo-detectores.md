@@ -1,6 +1,6 @@
 # Encargo: Escudo: todos los detectores
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-escudo-detectores`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** 5/6 tareas verificadas en software; evidencia y prueba física 2.1 pendiente en [verification.md](../../openspec/changes/sentinel-escudo-detectores/verification.md). **Rama prevista:** `feat/sentinel-escudo-detectores`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 

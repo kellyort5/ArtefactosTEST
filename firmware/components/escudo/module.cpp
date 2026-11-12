@@ -10,9 +10,73 @@ static bool print(cJSON *owned, char *out, size_t capacity) {
     *out = 0;
   return ok;
 }
+static void add_mac(cJSON *j, const char *key, const uint8_t *mac) {
+  char value[18];
+  snprintf(value, sizeof(value), "%02x:%02x:%02x:%02x:%02x:%02x", mac[0],
+           mac[1], mac[2], mac[3], mac[4], mac[5]);
+  cJSON_AddStringToObject(j, key, value);
+}
+void Escudo::detection(const Detection &d) {
+  const auto &n = d.network;
+  auto j = cJSON_CreateObject();
+  cJSON_AddStringToObject(j, "detector", detector_name(d.detector));
+  // Always use the approved byte-preserving form, including SSIDs with NUL.
+  char hex[65] = {};
+  for (size_t i = 0; i < n.ssid_length; ++i)
+    snprintf(hex + 2 * i, 3, "%02x", n.ssid[i]);
+  auto name = cJSON_AddObjectToObject(j, "ssid");
+  cJSON_AddStringToObject(name, "encoding", "hex");
+  cJSON_AddStringToObject(name, "value", hex);
+  add_mac(j, "bssid", n.bssid);
+  if (d.related)
+    add_mac(j, "related_bssid", d.related_bssid);
+  cJSON_AddNumberToObject(j, "channel", n.channel);
+  cJSON_AddNumberToObject(j, "rssi", n.rssi);
+  cJSON_AddStringToObject(j, "auth", n.auth);
+  cJSON_AddStringToObject(j, "cipher", n.cipher);
+  cJSON_AddStringToObject(j, "pmf", n.pmf);
+  cJSON_AddNumberToObject(j, "count", d.count);
+  cJSON_AddNumberToObject(j, "window_ms", d.window_ms);
+  cJSON_AddStringToObject(j, "suspicion", "medium");
+  auto evidence = cJSON_AddArrayToObject(j, "evidence");
+  const struct {
+    uint16_t bit;
+    const char *code;
+  } codes[] = {{DeauthRate, "deauth_rate"},
+               {DisassocRate, "disassoc_rate"},
+               {DisconnectSequence, "disconnect_sequence"},
+               {SameSsid, "same_ssid"},
+               {DifferentBssid, "different_bssid"},
+               {ChannelChange, "channel_change"},
+               {RssiChange, "rssi_change"},
+               {SecurityDowngrade, "security_downgrade"},
+               {PmfChange, "pmf_change"},
+               {MultipleSsids, "multiple_ssids"},
+               {PassiveOnly, "passive_only"}};
+  for (auto &c : codes)
+    if (d.evidence & c.bit)
+      cJSON_AddItemToArray(evidence, cJSON_CreateString(c.code));
+  char details[1024];
+  bool ok = print(j, details, sizeof(details)) &&
+            context->emit_event("escudo.detection", "warning", details);
+  capture_engine.detection(size_t(d.detector), ok);
+}
 bool Escudo::init(ModuleContext &c) {
   context = &c;
   capture_engine.init(c);
+  capture_engine.observe(
+      [](void *arg, const Observation &o) {
+        auto &self = *static_cast<Escudo *>(arg);
+        self.detectors.ingest(o);
+        if (self.external_observer)
+          self.external_observer(self.external_observer_arg, o);
+      },
+      this);
+  detectors.observe(
+      [](void *arg, const Detection &d) {
+        static_cast<Escudo *>(arg)->detection(d);
+      },
+      this);
   return true;
 }
 bool Escudo::start() {
@@ -26,6 +90,7 @@ bool Escudo::start() {
   scan_status = "idle";
   scan_deadline = 0;
   catalog.reset(nullptr);
+  detectors.reset();
   return true;
 }
 void Escudo::finish_stop(uint64_t now) {
@@ -226,6 +291,18 @@ void Escudo::handle(const ModuleCommand &cmd, ModuleReply &reply) {
       return;
     }
     selected = *found;
+    Observation baseline;
+    baseline.ssid_present = baseline.bssid_known = true;
+    baseline.ssid_length = strnlen(selected.network.ssid, 32);
+    memcpy(baseline.ssid, selected.network.ssid, baseline.ssid_length);
+    memcpy(baseline.bssid, selected.network.bssid, 6);
+    baseline.channel = selected.network.channel;
+    baseline.rssi = selected.network.rssi;
+    baseline.auth = auth_label(selected.network.auth);
+    baseline.cipher = cipher_label(selected.network.pairwise_cipher,
+                                   selected.network.group_cipher);
+    baseline.uptime_ms = selected.seen;
+    detectors.select(baseline);
     has_target = true;
     target_pending = true;
   } else if (!strcmp(cmd.operation, "escudo.capture_start")) {
@@ -264,6 +341,7 @@ void Escudo::snapshot(ModuleSnapshot &out) const {
   print(j, out.state, sizeof(out.state));
   out.capabilities = {};
   out.capabilities.capture = true;
+  out.capabilities.detectors = true;
   out.target_selected = has_target;
 }
 } // namespace sentinel::escudo

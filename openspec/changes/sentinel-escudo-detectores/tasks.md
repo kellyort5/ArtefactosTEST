@@ -1,14 +1,14 @@
 # Tasks
 
-Responsable único de todas las casillas: **Persona 1**. Estado inicial: todo pendiente; propuesta lista para revisión, sin implementación.
+Responsable único de todas las casillas: **Persona 1**. Estado: **5/6 tareas verificadas en software**; la comprobación física **2.1 sigue pendiente**, conservada por instrucción del usuario. Ver [evidencia](verification.md).
 
 ## 1. Heurísticas y evidencia
 
-- [ ] 1.1 Implementar ventanas y detectores Deauth/desconexión; probar umbral, expiración y enfriamiento con reloj controlado.
-- [ ] 1.2 Implementar comparación Evil Twin; probar SSID duplicado benigno y diferencias de seguridad/canal/RSSI.
-- [ ] 1.3 Implementar correlación Karma pasiva y caso inconcluso; verificar fixtures positivos/negativos sin inyección de tramas.
-- [ ] 1.4 Conectar los cuatro detectores a capture/parser y eventos/métricas v2; verificar que cada familia tiene fixture y salida válida.
-- [ ] 1.5 Documentar umbrales, evidencia y límites en docs/modules/escudo-detectors.md; revisar que no se presentan atribuciones concluyentes.
+- [x] 1.1 Implementar ventanas y detectores Deauth/desconexión; probar umbral, expiración y enfriamiento con reloj controlado.
+- [x] 1.2 Implementar comparación Evil Twin; probar SSID duplicado benigno y diferencias de seguridad/canal/RSSI.
+- [x] 1.3 Implementar correlación Karma pasiva y caso inconcluso; verificar fixtures positivos/negativos sin inyección de tramas.
+- [x] 1.4 Conectar los cuatro detectores a capture/parser y eventos/métricas v2; verificar que cada familia tiene fixture y salida válida.
+- [x] 1.5 Documentar umbrales, evidencia y límites en docs/modules/escudo-detectors.md; revisar que no se presentan atribuciones concluyentes.
 
 ## 2. Comprobación del incremento
 

@@ -1,8 +1,8 @@
 # Escudo: captura, parser y canales
 
-Responsable: Persona 1. Cambio: [sentinel-escudo-captura](../../openspec/changes/sentinel-escudo-captura/proposal.md), sobre [descubrimiento archivado](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/closure.md). Usa los contratos v2 existentes, el supervisor, el gestor y la cola de radio compartidos. No agrega servicios, instancias MQTT ni formatos de mensajes.
+Responsable: Persona 1. Cambio: [sentinel-escudo-captura](../../openspec/changes/archive/2026-11-12-sentinel-escudo-captura/proposal.md), sobre [descubrimiento archivado](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/closure.md). Usa los contratos v2 existentes, el supervisor, el gestor y la cola de radio compartidos. No agrega servicios, instancias MQTT ni formatos de mensajes.
 
-El componente implementa captura promiscua de administración, parser, control y cobertura. `capabilities.capture` pasa a `true`; `detectors` sigue en `false`. Los detectores de Deauth, desconexión sospechosa, Evil Twin y Karma conservan su alcance en el siguiente encargo; los contadores `alerts` quedan en cero porque todavía no se ejecutan esos detectores, no porque se haya demostrado que la red es segura.
+El componente implementa captura promiscua de administración, parser, control y cobertura. `capabilities.capture=true`. El incremento posterior de [detectores](escudo-detectors.md) conecta las cuatro familias, anuncia `capabilities.detectors=true` y alimenta los contadores `alerts`. Cero alertas no demuestra que la red sea segura.
 
 ## Uso desde BLE v2
 
@@ -65,7 +65,7 @@ Se validan longitudes, tipo/subtipo, dirección individual de emisor/BSSID cuand
 
 PMF procede de los bits anunciados de RSN, no de inferirlo a partir del nombre WPA3. Se mantienen el bit Protected y `reason_known` por separado: no son una verificación criptográfica. SSID binario se conserva como bytes/longitud internos, sin asumir terminación NUL.
 
-El punto `Escudo::observe(ObservationSink,void*)` permite que el próximo incremento conecte un consumidor de observaciones para todos los detectores. Corre en el supervisor; la referencia solo vive durante la llamada y el consumidor debe copiar de forma acotada si necesita conservarla. El punto no inicia drivers ni retiene payloads completos. No hay mensajes nuevos de tramas crudas por BLE: los contratos vigentes exponen métricas y cobertura; los incidentes estructurados corresponderán a los detectores.
+Los detectores internos consumen las observaciones del parser. El punto `Escudo::observe(ObservationSink,void*)` permite además un observador opcional sin sustituirlos. Corre en el supervisor; la referencia solo vive durante la llamada y el consumidor debe copiar de forma acotada si necesita conservarla. El punto no inicia drivers ni retiene payloads completos. No hay mensajes nuevos de tramas crudas por BLE: los contratos vigentes exponen métricas y cobertura; los incidentes estructurados los producen los detectores.
 
 Los formatos se contrastaron con las [definiciones de administración 802.11 de Linux v6.12](https://raw.githubusercontent.com/torvalds/linux/v6.12/include/linux/ieee80211.h), y con `esp_wifi_types_native.h`/`wpa_common.h` del ESP-IDF 5.5.3 instalado. La implementación del parser es propia; no copia código de esas definiciones.
 
@@ -80,7 +80,7 @@ El scheduler inicial dedica **800 ms al objetivo y 200 ms a otro canal permitido
 - `escudo.coverage` se emite al iniciar, pausar, parar o reanudar y como máximo periódicamente cada 5 s. Se guarda por el journal compartido; no se escribe un evento por cada trama ni se llena el journal con cada salto automático.
 - `coverage.started_uptime_ms/duration_ms` describen el tramo actual del controlador. En estado running, `channel_hop` indica observación de un canal alternativo y ausencia del objetivo; no significa que el receptor esté apagado. Durante un scan, el mismo motivo identifica radio dedicada a descubrimiento con captura pausada y canal null.
 - `coverage_ms` suma tiempo del controlador en running, incluso sobre canales alternativos; `paused_ms` suma pausas solicitadas, como rescan. La parada manual se distingue de una pausa. Estos valores no miden recepción RF continua: BLE comparte radio, los saltos llevan tiempo y puede haber pérdidas.
-- `dropped_frames` reúne errores/desbordamiento del ingreso, tramas malformadas y generaciones cerradas; `coverage.dropped_events` cuenta avisos de cobertura/diagnóstico que el núcleo no aceptó. Las métricas son efímeras; la cola de salida común también contabiliza saturación.
+- `dropped_frames` reúne errores/desbordamiento del ingreso, tramas malformadas y generaciones cerradas; `coverage.dropped_events` cuenta avisos de cobertura/diagnóstico e incidentes de detectores que el núcleo no aceptó. Las métricas son efímeras; la cola de salida común también contabiliza saturación.
 
 El firmware nunca inicia asociación, NAT, DNS ni MQTT desde Escudo. No persiste tramas ni cuerpos completos: solo estadísticas, cobertura y las salidas tipadas de los incrementos implementados. No atribuye una MAC a una persona ni declara maliciosa una red con estas observaciones.
 
@@ -105,4 +105,4 @@ Mantener abiertas las tareas 2.1 y 2.2 hasta ejecutarlas en ESP32-S3 N16R8, con 
 4. Recibir por BLE métricas y cobertura. Registrar canales/tiempos; correlacionar las observaciones de los BSSID propios con los cambios de canal y contadores. Los resúmenes BLE no publican una trama por BSSID: no atribuir un incremento a una red ajena solo por el canal.
 5. Detener/reanudar, cambiar objetivo y salir a Idle durante captura; verificar ausencia de observaciones de generaciones cerradas, recursos residuales y éxito prematuro ante un fallo.
 6. Comprobar en la LAN autorizada que el nodo no se asocia ni transmite probes y que el control BLE responde durante captura. Registrar pérdidas/pausas reales sin prometer cobertura continua ni considerar una compilación como prueba de tráfico.
-7. Conservar evidencia en [verification.md](../../openspec/changes/sentinel-escudo-captura/verification.md). Siguen vigentes las pruebas físicas archivadas de API y descubrimiento; no se completan por suposición.
+7. Conservar evidencia en [verification.md](../../openspec/changes/archive/2026-11-12-sentinel-escudo-captura/verification.md). Siguen vigentes las pruebas físicas archivadas de API y descubrimiento; no se completan por suposición.
