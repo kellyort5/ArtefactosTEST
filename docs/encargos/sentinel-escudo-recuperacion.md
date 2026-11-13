@@ -1,6 +1,6 @@
 # Encargo: Escudo: desconexión y coexistencia
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-escudo-recuperacion`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** 3/6 tareas verificadas en software; coexistencia y pruebas físicas 1.3/2.1/2.2 pendientes. Ver [evidencia](../../openspec/changes/sentinel-escudo-recuperacion/verification.md). **Rama prevista:** `feat/sentinel-escudo-recuperacion`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 
@@ -20,6 +20,7 @@ Puedes preparar estructura/lógica/UI con fixtures del contrato revisado mientra
 
 - `firmware/components/escudo/ (coverage, reconnect y backlog)`
 - `firmware/test/escudo/`
+- Ampliación aprobada por el usuario: `firmware/components/sentinel/include/module_runtime.h`, `module_runtime.cpp` y `runtime.cpp`, únicamente para reutilizar la rutina de persistencia del núcleo en producción y pruebas.
 - `docs/modules/escudo-recovery.md`
 
 Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por rama/PR para evitar superposición. Otro autor revisa el PR, sin coimplementar la spec. Los cambios compartidos se solicitan al propietario de contratos (P1), núcleo (P1), app/lock raíz (P4), broker (P4) o notificaciones (P3).

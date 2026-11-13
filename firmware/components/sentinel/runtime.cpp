@@ -757,31 +757,25 @@ static void supervisor(void *) {
     }
     ModuleOutput output;
     if (module_outputs.pop(output)) {
-      auto payload =
-          output.metric
-              ? cJSON_CreateObject()
-              : module_event_payload(journal.highest + 1, output.name,
-                                     output.mode, nullptr, output.json,
-                                     output.severity, output.simulated);
+      char timestamp[33], json[MaxMessage + 1];
       if (output.metric) {
+        auto payload = cJSON_CreateObject();
         cJSON_AddStringToObject(payload, "scope", profile_name(output.mode));
         cJSON_AddNumberToObject(payload, "interval_ms", output.interval_ms);
         cJSON_AddItemToObject(payload, "values",
                               v2::parse(output.json, strlen(output.json)));
-      }
-      char timestamp[33], json[MaxMessage + 1];
-      if (serialize(envelope(context(timestamp),
-                             output.metric ? "metrics" : "event", payload),
-                    json)) {
-        if (output.metric ||
-            journal.append(json, strlen(json), journal.highest + 1)) {
+        if (serialize(envelope(context(timestamp), "metrics", payload), json)) {
           ble_send(json, strlen(json));
-          network.publish(output.metric ? "metrics" : "events", json,
-                          strlen(json), output.metric ? 0 : 1, false);
+          network.publish("metrics", json, strlen(json), 0, false);
         } else
-          runtime.error = "resource_error";
-      } else
-        runtime.error = "invalid_message";
+          runtime.error = "invalid_message";
+      } else if (auto error = persist_module_event(journal, output,
+                                                   context(timestamp), json))
+        runtime.error = error;
+      else {
+        ble_send(json, strlen(json));
+        network.publish("events", json, strlen(json), 1, false);
+      }
     }
     network.tick(now, has_time);
     update_snapshot();

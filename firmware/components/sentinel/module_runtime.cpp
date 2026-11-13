@@ -1,5 +1,6 @@
 #include "module_runtime.h"
 #include "protocol_v2.h"
+#include "wire.h"
 #include <cstring>
 namespace sentinel {
 bool ModuleSupervisor::add(Profile p, Module &m, ModuleContext &ctx) {
@@ -198,6 +199,24 @@ bool ModuleOutputQueue::pop(ModuleOutput &out) {
   }
   lock.clear(std::memory_order_release);
   return ok;
+}
+const char *persist_module_event(Journal &journal, const ModuleOutput &output,
+                                 const Envelope &env, char json[MaxMessage + 1]) {
+  json[0] = 0;
+  if (output.metric)
+    return "invalid_message";
+  auto cursor = journal.highest + 1;
+  if (!serialize(envelope(env, "event",
+                          module_event_payload(cursor, output.name, output.mode,
+                                               nullptr, output.json,
+                                               output.severity, output.simulated)),
+                 json))
+    return "invalid_message";
+  if (!journal.append(json, strlen(json), cursor)) {
+    json[0] = 0;
+    return "resource_error";
+  }
+  return nullptr;
 }
 bool validate_output(const ModuleOutput &out) {
   if (strnlen(out.name, sizeof(out.name)) == sizeof(out.name) ||

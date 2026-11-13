@@ -1,6 +1,6 @@
 # Encargo: Escudo: todos los detectores
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** 5/6 tareas verificadas en software; evidencia y prueba física 2.1 pendiente en [verification.md](../../openspec/changes/sentinel-escudo-detectores/verification.md). **Rama prevista:** `feat/sentinel-escudo-detectores`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** 5/6 tareas verificadas en software; evidencia y prueba física 2.1 pendiente en [verification.md](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/verification.md). **Rama prevista:** `feat/sentinel-escudo-detectores`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 
@@ -8,7 +8,7 @@ Las observaciones necesitan detección completa y explicable; un solo detector n
 
 Cuatro detectores integrados; casos benignos/sospechosos focalizados y eventos válidos, sin confundir indicios con certeza.
 
-Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-escudo-detectores/design.md) y los [casos de aceptación](../../openspec/changes/sentinel-escudo-detectores/specs/escudo-detection/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/sentinel-escudo-detectores/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
+Lee primero esta ficha, el [diseño concreto](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/design.md) y los [casos de aceptación](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/specs/escudo-detection/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
 
 ## Dependencias para integrar
 
@@ -45,4 +45,4 @@ El PR debe enlazar esta ficha y la propuesta, describir el cambio e incluir coma
 
 **Criterio de terminación:** Cuatro detectores integrados; casos benignos/sospechosos focalizados y eventos válidos, sin confundir indicios con certeza. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
 
-[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/sentinel-escudo-detectores/proposal.md) · [Tareas](../../openspec/changes/sentinel-escudo-detectores/tasks.md)
+[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/proposal.md) · [Tareas](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/tasks.md)

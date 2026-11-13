@@ -28,6 +28,7 @@ Archivos de futura implementación bajo propiedad de este autor:
 
 - `firmware/components/escudo/ (coverage, reconnect y backlog)`
 - `firmware/test/escudo/`
+- Ampliación aprobada durante implementación: `firmware/components/sentinel/include/module_runtime.h`, `module_runtime.cpp` y `runtime.cpp`, para compartir la rutina existente de persistencia con las pruebas sin cambiar contratos ni almacén.
 - `docs/modules/escudo-recovery.md`
 
 No editar carpetas de otros integrantes. Riesgos: Capacidad finita → sobrescritura visible y no prometer historial ilimitado. Contención BLE/captura → pausa solo si falla funcionalmente y registrada en cobertura.
