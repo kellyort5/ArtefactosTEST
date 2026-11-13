@@ -1,6 +1,6 @@
 # Escudo: historial, recuperación y coexistencia
 
-Responsable: Persona 1. Cambio: [sentinel-escudo-recuperacion](../../openspec/changes/sentinel-escudo-recuperacion/proposal.md). Reutiliza [captura](escudo-capture.md), [detectores](escudo-detectors.md), journal NVS, identidad, supervisor y BLE comunes. La recuperación no crea un segundo almacén ni inicia Wi-Fi/MQTT en Escudo.
+Responsable: Persona 1. Cambio: [sentinel-escudo-recuperacion](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/proposal.md). Reutiliza [captura](escudo-capture.md), [detectores](escudo-detectors.md), journal NVS, identidad, supervisor y BLE comunes. La recuperación no crea un segundo almacén ni inicia Wi-Fi/MQTT en Escudo.
 
 ## Qué se conserva
 

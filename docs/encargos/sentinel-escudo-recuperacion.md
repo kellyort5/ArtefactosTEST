@@ -1,6 +1,6 @@
 # Encargo: Escudo: desconexión y coexistencia
 
-**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** 3/6 tareas verificadas en software; coexistencia y pruebas físicas 1.3/2.1/2.2 pendientes. Ver [evidencia](../../openspec/changes/sentinel-escudo-recuperacion/verification.md). **Rama prevista:** `feat/sentinel-escudo-recuperacion`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** 3/6 tareas verificadas en software; coexistencia y pruebas físicas 1.3/2.1/2.2 pendientes. Ver [evidencia](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/verification.md). **Rama prevista:** `feat/sentinel-escudo-recuperacion`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 
@@ -8,7 +8,7 @@ El Escudo completo debe conservar eventos cuando BLE cae y mostrar periodos sin 
 
 Evento recuperable tras desconexión y reinicio, huecos visibles y funciones conservadas.
 
-Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-escudo-recuperacion/design.md) y los [casos de aceptación](../../openspec/changes/sentinel-escudo-recuperacion/specs/escudo-recovery/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/sentinel-escudo-recuperacion/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
+Lee primero esta ficha, el [diseño concreto](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/design.md) y los [casos de aceptación](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/specs/escudo-recovery/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
 
 ## Dependencias para integrar
 
@@ -46,4 +46,4 @@ El PR debe enlazar esta ficha y la propuesta, describir el cambio e incluir coma
 
 **Criterio de terminación:** Evento recuperable tras desconexión y reinicio, huecos visibles y funciones conservadas. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
 
-[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/sentinel-escudo-recuperacion/proposal.md) · [Tareas](../../openspec/changes/sentinel-escudo-recuperacion/tasks.md)
+[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/proposal.md) · [Tareas](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/tasks.md)

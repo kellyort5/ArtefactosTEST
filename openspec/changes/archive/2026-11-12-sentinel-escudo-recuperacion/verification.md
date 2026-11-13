@@ -15,7 +15,7 @@ Estado: **3/6 tareas verificadas en software**, con **1.3, 2.1 y 2.2 pendientes*
 | 1.1 Eventos/journal | Productor real de Escudo → cola común → rutina compartida del runtime → Journal. Un proceso escribe un incidente con transporte desconectado; otro proceso abre archivos nuevos sobre el almacenamiento del host y recupera sus bytes/cursor/identidad originales. Nuevo boot añade evento con cursor siguiente sin reescribir el anterior. Prueba de lógica y archivos del host; no NVS físico. |
 | 1.2 Cobertura/gap | Anillo de tres entradas, generado con eventos de módulo/cobertura, muestra sobrescritura y rango disponible. La paginación real informa gap/more/next; repetición conserva identidad. Leer historial no muta selección/captura. Fallo de escritura no confirma persistencia ni entrega en vivo, y el control de parada sigue disponible. |
 | 1.3 Coexistencia | Pendiente en ESP32/teléfono. Se mantiene concurrencia primero. Solo se implementará pausa acotada si se observa un fallo bloqueante; no se afirma que exista una política automática nueva. |
-| 1.4 Documentación | [Guía de recuperación](../../../docs/modules/escudo-recovery.md), retención/commit, replay por páginas, identidad, cobertura/gap, fallos y política de pausa. Seis requests cotejados con makeModuleCommand v2. |
+| 1.4 Documentación | [Guía de recuperación](../../../../docs/modules/escudo-recovery.md), retención/commit, replay por páginas, identidad, cobertura/gap, fallos y política de pausa. Seis requests cotejados con makeModuleCommand v2. |
 | 2.1 Reconexión real | Compilación se comprueba por software; desconexión/reconexión BLE, NVS/reinicio e historial sin duplicados en Android quedan pendientes. El consumidor de contrato de host no acredita la app real. |
 | 2.2 Funciones posteriores | Prueba de lógica conserva captura/objetivo y permite parar, iniciar, cambiar objetivo y detectar tras leer historial. Falta comprobarlo en la placa y adjuntar esa evidencia. Casilla abierta. |
 
@@ -38,4 +38,4 @@ Primera ejecución ASan/UBSan: PASS para descubrimiento, captura, detectores y l
 
 ## Archivo anterior
 
-[Detectores](../archive/2026-11-12-sentinel-escudo-detectores/closure.md) se sincronizó a la spec principal `escudo-detection` y archivó con autorización del usuario. Purpose, cuatro requisitos/scenarios, YAML y casilla física 2.1 se conservan. El archivo no acredita las pruebas pendientes de detectores, captura, descubrimiento o API.
+[Detectores](../2026-11-12-sentinel-escudo-detectores/closure.md) se sincronizó a la spec principal `escudo-detection` y archivó con autorización del usuario. Purpose, cuatro requisitos/scenarios, YAML y casilla física 2.1 se conservan. El archivo no acredita las pruebas pendientes de detectores, captura, descubrimiento o API.
