@@ -4,7 +4,7 @@
 
 Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../archive/2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
 
-Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Dependencias para integrar: `sentinel-module-contracts`. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
+Responsable único: **Persona 1 — Jefry: app común v2 por reasignación explícita del usuario**. Dependencias para integrar: `sentinel-module-contracts`. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
 
 ## Goals / Non-Goals
 
@@ -16,7 +16,7 @@ Responsable único: **Persona 4 — app, Android, broker y coordinación del lab
 
 Los acuerdos funcionales de R-03, R-04, R-06, R-07 y H-08 son confirmados. Las elecciones concretas nuevas de este diseño son **propuestas de implementación**, no acuerdos históricos. Los límites iniciales son recomendaciones ajustables ante fallos sin retirar funcionalidad. Revisar con el usuario las elecciones arquitectónicas nuevas antes de aplicar; los detalles no estructurales se resuelven durante implementación.
 
-Reutilizar BLE/MQTT/controller/journal actuales y codec de contracts, sin reescribir transportes. Negotiación por Metadata/estado fresco, separar v1 base y v2, topics por versión y recepción de eventos históricos v1 intactos. No permitir ejecutar funciones ausentes. Secciones App de tres módulos en React y Zustand; páginas siguientes viven en app/src/features/<modulo>/ para aislar trabajo del mismo autor. La Persona4 es única autora de app y lockfile raíz; si otra persona necesita dependencia, entrega solicitud al propietario.
+Reutilizar BLE/MQTT/controller/journal actuales y codec de contracts, sin reescribir transportes. Negotiación por Metadata/estado fresco, separar v1 base y v2, topics por versión y recepción de eventos históricos v1 intactos. No permitir ejecutar funciones ausentes. Secciones App de tres módulos en React y Zustand; páginas siguientes viven en app/src/features/<modulo>/ para aislar trabajo del mismo autor. El usuario reasignó exclusivamente esta spec común a Persona 1 el 2026-11-12. Persona 4 conserva los demás encargos de app/broker/laboratorio; no hay coautoría simultánea de esta spec.
 
 Mantener journal IndexedDB256, dedup por ID y paginación con gap visible; no subirlo a nube ni crear base extra. Configuraciones secretas se envían por BLE autenticado y se borran del formulario/estado al terminar, sin localStorage. Comandos confirman accepted/applied/rejected; tras cambiar canal o modo reconciliar estado, no asumir éxito al hacer click. MQTT/WSS solo cuando modo/canal exista, sin intentar STA directa en Escudo. Propuesta v2 es dependencia revisada, no formato improvisado por la UI.
 

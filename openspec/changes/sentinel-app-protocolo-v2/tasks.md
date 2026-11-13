@@ -1,18 +1,18 @@
 # Tasks
 
-Responsable único de todas las casillas: **Persona 4**. Estado inicial: todo pendiente; propuesta lista para revisión, sin implementación.
+Responsable único de todas las casillas: **Persona 1**, por reasignación explícita del usuario el 2026-11-12. Implementación del adaptador común; ver [verificación](verification.md) y conservar pendientes las comprobaciones físicas no ejecutadas.
 
 ## 1. Adaptadores comunes
 
-- [ ] 1.1 Actualizar transporte/controlador al codec v1/v2 y negociación; probar incompatibilidad, retained y boot/revisión.
-- [ ] 1.2 Extender store/journal para familias de tres módulos y paginación; probar dedup, eventos antiguos y gap.
-- [ ] 1.3 Crear navegación/secciones de módulos con capacidades reales y estados pendientes; verificar no disponible/rechazado sin éxito falso.
-- [ ] 1.4 Limpiar secretos transitorios y documentar conexión/versiones en app/README.md; comprobar que no hay persistencia de claves.
+- [x] 1.1 Actualizar transporte/controlador al codec v1/v2 y negociación; probar incompatibilidad, retained y boot/revisión.
+- [x] 1.2 Extender store/journal para familias de tres módulos y paginación; probar dedup, eventos antiguos y gap.
+- [x] 1.3 Crear navegación/secciones de módulos con capacidades reales y estados pendientes; verificar no disponible/rechazado sin éxito falso.
+- [x] 1.4 Limpiar secretos transitorios y documentar conexión/versiones en app/README.md; comprobar que no hay persistencia de claves.
 
 ## 2. Comprobación del incremento
 
 - [ ] 2.1 Ejecutar npm run test:app y npm run build; verificar arranque web y control básico de base real.
-- [ ] 2.2 Ejecutar npm run android:sync y npm run android:assemble; comprobar permisos/conexión BLE en teléfono o dejar evidencia pendiente.
+- [x] 2.2 Ejecutar npm run android:sync y npm run android:assemble; comprobar permisos/conexión BLE en teléfono o dejar evidencia pendiente.
 
 ## Workflow follow-up
 

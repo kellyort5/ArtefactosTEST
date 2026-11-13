@@ -1,8 +1,10 @@
 # Reparto de Sentinel Node para cuatro integrantes
 
-Estado: de los **23 encargos originales**, `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Sus seis requisitos están en la [spec principal](../../openspec/specs/module-protocol/spec.md), con [resultados y límites](../../contracts/evidence-v2.md). Los otros **22 cambios** conservan su estado de planificación; consultar sus tareas y evidencia antes de empezar. La publicación está separada en [PR #2: contratos](https://github.com/Jefry-P/ArtefactosProyecto/pull/2) y [PR #3: planificación y guías](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), ambos hacia develop. Integrar #2 antes de #3; esta publicación no realizó merges.
+Resumen de la planificación original (2026-11-11): de los **23 encargos originales**, `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Sus seis requisitos están en la [spec principal](../../openspec/specs/module-protocol/spec.md), con [resultados y límites](../../contracts/evidence-v2.md). Los otros **22 cambios** estaban planificados entonces; consultar sus tareas y evidencia actuales antes de empezar. La publicación está separada en [PR #2: contratos](https://github.com/Jefry-P/ArtefactosProyecto/pull/2) y [PR #3: planificación y guías](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), ambos hacia develop. Integrar #2 antes de #3; esta publicación no realizó merges.
 
 Verificación de la planificación original: `openspec validate --all --strict --json` aprobó los 24 cambios que estaban presentes (23 nuevos y la base), sin incidencias. Se comprobaron enlaces locales, ausencia de ciclos entre encargos y asignación de un único autor. Es evidencia de aquella planificación, no una afirmación de que todos los módulos estén implementados o físicamente verificados.
+
+Estado del incremento al 2026-11-12: contratos, API y los cuatro incrementos Escudo están archivados; conservan las pruebas físicas pendientes indicadas en sus cierres. `sentinel-app-protocolo-v2` entrega software comprobado (5/6 tareas) por P1, con control físico pendiente; el [seguimiento actual](../../openspec/changes/sentinel-app-protocolo-v2/tasks.md) y su [verificación](../../openspec/changes/sentinel-app-protocolo-v2/verification.md) distinguen software comprobado de integración física pendiente. No se asumen merges por archivar.
 
 ## Guías personalizadas: empezar aquí
 
@@ -15,7 +17,7 @@ Antes de repartir, consultar la [comparación del alcance con el PDF](../pdf-sco
 | Persona 1 — Jefry | [Coordinación, contratos, API, Escudo e integración](guia-persona-1.md). Incluye cómo aplicar cada cambio con OpenSpec y hacer seguimiento de las entregas del equipo. |
 | Persona 2 | [Auditor/Sanitizador completo](guia-persona-2.md): auditoría → pasarela/NAT → DNS → DoH, contratos, pruebas y coordinación con núcleo/app. |
 | Persona 3 | [Cebo y servidor de alertas](guia-persona-3.md): HTTP → Telnet → eventos/persistencia → webhook → push servidor. |
-| Persona 4 | [App, broker LAN y laboratorio](guia-persona-4.md): base común → infraestructura y pantallas → push Android y evidencia conjunta. |
+| Persona 4 | [App, broker LAN y laboratorio](guia-persona-4.md): consume base común de P1 → infraestructura y pantallas → push Android y evidencia conjunta. |
 
 Las guías explican el reparto aprobado; las fichas y sus specs conservan el detalle de tareas y aceptación. Un cambio sigue teniendo un solo autor. La existencia de una guía no autoriza Git ni convierte una propuesta en comportamiento implementado.
 
@@ -23,18 +25,20 @@ Las guías explican el reparto aprobado; las fichas y sus specs conservan el det
 
 **Ajuste confirmado el 2026-11-11:** se elimina Telegram del alcance de Cebo y de P3. Se mantienen alertas en la app, webhook y push móvil; el encargo se llama ahora `sentinel-alertas-webhook`. El reparto conserva los mismos responsables y cinco encargos de P3.
 
+**Reasignación confirmada el 2026-11-12:** P1 asume exclusivamente `sentinel-app-protocolo-v2`. P4 conserva sus otros seis encargos. P4 consume la entrega común de P1 y evita editar sus archivos mientras se integra esta spec.
+
 El usuario coordina OpenSpec y desarrolla Escudo. El Sanitizador comienza desde la primera ronda, por instrucción del 2026-11-10; los tres módulos conservan todo su alcance funcional. Solo un modo usa la radio a la vez en cada ESP32.
 
 
 | Integrante        | Trabajo propio                                                                   | Cambios nuevos |
 | ----------------- | -------------------------------------------------------------------------------- | -------------- |
-| Persona 1 — Jefry | Contratos, API/supervisor, Escudo, integración del núcleo y seguimiento OpenSpec | 7              |
+| Persona 1 — Jefry | Contratos, API/supervisor, Escudo, app común v2, integración y seguimiento OpenSpec | 8              |
 | Persona 2         | Auditor/Sanitizador completo                                                     | 4              |
 | Persona 3         | Cebo completo y envío de webhook/push                                   | 5              |
-| Persona 4         | App de los tres modos, recepción push Android, broker LAN y laboratorio          | 7              |
+| Persona 4         | Pantallas de tres modos, recepción push Android, broker LAN y laboratorio        | 6              |
 
 
-Los números no representan esfuerzo equivalente. Persona 4 tiene la mayor variedad: debe adelantar la base de app y broker, reutilizar componentes de UI y coordinar evidencia. Persona 3 se encarga del servidor de alertas para repartir infraestructura. No se inventan fechas, nombres de compañeros ni disponibilidad de otras placas. Con una sola ESP32, acordar turnos de pruebas breves; el trabajo de carpetas separadas avanza en paralelo.
+Los números no representan esfuerzo equivalente. Persona 4 tiene la mayor variedad: debe consumir la app común de P1 y adelantar broker, reutilizar componentes de UI y coordinar evidencia. Persona 3 se encarga del servidor de alertas para repartir infraestructura. No se inventan fechas, nombres de compañeros ni disponibilidad de otras placas. Con una sola ESP32, acordar turnos de pruebas breves; el trabajo de carpetas separadas avanza en paralelo.
 
 **Un cambio = un autor.** No hay una spec compartida entre firmware y UI, ni entre envío y recepción push. El revisor es otro integrante y no toma tareas de implementación dentro del mismo cambio. Si alguien necesita ayuda, se transfiere el encargo completo de forma explícita o se crea otro cambio acotado; no asignar simultáneamente sus casillas a dos personas.
 
@@ -52,7 +56,7 @@ Los límites de conexiones, umbrales, cachés y tiempos son recomendaciones inic
 
 1. La [base archivada](../../openspec/changes/archive/2026-11-10-sentinel-core-foundation/closure.md) conserva **26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario** bajo la suposición de que el hardware funciona. Esta aceptación permite continuar sin marcar esas pruebas como realizadas. Cuando se ejecuten, registrar evidencia con la [guía de prueba](../core-foundation-test-guide.md).
 2. Continuar con la API de módulos, consumiendo el contrato aprobado y archivado. Son dos encargos separados: el contrato está terminado y la API sigue pendiente. Los compañeros leen sus interfaces para preparar su carpeta; no se exige terminar todas las comprobaciones de base para empezar lógica/UI. Confirmar que la referencia compartida contiene ambos PR y las dependencias necesarias: publicar no equivale a integrar en develop.
-3. Primera ronda en paralelo: tú descubrimiento Escudo; P2 auditoría; P3 HTTP; P4 adaptación app y broker (dos cambios suyos, uno por rama/PR). Cada uno necesita contrato/API que consuma.
+3. Primera ronda en paralelo: tú descubrimiento Escudo; P2 auditoría; P3 HTTP; P4 broker y preparación de pantallas; P1 entrega la adaptación app común en una spec separada. Cada uno necesita contrato/API que consuma.
 4. Seguir la cadena interna de cada módulo y las pantallas independientes. La UI puede prepararse con fixtures revisados; sus dependencias de la tabla son de **integración/cierre**, no una prohibición de preparar vistas antes. Un fixture nunca cuenta como funcionalidad integrada.
 5. P3 entrega webhook y servidor push; P4 integra recepción Android y prueba con app cerrada. P4 prepara laboratorio desde temprano y consolida evidencia durante todas las rondas.
 6. Tú integras registros/recursos físicos del núcleo; cada fallo de un módulo o de la app vuelve a su autor. P4 consolida laboratorio. El cierre requiere Escudo, Sanitizador y Cebo completos en ESP32/app.
@@ -60,7 +64,7 @@ Los límites de conexiones, umbrales, cachés y tiempos son recomendaciones inic
 ```mermaid
 flowchart TD
   C["P1 · Contratos"] --> API["P1 · API y supervisor"]
-  C --> APP["P4 · App común"]
+  C --> APP["P1 · App común"]
   C --> BROKER["P4 · Broker LAN"]
   C --> LAB["P4 · Preparar laboratorio"]
   API --> E["P1 · Escudo por incrementos"]
@@ -99,7 +103,7 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | [sentinel-cebo-eventos-historial](sentinel-cebo-eventos-historial.md)     | P3    | `cebo-telnet`                                                                                                                 |
 | [sentinel-alertas-webhook](sentinel-alertas-webhook.md) | P3    | `module-contracts`, `broker-lan`, `cebo-eventos-historial`                                                                    |
 | [sentinel-alertas-push-servidor](sentinel-alertas-push-servidor.md)       | P3    | `alertas-webhook`                                                                                                    |
-| [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md)                 | P4    | `module-contracts`                                                                                                            |
+| [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md)                 | P1    | `module-contracts`                                                                                                            |
 | [sentinel-app-escudo](sentinel-app-escudo.md)                             | P4    | `app-protocolo-v2`, `escudo-descubrimiento`, `escudo-detectores`, `escudo-recuperacion`                                       |
 | [sentinel-app-sanitizador](sentinel-app-sanitizador.md)                   | P4    | `app-protocolo-v2`, `sanitizador-auditoria`, `sanitizador-doh`                                                                |
 | [sentinel-app-cebo](sentinel-app-cebo.md)                                 | P4    | `app-protocolo-v2`, `cebo-eventos-historial`, `alertas-webhook`                                                      |
@@ -120,7 +124,7 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | firmware/components/sanitizador y sus tests/docs                      | P2          | Mismo procedimiento; P1 solo integra el registro en núcleo                         |
 | firmware/components/cebo y sus tests/docs                             | P3          | Mismo procedimiento; no editar desde laboratorio                                   |
 | notifications/ y su package/lock/Compose propios                      | P3          | P4 consume API HTTPS; entrega casos de error/registro                              |
-| app/, package.json y package-lock.json raíz                           | P4          | Solicitar adaptador/UI/dependencia; P3 no añade paquetes al workspace raíz         |
+| app/, package.json y package-lock.json raíz                           | P4          | P1 entrega app-protocolo-v2; P4 conserva pantallas/dependencias; no editar a la vez         |
 | broker/                                                               | P4          | P3 solicita rol notify; P4 adapta permisos con pruebas negativas                   |
 | simulator/, docs/lab y consolidación de evidencia                     | P4          | Cada dueño entrega evidencia; el coordinador no se convierte en autor de su módulo |
 | docs/architecture, technical-decisions, roadmap y artefactos OpenSpec | P1          | Cambios aprobados de alcance/interfaz quedan registrados por coordinador           |
@@ -136,7 +140,7 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | Beacon, Deauth, Disassoc, prioridad objetivo y recorrido              | P1 escudo-captura                               | P4 app-escudo                                                 |
 | Ráfagas, desconexiones, Evil Twin contextual e indicios Karma pasivos | P1 escudo-detectores                            | P4 app-escudo, evidencia y límites                            |
 | Eventos/métricas/alertas BLE, gráficos y tabla red/canal/tiempo       | P1 detectores + contrato                        | P4 app-escudo                                                 |
-| Escudo offline/persistencia/sync/dedup/cobertura                      | P1 escudo-recuperacion + journal base           | P4 app-protocolo-v2 + app-escudo                              |
+| Escudo offline/persistencia/sync/dedup/cobertura                      | P1 escudo-recuperacion + journal base           | P1 app-protocolo-v2 + P4 app-escudo                              |
 | Diagnóstico DNS/HTTPS/certificados/portal                             | P2 sanitizador-auditoria                        | P4 app-sanitizador                                            |
 | STA+AP autenticado, DHCP, NAT IPv4/subred separada                    | P2 sanitizador-pasarela                         | P4 app-sanitizador                                            |
 | Clientes, RSSI/calidad, subida/bajada                                 | P2 sanitizador-pasarela                         | P4 app-sanitizador                                            |
@@ -145,11 +149,11 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | HTTP panel ficticio, conexiones/accesos/auth                          | P3 cebo-http                                    | P4 app-cebo                                                   |
 | Telnet puerto23, conexiones/input/auth, sin ejecución                 | P3 cebo-telnet                                  | P4 app-cebo                                                   |
 | IP/puertos/protocolo/tiempo, cantidad/frecuencia/sospecha             | P3 cebo-eventos-historial                       | P4 app-cebo                                                   |
-| Journal circular persistente offline, recuperación/IDs/dedup          | P3 cebo-eventos-historial + journal base        | P4 app-protocolo-v2 + app-cebo                                |
+| Journal circular persistente offline, recuperación/IDs/dedup          | P3 cebo-eventos-historial + journal base        | P1 app-protocolo-v2 + P4 app-cebo                                |
 | MQTT real, historial/incidentes/métricas/gráficos/alertas internas    | P3 cebo-eventos-historial                       | P4 app-cebo + broker-lan                                      |
 | Webhooks, dedup y control de saturación                     | P3 alertas-webhook                     | P4 app-cebo consulta estado                                   |
 | Push móvil incluso app cerrada                                        | P3 alertas-push-servidor                        | P4 app-push; teléfono real obligatorio                        |
-| TLS/WSS, BLE autenticado, contratos/ACK/replay                        | P1 contratos + API + base                       | P4 broker-lan + app-protocolo-v2                              |
+| TLS/WSS, BLE autenticado, contratos/ACK/replay                        | P1 contratos + API + base                       | P4 broker-lan + P1 app-protocolo-v2                              |
 | OLED con alertas recientes/botón, supervisor, cambios seguros y errores | P1 firmware-module-api + integracion-tres-modos (alertas OLED: tarea 1.5) | P4 pantallas reflejan estado, laboratorio recoge evidencia    |
 | Datos sensibles, límites y uso solo autorizado                        | Cada autor en su componente                     | P4 laboratorio verifica; no se guardan credenciales recibidas |
 

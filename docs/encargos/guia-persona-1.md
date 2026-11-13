@@ -4,13 +4,17 @@ Tu resultado es entregar las interfaces que consumen los compañeros, el Escudo 
 
 ## 1. Tu lectura y punto de partida
 
+Para tu primer montaje y prueba, seguir la [guía desde cero de software, hardware y specs de Persona 1](../guia-pruebas-persona-1.md), actualizada para tu app común v2: instalación, pairing, estado, Reposo ↔ Escudo, reconexión e historial. Distingue esos controles de las pantallas específicas pendientes del equipo.
+
+La [verificación](../../openspec/changes/sentinel-app-protocolo-v2/verification.md) y el [README de app](../../app/README.md) registran el incremento v2 y sus pendientes físicos. La primera sesión puede completar T03/T14/T15 de la guía; catálogo/selección y controles de captura siguen en `sentinel-app-escudo` de P4. Publicar o actualizar la guía no acredita esas pruebas ni cambia sus casillas OpenSpec.
+
 Leer la [guía del equipo](guia-equipo.md), el [reparto](README.md), la [arquitectura](../architecture.md), [R-02 a R-07 y R-11, con H-01 a H-08](../technical-decisions.md) y el [roadmap](../roadmap.md).
 
 Para los contratos, consultar [protocolo v2](../../contracts/module-protocol.md), [notificaciones](../../contracts/notifications.md), [evidencia](../../contracts/evidence-v2.md) y [spec principal](../../openspec/specs/module-protocol/spec.md). El usuario aprobó el contrato y el cierre de 2.2; el cambio está [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md) y publicado en el PR #2. No repetir su implementación ni confundir publicación con merge.
 
 Revisar [cierre de la base](../../openspec/changes/archive/2026-11-10-sentinel-core-foundation/closure.md) y [prueba física](../core-foundation-test-guide.md). Las pruebas físicas asumidas al archivar la base siguen pendientes de evidencia.
 
-## 2. Tus siete encargos en orden
+## 2. Tus ocho encargos en orden
 
 Cada enlace abre una ficha con diseño, specs y tareas oficiales. La rama prevista es `feat/<nombre completo del cambio>`.
 
@@ -21,8 +25,11 @@ Cada enlace abre una ficha con diseño, specs y tareas oficiales. La rama previs
 | 3 — software archivado; física pendiente | [sentinel-escudo-descubrimiento](sentinel-escudo-descubrimiento.md) | Escaneo pasivo 2.4 GHz, catálogo limitado/paginado con SSID/BSSID/canal/RSSI/seguridad, selección y cambio de objetivo por BLE. | P4 conecta catálogo y selección de red. |
 | 4 — software archivado; física pendiente | [sentinel-escudo-captura](sentinel-escudo-captura.md) | Modo promiscuo, cola limitada, parser Beacon/Deauth/Disassoc y metadatos Probe, prioridad de objetivo, recorrido de canales, cobertura y start/stop. | Flujo de observaciones para todos los detectores y métricas de captura. |
 | 5 — software archivado; física pendiente | [sentinel-escudo-detectores](sentinel-escudo-detectores.md) | Ráfagas Deauth, desconexión sospechosa, Evil Twin contextual e indicios Karma pasivos. Conectar los cuatro al parser, eventos y métricas v2. | P4 puede integrar todos los incidentes; P4 recibe casos positivos/negativos para laboratorio. |
-| 6 | [sentinel-escudo-recuperacion](sentinel-escudo-recuperacion.md) | Journal compartido, recuperación tras BLE/reinicio, cursor/gap y cobertura. Intentar captura+BLE concurrentes; si fallan, pausa controlada con cobertura visible y todas las funciones conservadas. | Cierre del Escudo y prueba conjunta de historial sin duplicados. |
+| 6 — software archivado; física pendiente | [sentinel-escudo-recuperacion](sentinel-escudo-recuperacion.md) | Journal compartido, recuperación tras BLE/reinicio, cursor/gap y cobertura. Intentar captura+BLE concurrentes; si fallan, pausa controlada con cobertura visible y todas las funciones conservadas. | Cierre del Escudo y prueba conjunta de historial sin duplicados. |
+| 6b — reasignado el 2026-11-12 | [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md) | Adaptación común v1/v2, navegación, comandos, historial y limpieza de secretos; entrega de P1 antes de las pantallas de P4. | Control/estado e historial comunes; faltan pantallas específicas y comprobación física. |
 | 7 | [sentinel-integracion-tres-modos](sentinel-integracion-tres-modos.md) | Registrar módulos entregados, verificar parada/exclusión, OLED/botón y resumen de la alerta más reciente, reconciliación de estado/transportes/journal y recorrido final de tres modos. | Entrega conjunta de ESP32/app/alertas con evidencia de todos. |
+
+Solo `sentinel-app-protocolo-v2` pasa de P4 a P1 por instrucción expresa. P4 conserva sus demás encargos. Coordinar el traspaso de controller/store/transportes antes de que P4 añada pantallas.
 
 El encargo 7 espera las dependencias enumeradas en su ficha. No es una autorización para programar las pantallas o reparar el código Sanitizador/Cebo de otro autor.
 
@@ -45,14 +52,14 @@ Eres autor de `contracts/`, núcleo `sentinel`, futuro `sentinel_api`, `main`, c
 - En callbacks, copiar datos a colas acotadas; evitar flash o trabajo bloqueante. Respetar lifetime y parada antes de conceder recursos al siguiente modo.
 - Escudo nunca se asocia a la red auditada ni usa MQTT directo. BLE sigue siendo su control y salida.
 - SSID duplicado no es prueba de malicia. Los cuatro detectores publican indicios, evidencia y límites; no prometen certeza o cobertura continua no demostrada.
-- P4 controla `app/`, `broker/`, simulador y lockfile raíz. P3 controla `notifications/`; P2 controla Sanitizador. Solicitar cambios a su dueño.
+- P1 implementa el adaptador común `sentinel-app-protocolo-v2`; P4 controla las demás specs de `app/`, `broker/`, simulador y lockfile raíz. P3 controla `notifications/`; P2 controla Sanitizador. Solicitar cambios a su dueño.
 
 ## 5. Cómo usar OpenSpec en tu día a día
 
 Las 23 propuestas ya existen. No volver a proponerlas ni aplicar todas juntas. Antes de cada cambio, revisar sus artefactos y dependencias. En una sesión con las skills del repositorio puedes pedir, por ejemplo:
 
 ```text
-$openspec-apply-change sentinel-escudo-recuperacion
+$openspec-apply-change sentinel-app-protocolo-v2
 Lee AGENTS.md, su ficha, diseño, specs y tareas. Implementa solo este cambio,
 preserva trabajo ajeno y verifica compilación y comportamiento básico.
 No hagas commit, push, merge ni archivo sin autorización explícita.
@@ -61,9 +68,9 @@ No hagas commit, push, merge ni archivo sin autorización explícita.
 Después, repetir con cada nombre de la tabla cuando corresponda. Esa línea es una instrucción para el asistente, no un comando de shell. Para consultar desde terminal:
 
 ```sh
-openspec status --change sentinel-escudo-recuperacion --json
-openspec instructions apply --change sentinel-escudo-recuperacion --json
-openspec validate sentinel-escudo-recuperacion --strict --json
+openspec status --change sentinel-app-protocolo-v2 --json
+openspec instructions apply --change sentinel-app-protocolo-v2 --json
+openspec validate sentinel-app-protocolo-v2 --strict --json
 ```
 
 Para P2/P3/P4: pedir tarea numerada, resultado, referencia y evidencia. Leer la línea original de `tasks.md`, contrastarla con el comportamiento y marcar únicamente lo demostrado. Una aceptación de pendientes se documenta como aceptación, sin convertirla en prueba realizada. Si cambia alcance/interfaz, mantener ficha, diseño, spec y contrato coherentes antes del consumidor.

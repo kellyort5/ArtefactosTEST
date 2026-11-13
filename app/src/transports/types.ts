@@ -1,6 +1,6 @@
-import type {CommandMessage,Message,Metadata} from '@sentinel/contracts';
+import type {NodeCommand,NodeMessage,NodeMetadata} from '../protocol';
+export {PRIVATE_OPERATIONS} from '../protocol';
 export type Channel='ble'|'mqtt';
 export type TransportStatus='disconnected'|'connecting'|'connected'|'error';
-export type TransportSink={message:(message:Message,channel:Channel,retained:boolean)=>void;status:(channel:Channel,status:TransportStatus)=>void;error:(code:string)=>void;metadata:(metadata:Metadata)=>void};
-export interface Transport {readonly channel:Channel;send(message:CommandMessage):Promise<void>;disconnect():Promise<void>}
-export const PRIVATE_OPERATIONS=new Set(['configure_connectivity','set_time']);
+export type TransportSink={message:(message:NodeMessage,channel:Channel,retained:boolean)=>void;status:(channel:Channel,status:TransportStatus)=>void;error:(code:string)=>void;metadata:(metadata:NodeMetadata)=>void};
+export interface Transport {readonly channel:Channel;send(message:NodeCommand):Promise<void>;disconnect():Promise<void>}

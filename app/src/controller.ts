@@ -1,65 +1,111 @@
-import {makeCommand,type CommandRequest,type Message,type PageResult} from '@sentinel/contracts';
-import {nodeStore} from './store';
+import {nodeStore,matchingAck,type NodeStore} from './store';
+import type {StoreApi} from 'zustand/vanilla';
 import {EventJournal} from './journal';
 import {BleTransport} from './transports/ble';
 import {MqttTransport,type MqttSettings} from './transports/mqtt';
-import {PRIVATE_OPERATIONS,type Channel,type TransportSink} from './transports/types';
-const journal=new EventJournal();
-let receiveQueue=Promise.resolve();
-let serial:Promise<unknown>=Promise.resolve();
-let sessionSeq=0;
-const sink:TransportSink={
- status:(c,s)=>nodeStore.getState().setLink(c,s),error:e=>nodeStore.getState().setError(e),metadata:m=>nodeStore.getState().noteMetadata(m,performance.now()),
- message:(m,c,retained)=>{receiveQueue=receiveQueue.then(()=>receive(m,c,retained)).catch(()=>nodeStore.getState().setError('No se pudo guardar/recuperar el historial. Repite la página; el cursor no avanza.'));},
-};
-export const ble=new BleTransport(sink);
-export const mqtt=new MqttTransport(sink);
-export async function loadHistory(){const id=nodeStore.getState().deviceId;if(!id)return;const h=await journal.read(id);nodeStore.getState().setHistory(id,h.events,h.cursor,h.gap);}
-async function receive(message:Message,channel:Channel,retained:boolean){
- const state=nodeStore.getState();if(message.device_id!==state.deviceId)return;
- if(message.type==='event'){await journal.append(message);await loadHistory();return;}
- const pending=message.type==='ack'?state.commands.find(c=>c.id===message.payload.command_id):undefined;
- // Persist completed pages only after preceding event writes in this queue.
- if(message.type==='ack'&&message.payload.status==='applied'&&message.payload.result&&pending?.page&&pending.boot===message.boot_id){
-  await journal.confirmPage(message.device_id,message.payload.result,pending.afterCursor??0);await loadHistory();
-  const page=message.payload.result;
-  if(page.more&&page.next_cursor>state.cursor)setTimeout(()=>{void send({operation:'read_events',args:{after_cursor:page.next_cursor,limit:8}},channel).catch(()=>{});},0);
+import type {Channel,Transport,TransportSink} from './transports/types';
+import {makeNodeCommand,bleOnly,operationAvailable,eventPage,validateMessage,type NodeRequest,type NodeMessage,type NodeMetadata} from './protocol';
+type BleConnection=Transport & {connect():Promise<NodeMetadata>;readMetadata():Promise<NodeMetadata>;startPolling(refresh:()=>Promise<void>):void};
+type MqttConnection=Transport & {connect(settings:MqttSettings):Promise<void>};
+type Factory=(sink:TransportSink)=>{ble:BleConnection;mqtt:MqttConnection};
+export class NodeController {
+ readonly ble:BleConnection;readonly mqtt:MqttConnection;
+ private receiveQueue=Promise.resolve();private serial:Promise<unknown>=Promise.resolve();private sessionSeq=0;
+ constructor(readonly store:StoreApi<NodeStore>,readonly journal:EventJournal,
+  factory:Factory=sink=>({ble:new BleTransport(sink),mqtt:new MqttTransport(sink)}),private now=()=>performance.now()){
+  const sink:TransportSink={
+   status:(c,status)=>{
+    const before=this.store.getState();before.setLink(c,status);
+    if(before.links[c]==='connected'&&status!=='connected'&&before.commands.some(command=>
+     !['get_state','read_events'].includes(command.operation)&&['sending','pending','accepted'].includes(command.status)))this.reconcile();
+   },error:e=>this.store.getState().setError(e),
+   metadata:m=>this.store.getState().noteMetadata(m,this.now()),
+   message:(m,c,retained)=>{void this.receive(m,c,retained).catch(()=>this.store.getState().setError('No se pudo validar o guardar el historial. Repite la página; el cursor no avanza.'));},
+  };
+  const transports=factory(sink);this.ble=transports.ble;this.mqtt=transports.mqtt;
  }
- nodeStore.getState().receive(message,channel,retained,performance.now());
+ private reconcile(){
+  if(Object.values(this.store.getState().links).includes('connected'))queueMicrotask(()=>{
+   void this.send({operation:'get_state',args:{}}).catch(()=>{});
+  });
+ }
+ async loadHistory(){const id=this.store.getState().deviceId;if(!id)return;const h=await this.journal.read(id);this.store.getState().setHistory(id,h.events,h.cursor,h.gap);}
+ receive(input:NodeMessage,channel:Channel,retained=false):Promise<void>{
+  const run=this.receiveQueue.then(async()=>{
+   const message=validateMessage(input),state=this.store.getState();if(message.device_id!==state.deviceId)return;
+   if(message.type==='event'){
+    if(retained)return;await this.journal.append(message);await this.loadHistory();return;
+   }
+   const pending=message.type==='ack'?matchingAck(state,message,retained):undefined;
+   if(message.type==='ack'&&pending?.page&&pending.status!=='applied'&&message.payload.status==='applied'){
+    const page=eventPage(message);if(!page)return;
+    await this.journal.confirmPage(message.device_id,page,pending.afterCursor??0);await this.loadHistory();
+    if(page.more&&page.next_cursor>(pending.afterCursor??0))queueMicrotask(()=>{
+     const current=this.store.getState();
+     if(current.deviceId===message.device_id&&current.metadata?.boot_id===pending.boot)
+      void this.send({operation:'read_events',args:{after_cursor:page.next_cursor,limit:8}},channel).catch(()=>this.store.getState().setError('La sincronización sigue pendiente; reconecta y recupera por cursor.'));
+    });
+   }
+   this.store.getState().receive(message,channel,retained,this.now());
+   if(message.type==='ack'&&pending?.operation==='set_mode'&&message.payload.status==='rejected')this.reconcile();
+  });
+  this.receiveQueue=run.catch(()=>{});return run;
+ }
+ async connectBle(){
+  const meta=await this.ble.connect();const s=this.store.getState();
+  if(s.deviceId&&s.deviceId!==meta.device_id)await this.mqtt.disconnect();
+  this.store.getState().select(meta.device_id);this.store.getState().noteMetadata(meta,this.now());await this.loadHistory();
+  await this.send({operation:'get_state',args:{}},'ble');
+  this.ble.startPolling(async()=>{await this.send({operation:'get_state',args:{}},'ble');});
+  await this.recover('ble');
+ }
+ async connectMqtt(settings:MqttSettings){
+  if(this.store.getState().deviceId&&this.store.getState().deviceId!==settings.deviceId)await this.ble.disconnect();
+  this.store.getState().select(settings.deviceId);this.store.getState().setRole(settings.role);await this.loadHistory();await this.mqtt.connect(settings);
+ }
+ send(request:NodeRequest,preferred?:Channel):Promise<string>{
+  const requestedNode=this.store.getState().deviceId;
+  const requestedBoot=this.store.getState().metadata?.boot_id;
+  const operation=this.serial.then(async()=>{
+   let s=this.store.getState();
+   if(s.deviceId!==requestedNode)throw new Error('El nodo seleccionado cambió; repite la operación.');
+   const channel=preferred??(s.links.ble==='connected'?'ble':'mqtt');
+   if(s.links[channel]!=='connected')throw new Error('Conecta un canal autorizado.');
+   if(bleOnly(request.operation)&&channel!=='ble')throw new Error('Usa BLE protegido para esta operación.');
+   if(channel==='mqtt'&&s.role==='viewer')throw new Error('Observador: solo lectura.');
+   let metadata=s.metadata,metadataAt=s.metadataAt;
+   if(channel==='ble'){
+    metadata=await this.ble.readMetadata();metadataAt=this.now();
+    if(this.store.getState().deviceId!==requestedNode||metadata.device_id!==requestedNode)throw new Error('El nodo conectado cambió; vuelve a conectar.');
+    this.store.getState().noteMetadata(metadata,metadataAt);s=this.store.getState();
+   }else if(s.stale||s.snapshot?.payload.profile!=='cebo')throw new Error('Espera un estado vivo de Cebo antes de enviar por MQTT.');
+   if(!metadata)throw new Error('Consulta el estado del nodo antes de enviar órdenes.');
+   if(requestedBoot&&metadata.boot_id!==requestedBoot&&!['get_state','read_events'].includes(request.operation))throw new Error('El nodo reinició; confirma su estado y repite la operación.');
+   if(!['get_state','read_events','set_time','configure_connectivity'].includes(request.operation)&&
+      (s.snapshot?.boot_id!==metadata.boot_id||s.snapshot?.version!==metadata.version))throw new Error('Consulta el estado del arranque actual antes de controlar el módulo.');
+   if(!operationAvailable(s.snapshot,request))throw new Error('Esta función no está disponible en el estado/capacidades actuales.');
+   const message=makeNodeCommand(metadata,request,crypto.randomUUID(),Math.floor(this.now()-metadataAt));message.seq=++this.sessionSeq;
+   this.store.getState().track(message,this.now());
+   try{await (channel==='ble'?this.ble:this.mqtt).send(message);this.store.getState().sent(message.payload.command_id);}
+   catch{
+    this.store.getState().uncertain(message.payload.command_id);
+    const other=channel==='ble'?'mqtt':'ble';
+    if(this.store.getState().links[other]==='connected')queueMicrotask(()=>{void this.send({operation:'get_state',args:{}},other).catch(()=>{});});
+    throw new Error('Envío interrumpido. Resultado pendiente hasta recibir confirmación o consultar estado.');
+   }
+   return message.payload.command_id;
+  });
+  this.serial=operation.catch(()=>{});return operation;
+ }
+ async recover(channel?:Channel){await this.send({operation:'read_events',args:{after_cursor:this.store.getState().cursor,limit:8}},channel);}
+ async disconnectAll(){await Promise.all([this.ble.disconnect(),this.mqtt.disconnect()]);this.store.getState().setError(null);}
 }
-export async function connectBle(){
- const meta=await ble.connect();const s=nodeStore.getState();
- if(s.deviceId&&s.deviceId!==meta.device_id){await mqtt.disconnect();}
- s.select(meta.device_id);nodeStore.getState().noteMetadata(meta,performance.now());await loadHistory();
- await send({operation:'get_state',args:{}},'ble');
- ble.startPolling(async()=>{await send({operation:'get_state',args:{}},'ble');});
- await recover('ble');
-}
-export async function connectMqtt(settings:MqttSettings){
- const s=nodeStore.getState();if(s.deviceId&&s.deviceId!==settings.deviceId)await ble.disconnect();
- s.select(settings.deviceId);nodeStore.getState().setRole(settings.role);await loadHistory();await mqtt.connect(settings);
- // Wait for a non-retained state (periodic every5s) before issuing fresh commands.
-}
-export function send(request:CommandRequest,preferred?:Channel):Promise<string>{
- const operation=serial.then(async()=>{
-  const s=nodeStore.getState();
-  const channel=preferred??(s.links.ble==='connected'?'ble':'mqtt');
-  if(s.links[channel]!=='connected')throw new Error('Conecta un canal autorizado.');
-  if(PRIVATE_OPERATIONS.has(request.operation)&&channel!=='ble')throw new Error('Usa BLE protegido para configurar o sincronizar hora.');
-  if(channel==='mqtt'&&s.role==='viewer')throw new Error('Observador: solo lectura.');
-  let metadata=s.metadata,metadataAt=s.metadataAt;
-  if(channel==='ble'){metadata=await ble.readMetadata();metadataAt=performance.now();}
-  else if(s.stale)throw new Error('Estado antiguo: espera una actualización en vivo del nodo.');
-  if(!metadata)throw new Error('Consulta el estado del nodo antes de enviar órdenes.');
-  const message=makeCommand(metadata,request,crypto.randomUUID(),Math.floor(performance.now()-metadataAt));
-  message.seq=++sessionSeq;
-  nodeStore.getState().track(message,performance.now());
-  try{await (channel==='ble'?ble:mqtt).send(message);nodeStore.getState().sent(message.payload.command_id);}
-  catch{nodeStore.getState().uncertain(message.payload.command_id);throw new Error('Envío interrumpido. Consulta estado por un canal disponible; no se confirma aplicación.');}
-  return message.payload.command_id;
- });
- serial=operation.catch(()=>{});return operation;
-}
-export async function recover(channel?:Channel){await send({operation:'read_events',args:{after_cursor:nodeStore.getState().cursor,limit:8}},channel);}
-export async function disconnectAll(){await Promise.all([ble.disconnect(),mqtt.disconnect()]);nodeStore.getState().setError(null);}
-export type {PageResult};
+export const controller=new NodeController(nodeStore,new EventJournal());
+export const ble=controller.ble,mqtt=controller.mqtt;
+export const loadHistory=()=>controller.loadHistory();
+export const connectBle=()=>controller.connectBle();
+export const connectMqtt=(settings:MqttSettings)=>controller.connectMqtt(settings);
+export const send=(request:NodeRequest,preferred?:Channel)=>controller.send(request,preferred);
+export const recover=(channel?:Channel)=>controller.recover(channel);
+export const disconnectAll=()=>controller.disconnectAll();
+export type {PageResult} from './protocol';

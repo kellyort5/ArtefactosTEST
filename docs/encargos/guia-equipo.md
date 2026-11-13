@@ -45,7 +45,7 @@ Ante una contradicción entre ficha, spec, contrato o decisión aprobada, indica
 | Futuro `firmware/components/sanitizador/` | Auditoría, pasarela, DNS y DoH. | P2 |
 | Futuro `firmware/components/cebo/` | Servicios ficticios y clasificación. | P3 |
 | Futuro `notifications/` | Componente de alertas con package/lockfile y Compose propios. | P3 |
-| `app/`, `package.json` y `package-lock.json` raíz | App, transportes, UI, Android y dependencias del workspace. | P4 |
+| `app/`, `package.json` y `package-lock.json` raíz | App y dependencias; excepción: app-protocolo-v2 corresponde a P1. | P4; P1 solo esa spec |
 | `broker/` | Mosquitto, TLS/WSS, ACL y preparación LAN. | P4 |
 | `simulator/`, futuros `docs/lab/` y `docs/evidence/` | Reproducción de mensajes, procedimientos e informes conjuntos. | P4 |
 | Arquitectura, decisiones, roadmap y seguimiento OpenSpec | Coherencia y estado de los acuerdos del equipo. | P1 |
