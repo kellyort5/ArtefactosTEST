@@ -2,7 +2,7 @@
 
 ## Context
 
-Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../archive/2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
+Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../../docs/technical-decisions.md), [arquitectura](../../../../docs/architecture.md) y [encargos](../../../../docs/encargos/README.md).
 
 Responsable único: **Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware**. Dependencias para integrar: `sentinel-escudo-detectores`. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
 
@@ -22,7 +22,7 @@ Primero ejecutar captura/BLE concurrentes. Si durante la comprobación breve apa
 
 ### Interfaces y propiedad
 
-Contrato único: [protocolo funcional](../../../contracts/module-protocol.md) y [spec principal](../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../archive/2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
+Contrato único: [protocolo funcional](../../../../contracts/module-protocol.md) y [spec principal](../../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
 
 Archivos de implementación: `firmware/components/escudo/ (coverage, reconnect y backlog)`, `firmware/test/escudo/`, `docs/modules/escudo-recovery.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
 
@@ -39,4 +39,4 @@ Trabajar en rama `feat/sentinel-escudo-recuperacion`, incorporar dependencias re
 
 El usuario autorizó ampliar este cambio a `firmware/components/sentinel/include/module_runtime.h`, `module_runtime.cpp` y `runtime.cpp` para extraer la rutina existente de serialización/persistencia de eventos a un helper interno compartido por firmware y pruebas. Se conserva el journal NVS, contratos, supervisor, transportes y orden persistir-antes-de-entregar. No se crea un segundo almacenamiento ni se cambia la API pública de módulos. La ampliación permite probar el camino de producción del núcleo, propiedad de Persona 1, dentro de las tareas 1.1/1.2; sustituye únicamente la restricción de carpetas correspondiente de esta planificación.
 
-El usuario autorizó continuar con software conservando pruebas físicas pendientes. Las tareas 1.3, 2.1 y 2.2 no se completan con fixtures. La concurrencia se mantiene como primera opción; no se añade pausa automática sin un fallo físico bloqueante observado. Ver [guía de recuperación](../../../docs/modules/escudo-recovery.md).
+El usuario autorizó continuar con software conservando pruebas físicas pendientes. Las tareas 1.3, 2.1 y 2.2 no se completan con fixtures. La concurrencia se mantiene como primera opción; no se añade pausa automática sin un fallo físico bloqueante observado. Ver [guía de recuperación](../../../../docs/modules/escudo-recovery.md).

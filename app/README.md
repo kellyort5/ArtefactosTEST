@@ -1,6 +1,6 @@
 # Aplicación Sentinel Node
 
-App real React19/Vite7/Tailwind4/Zustand5/TypeScript5, mqtt.js5 por WSS y Capacitor8/BLE8 para Android. Estado, comandos y eventos pasan por los contratos AJV de `@sentinel/contracts`. No contiene respuestas de nodo simuladas ni credenciales de laboratorio. Módulos Escudo/Cebo, Sanitizador y canales externos siguen pendientes.
+App real React19/Vite7/Tailwind4/Zustand5/TypeScript5, mqtt.js5 por WSS y Capacitor8/BLE8 para Android. Estado, comandos y eventos pasan por los contratos AJV de `@sentinel/contracts`. No contiene respuestas de nodo simuladas ni credenciales de laboratorio. El adaptador común reconoce base v1 y módulos v2, con navegación, estado, comandos e historial comunes. Los catálogos/controles específicos, gráficos, formularios Sanitizador y notificaciones siguen en sus encargos independientes; este cambio no los sustituye.
 
 ## Compilar sin dispositivo
 
@@ -40,10 +40,10 @@ Capacitor `loggingBehavior:none` evita registrar argumentos GATT privados inclus
 ## Flujo BLE real (pendiente de verificación física)
 
 1. Arrancar el ESP32 con OLED y botón configurados; mantener3 s para abrir ventana120 s. Sin OLED no debe permitirse pairing nuevo.
-2. Pulsar **Buscar y conectar BLE**. La app pide permisos Android, comprueba Bluetooth, filtra servicio v1 y crea bond si falta. Introducir el passkey OLED en el diálogo del sistema. Firmware exige LE Secure Connections/MITM: un bond por sí solo no demuestra seguridad; comprobar nivel real en firmware al hacer el recorrido.
+2. Pulsar **Buscar y conectar BLE**. La app pide permisos Android, comprueba Bluetooth, filtra el UUID de servicio compartido v1/v2 y crea bond si falta. Introducir el passkey OLED en el diálogo del sistema. Firmware exige LE Secure Connections/MITM: un bond por sí solo no demuestra seguridad; comprobar nivel real en firmware al hacer el recorrido.
 3. La app lee metadatos protegidos, suscribe indicaciones y solicita get_state/read_events. Escribe con respuesta y framing MTU23; no requiere negociar MTU grande. Limpia ensamblados al desconectar/expirar10 s y serializa mensajes completos.
-4. Consultar estado y sincronizar hora UTC mediante BLE. Enviar SSID/contraseña, mqtts URI/usuario/contraseña de nodo y CA pública en **Conectividad del dispositivo**. Todo el mensaje debe caber2048 bytes. Los campos de contraseña se limpian al enviar y el nodo guarda secretos solo en RAM.
-5. Elegir Cebo: inicia recursos STA/MQTT reales según firmware, sin HTTP/Telnet. Observar ack applied y estado/revisión; accepted no significa aplicado. Escudo detiene asociación/MQTT y conserva BLE de control, sin captura/detección.
+4. Consultar estado y sincronizar hora UTC mediante BLE. Enviar SSID/contraseña, mqtts URI/usuario/contraseña de nodo y CA pública en **Conectividad del dispositivo**. Todo el mensaje debe caber2048 bytes. Los campos de contraseña se limpian al enviar y todo el formulario se restablece al terminar, incluso si falla. El nodo guarda secretos solo en RAM.
+5. Elegir solo un perfil anunciado como disponible: la base v1 prepara recursos sin implementar detectores ni HTTP/Telnet; un nodo v2 anuncia sus capacidades y estado funcional real. Observar ACK applied y estado/revisión; accepted no significa aplicado. Escudo detiene asociación/MQTT y conserva BLE de control; su captura y detectores dependen del firmware instalado, no del botón de cambio de perfil.
 6. Ante permisos denegados/Bluetooth apagado, la app muestra instrucciones de permisos/ventana/OLED; habilitarlos desde ajustes y volver a conectar. Ante interrupción, consultar estado por el canal autorizado disponible; no reenviar automáticamente órdenes vencidas ni simular éxito.
 
 ## Flujo WSS
@@ -53,6 +53,16 @@ Introducir endpoint `wss://hostname:9001/mqtt`, ID de nodo, rol y su cuenta `ope
 Un estado retenido aislado se muestra antiguo. Esperar el state vivo periódico del nodo (5 s) antes de ordenar; 15 s sin actualización o sin canal marca estado antiguo. Observador es solo lectura. Para configurar/red/hora se exige BLE. Al reconectar se obtiene snapshot y se puede **Recuperar por cursor**; el observador recibe eventos publicados pero no solicita páginas porque carece de permiso commands. Tras una desconexión WSS, volver a conectar suministrando la cuenta; no hay cola offline de órdenes.
 
 No confirmar aplicación por PUBACK o por resolución de publishAsync. El store conserva resultados sanitizados de32 órdenes y reconcilia por ack o state/last_command_id/revisión, incluso si el canal cambia. Un comando de boot anterior permanece sin confirmar tras reboot. Configurar un perfil preparado no implica detector/honeypot disponible.
+
+## Versiones, capacidades y uso por las pantallas
+
+`protocol.ts` reutiliza `decodeAnyMetadata`/`decodeAnyMessage`, `makeCommand` (v1), `makeModuleCommand` (v2) y `checkModuleAckForCommand`. BLE mantiene UUID y framing compartidos. La versión de salida procede de Metadata protegida o state vivo; un retained nunca negocia versión ni confirma un comando. Se rechazan versiones desconocidas, topics/envelopes incoherentes y respuestas de otro nodo/arranque. No se cambia un ID histórico ni se convierte un evento v1 a v2.
+
+MQTT suscribe `sentinel/v{1,2}/nodes/<id>/{state,availability,metrics,events,acks}` y publica commands en la versión negociada. Conserva compatibilidad si una ACL solo permite v1, siempre que permita su state. **Dependencia de integración:** la plantilla actual del broker solo concede v1; Persona 4 debe completar ACL v2/roles en `sentinel-broker-lan`. Suscribirse a v2 no demuestra autorización ni entrega real. Escudo sigue solo por BLE; MQTT de control requiere estado vivo de Cebo y rol operador. No hay asociación Wi-Fi adicional desde el Escudo.
+
+La navegación General/Escudo/Sanitizador/Cebo usa `modeAvailable`; cada módulo muestra el estado confirmado del mismo arranque y sus capacidades. Un nodo v1 conserva los controles de recursos de base, sin presentar módulos v2 como funcionales. Un módulo ausente queda no disponible. La sección común no implementa catálogo Escudo, reglas DNS, gráficos ni controles específicos: corresponden a `sentinel-app-escudo`, `sentinel-app-sanitizador` y `sentinel-app-cebo` de P4.
+
+Para esas pantallas, reutilizar `send(NodeRequest, canal?)`, `recover`, `nodeStore` y `eventSummary`; no crear transportes o formatos nuevos. `send` selecciona codec y revisa capacidades/canal; devolver un ID indica entrega pendiente, nunca éxito. Las operaciones `escudo.*`, `sanitizador.*`, `configure_connectivity` y `set_time` requieren BLE protegido. El estado mantiene solo correlación pública; las configuraciones privadas no conservan argumentos en el historial. Los resultados ACK tipados se correlacionan con la operación original: solo `kind:events` completa una página. Métricas de arranques anteriores no reemplazan las actuales.
 
 ## Historial y pruebas
 
@@ -68,4 +78,4 @@ npm run check:browser -w app
 NODE_EXTRA_CA_CERTS="$PWD/broker/.secrets/ca.crt" npm run check:wss -w app
 ```
 
-Chromium comprueba UI inicial, diagnóstico BLE web, responsive y IndexedDB real tras recarga. WSS comprueba adaptador, operador/observador y rechazo de contraseña contra Mosquitto real; usa un comando de prueba sin ESP32 y no acredita aplicación en placa. [evidence.md](evidence.md) identifica resultados y tareas diferidas. API de transporte/formatos exactos en [contracts/README.md](../contracts/README.md). Los fixtures solo existen en tests; nunca alimentan la UI de producto.
+Los tests focalizados comprueban negociación, retención/boot/revisión, ACK rechazados o de tipo incorrecto, pérdida de transporte, páginas incompletas, historial v1/v2 de tres módulos y limpieza de credenciales de sesión. Chromium comprueba UI inicial, diagnóstico BLE web, navegación v2 y rechazo sin cambio optimista con fixtures de prueba, responsive e IndexedDB real tras recarga. WSS comprueba adaptador, operador/observador y rechazo de contraseña contra Mosquitto real; usa un comando de prueba sin ESP32 y no acredita aplicación en placa. [evidence.md](evidence.md) conserva la evidencia de la base; la [verificación de app v2](../openspec/changes/sentinel-app-protocolo-v2/verification.md) registra este incremento y sus pruebas físicas pendientes. API de transporte/formatos exactos en [contracts/README.md](../contracts/README.md). Los fixtures solo existen en tests; nunca alimentan la UI de producto.

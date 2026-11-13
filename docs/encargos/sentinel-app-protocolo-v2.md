@@ -1,6 +1,6 @@
 # Encargo: App: protocolo funcional y navegación
 
-**Responsable único:** Persona 4 — app, Android, broker y coordinación del laboratorio. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-app-protocolo-v2`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+**Responsable único:** Persona 1 — Jefry, por reasignación expresa del usuario el 2026-11-12. **Estado:** software comprobado, 5/6 tareas; control físico 2.1 pendiente. Consultar tareas y verificación. **Rama prevista:** `feat/sentinel-app-protocolo-v2`. La reasignación afecta solo a esta spec; P4 conserva pantallas específicas, Android push, broker y laboratorio.
 
 ## Qué debes entregar
 
@@ -25,7 +25,7 @@ Puedes preparar estructura/lógica/UI con fixtures del contrato revisado mientra
 - `package-lock.json`
 - `app/README.md`
 
-Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por rama/PR para evitar superposición. Otro autor revisa el PR, sin coimplementar la spec. Los cambios compartidos se solicitan al propietario de contratos (P1), núcleo (P1), app/lock raíz (P4), broker (P4) o notificaciones (P3).
+Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por rama/PR para evitar superposición. Otro autor revisa el PR, sin coimplementar la spec. Los cambios compartidos se solicitan al propietario de contratos (P1), núcleo (P1), app/lock raíz (P4; este adaptador común lo entrega P1), broker (P4) o notificaciones (P3).
 
 ## Pasos pequeños y comprobación
 

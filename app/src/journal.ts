@@ -1,4 +1,5 @@
-import {decodeMessage,type EventMessage,type PageResult} from '@sentinel/contracts';
+import {decodeAnyMessage,eventIdentity,type PageResult} from '@sentinel/contracts';
+import type {NodeEvent as EventMessage} from './protocol';
 export type JournalSnapshot={events:EventMessage[];cursor:number;gap:PageResult|null};
 const request=<T>(r:IDBRequest<T>)=>new Promise<T>((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(new Error('No se pudo leer el historial local.'));});
 const completed=(t:IDBTransaction)=>new Promise<void>((resolve,reject)=>{t.oncomplete=()=>resolve();t.onabort=()=>reject(new Error('No se pudo guardar el historial local.'));t.onerror=()=>reject(new Error('No se pudo guardar el historial local.'));});
@@ -14,7 +15,8 @@ export class EventJournal {
  }
  async append(event:EventMessage){
   // Only validated, public event envelopes ever enter IndexedDB.
-  if(decodeMessage(JSON.stringify(event)).type!=='event')throw new Error('Evento inválido.');
+  event=decodeAnyMessage(JSON.stringify(event)) as EventMessage;
+  eventIdentity(event);
   const db=await this.open();const tx=db.transaction('events','readwrite');const done=completed(tx);const store=tx.objectStore('events');
   const prior=await request(store.get([event.device_id,event.message_id]));
   if(!prior)store.put(event);
@@ -42,7 +44,7 @@ export class EventJournal {
   const db=await this.open();const tx=db.transaction(['events','cursors'],'readonly');const done=completed(tx);
   const [events,meta]=await Promise.all([request(tx.objectStore('events').index('node').getAll(deviceId)),request(tx.objectStore('cursors').get(deviceId))]);await done;
   const safe:EventMessage[]=[];
-  for(const raw of events){try{const m=decodeMessage(JSON.stringify(raw));if(m.type==='event'&&m.device_id===deviceId)safe.push(m);}catch{/* Ignore corrupt local entries; do not erase source device journal. */}}
+  for(const raw of events){try{const m=decodeAnyMessage(JSON.stringify(raw));if(m.type==='event'&&m.device_id===deviceId)safe.push(m);}catch{/* Ignore corrupt local entries; do not erase source device journal. */}}
   return {events:safe.sort((a,b)=>b.payload.journal_seq-a.payload.journal_seq).slice(0,256),cursor:meta?.cursor??0,gap:meta?.gap??null};
  }
 }

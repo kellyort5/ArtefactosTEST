@@ -1,6 +1,6 @@
 import {Capacitor} from '@capacitor/core';
 import {BleClient} from '@capacitor-community/bluetooth-le';
-import {BLE_UUIDS,BleAssembler,decodeMessage,decodeMetadata,encodeMessage,fragmentMessage,type CommandMessage,type Metadata} from '@sentinel/contracts';
+import {BLE_UUIDS,BleAssembler,decodeAnyMessage,decodeAnyMetadata,encodeAnyMessage,fragmentMessage,type AnyMessage,type AnyMetadata} from '@sentinel/contracts';
 import type {Transport,TransportSink} from './types';
 const bytes=(v:DataView)=>new Uint8Array(v.buffer,v.byteOffset,v.byteLength);
 export class BleTransport implements Transport {
@@ -12,7 +12,7 @@ export class BleTransport implements Transport {
  private assemblyTimer?:ReturnType<typeof setTimeout>;
  private pollTimer?:ReturnType<typeof setInterval>;
  constructor(private sink:TransportSink){}
- async connect():Promise<Metadata>{
+ async connect():Promise<AnyMetadata>{
   if(Capacitor.getPlatform()!=='android')throw new Error('BLE requiere la app Android; usa WSS en este navegador.');
   await this.disconnect();this.sink.status('ble','connecting');
   try {
@@ -27,7 +27,7 @@ export class BleTransport implements Transport {
     try {
      if(!this.assemblyTimer)this.assemblyTimer=setTimeout(()=>{this.assembler.reset();this.assemblyTimer=undefined;this.sink.error('BLE: expiró un mensaje incompleto; vuelve a consultar estado.');},10000);
      const complete=this.assembler.push(bytes(value),performance.now());
-     if(complete){clearTimeout(this.assemblyTimer);this.assemblyTimer=undefined;const message=decodeMessage(complete);if(message.device_id!==metadata.device_id)throw new Error('wrong_node');this.sink.message(message,'ble',false);}
+     if(complete){clearTimeout(this.assemblyTimer);this.assemblyTimer=undefined;const message=decodeAnyMessage(complete);if(message.device_id!==metadata.device_id)throw new Error('wrong_node');this.sink.message(message,'ble',false);}
     }catch{clearTimeout(this.assemblyTimer);this.assemblyTimer=undefined;this.assembler.reset();this.sink.error('BLE: mensaje inválido descartado; consulta estado o repite recuperación.');}
    });
    this.sink.status('ble','connected');return metadata;
@@ -36,15 +36,15 @@ export class BleTransport implements Transport {
  startPolling(refresh:()=>Promise<void>){clearInterval(this.pollTimer);this.pollTimer=setInterval(()=>{void refresh().catch(()=>this.sink.error('BLE: no se pudo refrescar el estado.'));},5000);}
  async readMetadata(){
   if(!this.deviceId)throw new Error('BLE desconectado.');
-  const meta=decodeMetadata(bytes(await BleClient.read(this.deviceId,BLE_UUIDS.service,BLE_UUIDS.metadata)));
+  const meta=decodeAnyMetadata(bytes(await BleClient.read(this.deviceId,BLE_UUIDS.service,BLE_UUIDS.metadata)));
   this.sink.metadata(meta);return meta;
  }
- async send(message:CommandMessage){
+ async send(message:Extract<AnyMessage,{type:'command'}>){
   // Serialize whole logical transfers, not just individual GATT writes.
   const run=this.outgoing.then(async()=>{
    const id=this.deviceId;if(!id)throw new Error('BLE desconectado.');
    // MTU23 works with all peers, including the default ATT MTU. No large MTU dependency.
-   for(const packet of fragmentMessage(encodeMessage(message),++this.transferId>>>0,23)){
+   for(const packet of fragmentMessage(encodeAnyMessage(message),++this.transferId>>>0,23)){
     if(this.deviceId!==id)throw new Error('BLE desconectado.');
     await BleClient.write(id,BLE_UUIDS.service,BLE_UUIDS.input,new DataView(packet.buffer,packet.byteOffset,packet.byteLength));
    }

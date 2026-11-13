@@ -2,7 +2,7 @@
 
 Tu entrega es la aplicación de los tres módulos, su integración Android/BLE/WSS/push, el broker accesible en LAN y la consolidación de evidencia del equipo. Los otros tres autores implementan firmware y P3 envía alertas desde servidor. Tú consumes esas entregas; no programas sus detectores, NAT o servicios Cebo.
 
-Es el rol con mayor variedad de trabajo. Adelantar la base de app, broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
+El usuario reasignó únicamente `sentinel-app-protocolo-v2` a P1 el 2026-11-12. Tú consumes esa entrega y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
 
 ## 1. Qué leer antes de programar
 
@@ -12,7 +12,7 @@ Es el rol con mayor variedad de trabajo. Adelantar la base de app, broker y proc
 4. [Protocolo v2](../../contracts/module-protocol.md), [notificaciones](../../contracts/notifications.md) y ejemplos de los tres módulos.
 5. [Ficha app-protocolo-v2](sentinel-app-protocolo-v2.md), con su diseño, spec y tareas; repetir la lectura para cada encargo.
 
-Las specs son Markdown que puedes seguir sin instalar OpenSpec. Informa tareas numeradas y evidencias a Jefry; él actualiza las casillas oficiales. Las pantallas actuales son de base v1, no la UI funcional terminada de los tres módulos.
+Las specs son Markdown que puedes seguir sin instalar OpenSpec. Informa tareas numeradas y evidencias a Jefry; él actualiza las casillas oficiales. La app común de P1 admite estado/control/historial v1/v2; no completa tus pantallas específicas de los tres módulos.
 
 ## 2. Qué archivos son tuyos
 
@@ -23,13 +23,12 @@ Las specs son Markdown que puedes seguir sin instalar OpenSpec. Informa tareas n
 
 P1 mantiene contratos/núcleo/Escudo; P2 Sanitizador; P3 Cebo y `notifications/` con dependencias propias. Un fallo del componente ajeno se devuelve a su autor con reproducción; no lo corriges modificando su carpeta dentro de tu PR.
 
-## 3. Tus siete encargos y orden recomendado
+## 3. Tus seis encargos y orden recomendado
 
 Las ramas previstas son `feat/<nombre completo del cambio>`. Sigue un encargo por rama/PR. Las dependencias siguientes son para integrar/cerrar; puedes preparar UI con fixtures revisados antes de que llegue el módulo físico.
 
 | Prioridad de trabajo | Encargo | Dependencias principales |
 | --- | --- | --- |
-| Primero | [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md) | Contratos revisados. |
 | Temprano | [sentinel-broker-lan](sentinel-broker-lan.md) | Contratos; desbloquea integración MQTT y servidor de alertas. |
 | Preparar temprano, cerrar al final | [sentinel-laboratorio-pruebas](sentinel-laboratorio-pruebas.md) | Contratos para fixtures; evidencia real de todos para el cierre. |
 | Según llegada de firmware | [sentinel-app-escudo](sentinel-app-escudo.md) | App común y descubrimiento/detectores/recuperación Escudo. |
@@ -39,15 +38,11 @@ Las ramas previstas son `feat/<nombre completo del cambio>`. Sigue un encargo po
 
 Esta secuencia concreta el reparto, sin poner fechas ni cambiar sus dependencias. Como eres el único autor de app, termina/integrar sus cambios sucesivos antes de avanzar sobre los mismos archivos; no mantengas tres ramas divergentes editando controller/store a la vez. Broker y preparación documental de laboratorio están separados de las pantallas.
 
-### A. App común: sentinel-app-protocolo-v2
+### A. Consumir app común entregada por P1 (no es un encargo tuyo)
 
-1. Reutilizar BLE/MQTT existentes y actualizar controller/transportes al codec v1/v2 con negociación por Metadata/estado reciente.
-2. Extender store/journal para tres módulos, eventos históricos v1, paginación, dedup y gap. Conservar la capacidad del journal de app definida en el diseño; no añadir una base cloud.
-3. Crear navegación y estados de capacidad disponible, no disponible, pendiente, aplicada y rechazada. No declarar éxito al hacer click ni por un mensaje retained.
-4. Eliminar secretos transitorios de formularios/estado cuando termina el uso. No persistir claves Wi-Fi/MQTT en localStorage, IndexedDB o logs.
-5. Probar build/tests, arranque web y control básico real de la base. Compilar Android y comprobar permisos/BLE con teléfono; si no se ejecutó, registrarlo pendiente.
-
-**Entrega a P1/P2/P3:** cómo conectar su estado/eventos a las vistas y qué respuestas reales faltan, sin pedirles editar UI.
+1. Revisar la entrega de `sentinel-app-protocolo-v2`, sus pruebas y pendientes, y [app/README.md](../../app/README.md).
+2. Reutilizar `send`, `recover`, `nodeStore`, journal y transportes v1/v2; desarrollar pantallas en `app/src/features/<modulo>/` y su propia spec. No volver a implementar el adaptador común.
+3. Coordinar con P1 la integración antes de editar controller/store/transportes. Tus cambios posteriores quedan en tu rama y PR, sin coimplementar la spec reasignada.
 
 ### B. Broker: sentinel-broker-lan
 
@@ -154,8 +149,8 @@ Estos comandos existen; no prueban por sí solos ACL v2, acceso LAN o push. Segu
 ## 6. Primera sesión y cierre
 
 1. Confirmar con Jefry la referencia publicada de contratos y revisar estado real de las dependencias.
-2. Crear `feat/sentinel-app-protocolo-v2`, preparar entorno y ejecutar la app base antes de ampliarla.
-3. Entregar adaptación común y pruebas de mensajes/historial. Preparar broker LAN en su propia rama/PR para desbloquear P3.
+2. Consumir la referencia revisada de app común de P1 y ejecutar tests/build antes de ampliar la app en tu propia spec.
+3. Comenzar `feat/sentinel-broker-lan` para completar seguridad/ACL v2 y desbloquear P3; preparar cada pantalla en su propia rama/PR.
 4. Preparar procedimientos/plantillas de laboratorio; integrar las pantallas conforme lleguen los módulos y reservar una sesión de teléfono/ESP32 para cada flujo real.
 5. Coordinar push con P3 desde temprano para que cuentas/configuración no queden para el último día.
 

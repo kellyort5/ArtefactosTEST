@@ -6,7 +6,7 @@ La app base solo valida v1 y no tiene control/estado funcional de tres módulos;
 
 ## What Changes
 
-- Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
+- Responsable único: **Persona 1 — Jefry: app común v2 por reasignación explícita del usuario**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
 - Entregar app: protocolo funcional y navegación conforme a R-03, R-04, R-06, R-07 y H-08.
 - Cierre observable: App nueva mantiene base y acepta protocolo funcional, con navegación/control/historial comunes.
 - Dependencias de integración: `sentinel-module-contracts`.
