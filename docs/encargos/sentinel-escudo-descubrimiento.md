@@ -2,6 +2,9 @@
 
 **Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** fusionado por PR #7 y archivado con 4/6 tareas; pruebas físicas 2.1 y 2.2 pendientes. Ver [guía](../modules/escudo-discovery.md). **Rama prevista:** `feat/sentinel-escudo-descubrimiento`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
+
+**Flujo vigente de firmware (2026-11-13):** [Arduino IDE Windows con core oficial ESP32 3.3.12](../firmware.md), sketch único `firmware/SentinelNode/SentinelNode.ino`. El firmware completo tiene build oficial Windows PASS con las dos bibliotecas y configuración local documentadas; el SDK propio queda como antecedente. Las fuentes de módulos están bajo `SentinelNode/src/`; la [API/factories y propiedad de recursos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) se conservan. Los artefactos archivados documentan el entorno anterior; sus resultados físicos pendientes no se completan con el port. Sanitizador/Cebo continúan sin servicios implementados y sus flags permanecen en 0 hasta sus entregas reales.
+
 ## Qué debes entregar
 
 El perfil Escudo actual solo declara estado; necesita catálogo pasivo y selección real antes de capturar una red.
@@ -18,7 +21,7 @@ Puedes preparar estructura/lógica/UI con fixtures del contrato revisado mientra
 
 ## Archivos de tu encargo
 
-- `firmware/components/escudo/ (module, discovery, target y CMake)`
+- `firmware/SentinelNode/src/escudo/ (module, discovery y target)`
 - `firmware/test/escudo/`
 - `docs/modules/escudo-discovery.md`
 
@@ -34,7 +37,7 @@ Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por ram
 4. **1.4** Documentar operaciones y datos no observables en docs/modules/escudo-discovery.md; cotejar ejemplos con contratos.
 ### Comprobación del incremento
 
-1. **2.1** Compilar pio run -d firmware y comprobar catálogo/selección por BLE en ESP32 con LAN propia; registrar datos y ausencia STA/MQTT.
+1. **2.1** Compilar desde Arduino IDE Windows y comprobar catálogo/selección por BLE en ESP32 con LAN propia; registrar datos y ausencia STA/MQTT.
 2. **2.2** Comprobar salida a Idle durante scan y repetir un scan; registrar comportamiento y errores corregidos.
 
 ## Cómo entregar a tu compañero

@@ -1,5 +1,7 @@
 # Desarrollo de la base compartida
 
+**Política aprobada vigente:** [persistencia operativa y USB](persistence-policy.md), definida en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/design.md). Conservar identidad, bonds, configuración e historial confirmado en uso normal/reinicio/corte; USB permite reinicialización sin migración. Arduino oficial primero; justificar cada excepción mínima. La tabla nueva/cuatro claves/configuración persistente se verifican en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores son históricos y no cierran pruebas físicas.
+
 Trabajar desde la raíz del repositorio en la rama correspondiente a cada cambio; la base se publicó desde `feat/sentinel-core-foundation`. Leer [brief](brief.md), [CONTRIBUTING](../CONTRIBUTING.md) y el [diseño de la base archivada](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/design.md). No se necesitan servicios de monorepo ni un backend adicional.
 
 ## Entorno y dependencias
@@ -7,7 +9,7 @@ Trabajar desde la raíz del repositorio en la rama correspondiente a cada cambio
 - Node24 LTS: `.nvmrc` fija **24.13.1**; npm **11.8.0**.
 - App: React19, Vite7, TypeScript5, Tailwind4/plugin Vite, Zustand5, mqtt.js5, Capacitor8 y BLE comunitario8. Versiones exactas en `app/package.json` y lockfile raíz. AJV8 y ajv-formats3 en `contracts/`.
 - Android: JDK21, SDK Platform36 y Build Tools36; Gradle8.14.3 y AGP8.13.0 provistos por Capacitor8.6.0. Proyecto nativo y wrapper versionados; APK/caches/assets web regenerados ignorados.
-- Firmware: PlatformIO/ESP-IDF/FreeRTOS, herramientas y configuración en [firmware](firmware.md).
+- Firmware: Arduino IDE Windows, core oficial ESP32 3.3.12, APIs ESP-IDF y FreeRTOS. El firmware completo tiene build Windows PASS con wolfMQTT2.2.0 y ESP_SSLClient3.1.3; [firmware](firmware.md) documenta instalación inicial/opciones y subida física pendiente. El [build del SDK propio](../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md) es evidencia histórica. Node no es requisito para compilar/subir desde el IDE.
 - Broker: Docker Desktop/Engine y Compose, OpenSSL/Python3 para material local; [preparación](../broker/README.md).
 
 Entorno WSL de esta implementación (todas las órdenes desde la raíz):
@@ -43,13 +45,9 @@ Para la comprobación Chromium, `npm exec -w app -- playwright install chromium`
 
 ## Firmware, broker y simulador
 
-```sh
-pio run -d firmware -e sentinel_s3
-pio run -d firmware -e sentinel_s3 -t upload --upload-port PUERTO_REAL
-pio device monitor --port PUERTO_REAL --baud 115200
-```
+Abrir `firmware/SentinelNode/SentinelNode.ino` en Arduino IDE Windows. Usar **Verificar**, **Subir** y **Monitor serie** a 115200 con el core oficial. [Firmware](firmware.md#preparar-arduino-ide) concentra la instalación de las dos bibliotecas mantenidas, la opción local de protección de datos y los valores N16R8; no reutilizar el FQBN del SDK propio para acreditar ese flujo.
 
-Los comandos upload/monitor requieren placa y puerto comprobados; nunca inventar `/dev/ttyUSB0`. Detalles de [cableado y memoria](firmware.md). Sin placa, solo build y pruebas focalizadas de host son evidencia válida.
+Upload/monitor requieren placa y COM identificados; los puertos Bluetooth no sustituyen la conexión USB de la ESP32. Sin placa, solo build y pruebas focalizadas de host son evidencia válida. No usar PlatformIO ni generar una segunda copia de las fuentes para desarrollar un módulo.
 
 Preparar y ejecutar broker conforme a [broker/README.md](../broker/README.md). Sus scripts son independientes de npm; CA/usuarios/ACL deben existir antes del arranque. Mantener loopback por defecto. Usar una IP/SAN y firewall explícitos para LAN autorizada, sin abrir puertos del router. Un broker accesible desde WSL no demuestra acceso desde teléfono/ESP32.
 
@@ -63,24 +61,43 @@ No versionar node_modules, dist, .gradle, build, APK, configuración local priva
 
 ## API de módulos de firmware (Persona 1, 2 y 3)
 
-El cambio `sentinel-firmware-module-api` publica [module_api.hpp](../firmware/components/sentinel_api/include/module_api.hpp). Persona 2 implementa Sanitizador y Persona 3 Cebo como componentes independientes; dependen de **`sentinel_api`**, no de `sentinel`. El núcleo registra las implementaciones, conserva un único supervisor y administra Wi-Fi, BLE, identidad, serialización y el journal NVS de 64 eventos. Los detectores, servicios HTTP/Telnet y lógica NAT/DNS/DoH siguen en sus respectivos cambios.
+El cambio `sentinel-firmware-module-api` publica [module_api.hpp](../firmware/SentinelNode/src/sentinel_api/include/module_api.hpp). Persona 2 implementa Sanitizador y Persona 3 Cebo como módulos C/C++ independientes dentro del sketch; dependen de **`sentinel_api`**, no de `sentinel`. El núcleo registra las implementaciones, conserva un único supervisor y administra Wi-Fi, BLE, identidad, serialización y el journal NVS de 64 eventos. Los detectores, servicios HTTP/Telnet y lógica NAT/DNS/DoH siguen en sus respectivos cambios.
 
 El firmware de esta rama anuncia **metadata v2** y recibe órdenes v2 conforme a [module-protocol.md](../contracts/module-protocol.md). Las órdenes v1 reciben `unsupported_version`; `start_capture` y `start_honeypot` conservan su significado reservado de v1. Los eventos históricos v1 se recuperan sin convertirlos y se publican en `sentinel/v1/.../events`; los nuevos mensajes usan `sentinel/v2/...`. La integración del adaptador v2 de la app pertenece a su encargo; una app que solo envía v1 no puede controlar este firmware.
 
+### Mapa de lectura del núcleo
+
+| Archivo existente | Responsabilidad |
+| --- | --- |
+| `runtime.cpp` | Componer servicios y encadenar el ciclo del supervisor; delega operaciones concretas. |
+| `runtime_storage.h` | Adaptador NVS del journal y persistencia; conserva errores y evita borrados silenciosos. |
+| `runtime_time.h` | Convertir UTC ya validado a la referencia temporal; no obtiene hora mediante Wi-Fi en Escudo. |
+| `module_runtime.cpp` / `core.cpp` | Registro/ciclo de módulos, exclusión, admisión de comandos y estado. |
+| `network.cpp` / `ble.cpp` | Recursos de red compartidos y canal BLE protegido; los módulos no crean otro gestor. |
+| `mqtt_transport.cpp` | Adaptar wolfMQTT al worker/outbox acotados y confirmar su cierre; no implementa otro protocolo MQTT. |
+| `mqtt_dns.cpp` | Resolver DNS de manera cancelable mediante lwIP, fuera del ciclo del supervisor. |
+| `tls_verification.cpp` | Comprobar cadena y fechas con BearSSL después de la validación CA/DNS/IP oficial y antes de enviar MQTT. |
+| `ble_storage.cpp` | Revisar vínculos anteriores mediante NVS de solo lectura; detener BLE ante incompatibilidad sin borrar datos. |
+| `arduino_environment.cpp` / `arduino_requirements.cpp` | Conservar el resultado inicial de NVS y verificar la configuración oficial soportada. |
+| `wire.cpp` / `protocol_v2.cpp` / `v2_validator.h` | Sobres, validación y contratos existentes; no deciden modos por separado. |
+| `src/escudo/` | Descubrimiento, captura, parser, recorrido de canales, detectores y salida del módulo. |
+
+Este mapa describe la simplificación existente; no añade requisitos de clases o archivos a las specs funcionales.
+
 ### Crear y registrar un componente
 
-| Integrante | Directorio/componente ESP-IDF | Factory con enlace C | Opción de configuración |
+| Integrante | Directorio del sketch | Factory con enlace C | Flag en SentinelConfig.h |
 | --- | --- | --- | --- |
-| Persona 1 | `firmware/components/escudo/` | `sentinel_escudo_module()` | `CONFIG_SENTINEL_MODULE_ESCUDO=y` |
-| Persona 2 | `firmware/components/sanitizador/` | `sentinel_sanitizador_module()` | `CONFIG_SENTINEL_MODULE_SANITIZADOR=y` |
-| Persona 3 | `firmware/components/cebo/` | `sentinel_cebo_module()` | `CONFIG_SENTINEL_MODULE_CEBO=y` |
+| Persona 1 | `firmware/SentinelNode/src/escudo/` | `sentinel_escudo_module()` | `SENTINEL_MODULE_ESCUDO=1` |
+| Persona 2 | `firmware/SentinelNode/src/sanitizador/` | `sentinel_sanitizador_module()` | `SENTINEL_MODULE_SANITIZADOR=1` |
+| Persona 3 | `firmware/SentinelNode/src/cebo/` | `sentinel_cebo_module()` | `SENTINEL_MODULE_CEBO=1` |
 
-Cada factory devuelve `sentinel::Module*` con vida de todo el arranque; puede devolver `nullptr` si la implementación no está disponible. El `CMakeLists.txt` del componente declara `REQUIRES sentinel_api` y sus dependencias oficiales necesarias. El núcleo añade la dependencia del componente y llama la factory al habilitar la opción; no hace falta editar `runtime.cpp`, crear otro supervisor ni modificar `firmware/src/main.cpp`. Activar una opción sin incluir su componente debe producir un error de build. El descubrimiento de Escudo está habilitado por defecto desde su incremento; Sanitizador y Cebo permanecen deshabilitados hasta incorporar sus componentes. Captura se habilita con su incremento; detectores permanece falso hasta conectar las heurísticas.
+Cada factory devuelve `sentinel::Module*` con vida de todo el arranque; puede devolver `nullptr` si la implementación no está disponible. Arduino descubre los `.cpp` existentes recursivamente bajo `src/`; sus fuentes incluyen la API pública y headers privados mediante rutas relativas. No añadir dependencias CMake, copiar fuentes a `libraries/` ni incluir `.cpp` desde otros archivos. El núcleo llama la factory al habilitar el flag de aplicación; no hace falta editar `runtime.cpp`, crear otro supervisor ni modificar `SentinelNode.ino`. Activar un flag sin su implementación debe producir error de enlace. Escudo integra descubrimiento, captura, detectores y recuperación; Sanitizador/Cebo permanecen deshabilitados hasta incorporar sus servicios reales.
 
 Ejemplo de punto de entrada para un componente futuro (adaptar el nombre; no es una implementación del módulo):
 
 ```cpp
-#include "module_api.hpp"
+#include "../sentinel_api/include/module_api.hpp"
 // MiModulo implementa los siete hooks de sentinel::Module.
 extern "C" sentinel::Module *sentinel_sanitizador_module() {
   static MiModulo module;
@@ -115,7 +132,7 @@ Usar `context.resources()` desde los hooks del supervisor; no llamar `esp_wifi_i
 | Cebo | STA con reconexión y MQTT seguro de la base; BLE para configuración/control. Los sockets HTTP/Telnet pertenecen al módulo y se cierran antes de confirmar parada. |
 | Sanitizador | `configure_upstream`, `configure_ap`, netifs STA/AP prestados y petición explícita `napt(true/false)`. Sin MQTT directo. El módulo administra auditoría, reglas, DNS/DoH y decide cuándo solicitar la pasarela. |
 
-`ApConfig.ipv4/netmask` usan orden de red. El gestor conserva los netifs durante todo el boot. `CONFIG_LWIP_IP_FORWARD` y `CONFIG_LWIP_IPV4_NAPT` están habilitados en defaults y configuración mantenida; habilitar compilación no activa NAPT. El gestor solo permite NAPT en Sanitizador con AP y dirección de upstream, y lo desactiva antes de liberar la red. Esto prepara la integración de Persona 2; no acredita el funcionamiento de su pasarela.
+`ApConfig.ipv4/netmask` usan orden de red. El gestor conserva los netifs durante todo el boot. El destino conserva forwarding IPv4 y NAPT; la configuración efectiva del core oficial se verifica en el cambio de dependencias. Habilitar compilación no activa NAPT. El gestor solo permite NAPT en Sanitizador con AP y dirección de upstream, y lo desactiva antes de liberar la red. Esto prepara la integración de Persona 2; no acredita el funcionamiento de su pasarela.
 
 `RadioEvent::ScanComplete` conserva `scan_status` (0 si ESP-IDF completó el scan) y `scan_count`. `read_scan_results(out,capacity,count)` distingue error de lectura de un catálogo vacío; `scan_results()` se conserva para consumidores previos.
 
@@ -123,7 +140,7 @@ Usar `context.resources()` desde los hooks del supervisor; no llamar `esp_wifi_i
 
 ### Eventos, métricas y persistencia
 
-`context.emit_event(name,severity,details,simulated)` y `publish_metrics(interval_ms,values)` copian JSON de hasta **1536 bytes** antes de retornar. El contrato completo sigue limitado a **2048 bytes**; usar páginas de 1–4 elementos y reducirlas si el sobre no cabe. `details` y `values` contienen exclusivamente las estructuras v2 de [schemas](../contracts/schemas/v2/common.schema.json). El núcleo compila sus validadores desde estos schemas durante CMake, sin otro contrato ni dependencia de validación en el dispositivo.
+`context.emit_event(name,severity,details,simulated)` y `publish_metrics(interval_ms,values)` copian JSON de hasta **1536 bytes** antes de retornar. El contrato completo sigue limitado a **2048 bytes**; usar páginas de 1–4 elementos y reducirlas si el sobre no cabe. `details` y `values` contienen exclusivamente las estructuras v2 de [schemas](../contracts/schemas/v2/common.schema.json). El include local `src/sentinel/v2_validator.h` conserva los validadores de esos schemas; el firmware no necesita Node ni Python para compilar ese archivo. El mantenimiento usa `node firmware/tools/generate_validator.mjs` y `node firmware/test/validator_test.mjs` para regenerarlo/contrastarlo; no modificarlo a mano ni crear otro contrato.
 
 Las llamadas no escriben flash ni transportes: validan y encolan en una cola común de **8** entradas. Un retorno `false` indica datos inválidos, contexto inactivo o saturación; no reintentar en un bucle bloqueante. La pérdida se contabiliza y los servicios continúan. Los callbacks de captura solo copian a la cola de radio del gestor.
 
@@ -135,14 +152,27 @@ El botón corto rota únicamente los modos registrados (Escudo → Sanitizador �
 
 La [evidencia de esta entrega](../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/verification.md) distingue software verificado y prueba física pendiente.
 
+Mantenimiento opcional con Node 24, C/C++ y OpenSSL, desde Linux/WSL:
+
 ```sh
-python3 firmware/test/run_host.py
-PATH=/home/jefry/.nvm/versions/node/v24.13.1/bin:$PATH python3 firmware/test/check_contracts.py
-pio run -d firmware
-python3 firmware/test/check_config.py
+SENTINEL_SANITIZE=1 npm run test:firmware
+SENTINEL_SANITIZE=1 npm run test:escudo
+node firmware/test/arduino_build_test.mjs
 ```
 
-El host prueba un consumidor mínimo, exclusión y timeout, gate, capacidades ausentes, concesiones de radio, validación, saturación y recuperación mixta v1/v2 del journal. `check_contracts.py` contrasta fixtures v1/v2 y salidas C++ con el codec AJV real. Son comprobaciones de lógica; no acreditan radio, OLED ni flash reales.
+Los dos primeros comandos ya incluyen compilación C++ y contraste con el codec; no repetir cada `run_host.mjs`. `arduino_build_test.mjs` contrasta factories/flags y guardas de configuración del core oficial y de las bibliotecas; no sustituye el build completo. `check_config.mjs --sdkconfig <ruta-al-sdkconfig.h-efectivo>` inspecciona el header de la variante oficial, memoria configurada, capacidades y particiones. Los defaults del SDK para SC-only/nivel no acreditan el enlace negociado: BLE exige SC-only/nivel4 en runtime. Las suites incluyen parada asíncrona y preservación de vínculos anteriores; los resultados de software no acreditan el hardware.
+
+Los runners de firmware usan Node en lugar de Python. La app/contratos mantienen sus dependencias npm y el firmware no las requiere para **Verificar/Subir** en Arduino.
+
+La regresión opcional del transporte compila el worker y la validación TLS activos contra wolfMQTT/BearSSL originales, con dobles declarados de socket, DNS y FreeRTOS:
+
+```sh
+SENTINEL_SANITIZE=1 node firmware/test/check_transports.mjs --archives /ruta/a/archivos-upstream-en-cache
+```
+
+La carpeta contiene `wolfMQTT.tar.gz` y `ESP_SSLClient.zip` de las URLs/versiones de [dependencies.json](../firmware/arduino/dependencies.json), sin cambiar sus nombres; el runner comprueba sus hashes antes de usarlos. Requiere Node24, compiladores C/C++, OpenSSL y headers, `tar`/`unzip` y las dependencias npm existentes. No descarga ni versiona proveedores, claves o binarios. Cubre17 casos de política TLS/colas y siete transcripciones MQTT independientes; [limpieza](../openspec/changes/sentinel-firmware-cleanup/verification.md) detalla el resultado y sus límites. Es mantenimiento opcional: no se ejecuta para compilar/subir con Arduino y no acredita la conexión física.
+
+El host prueba un consumidor mínimo, exclusión y timeout, gate, capacidades ausentes, concesiones de radio, validación, saturación y recuperación mixta v1/v2 del journal. `check_contracts.mjs` contrasta fixtures v1/v2 y salidas C++ con el codec AJV real. Son comprobaciones de lógica; no acreditan radio, OLED ni flash reales.
 
 Para cerrar la tarea física 2.2, conectar la placa, registrar puerto/build, arrancar y leer metadata v2 por BLE autorizado. Comprobar Idle, rechazos de modos ausentes y, con un consumidor de prueba registrado que no anuncie servicios completos (o un módulo real), transición de ida/vuelta por `set_mode` sin sockets, MQTT, captura ni NAPT residuales. Registrar ACK, perfil, revisión y pantalla; verificar botón corto y pulsación larga. Las pruebas de host o un puerto Bluetooth genérico de Windows no sustituyen esta comprobación. Un consumidor de prueba en la placa solo verifica el ciclo de vida de la API, no acredita detecciones ni servicios del producto.
 

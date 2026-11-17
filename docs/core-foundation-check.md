@@ -1,5 +1,10 @@
 # Comprobación de sentinel-core-foundation
 
+**Aviso de vigencia:** este informe conserva resultados, autorizaciones y pendientes históricos. La [política aprobada posterior](persistence-policy.md) sustituye RAM-only y continuidad USB: NVS explícita para configuración autorizada, conservación en reinicio/corte normal y reinstalación USB con reinicialización permitida sin migración. Sus builds/logs no acreditan la nueva tabla ni cierran pendientes físicos.
+
+**Evidencia histórica de la base:** los comandos PlatformIO y rutas originales de este informe describen las ejecuciones registradas entonces. El flujo vigente de firmware es [Arduino IDE Windows](firmware.md); el [mapa de traslado](firmware-arduino-migration.md#7-árbol-único-y-mapa-del-movimiento-realizado) localiza las fuentes actuales. No se reinterpretan estos resultados ni sus pendientes como pruebas del port Arduino.
+
+
 Registro de implementación y evidencia del cambio OpenSpec `sentinel-core-foundation`. La ejecución inicial corresponde al 2026-11-08 en America/El_Salvador (2026-11-09 UTC); su cierre administrativo autorizado se registra el 2026-11-10 en America/Guatemala.
 Las casillas del [cambio archivado](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/tasks.md) solo se completan cuando se cumple toda la comprobación de la tarea. Este documento no sustituye esas condiciones.
 

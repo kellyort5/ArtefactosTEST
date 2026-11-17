@@ -14,6 +14,16 @@ El dispositivo SHALL persistir eventos reales de arranque, estado o transición 
 - **THEN** el evento mantiene su identificador y puede recuperarse por el canal autorizado
 - **AND** la nueva identidad de arranque no provoca colisiones con los registros anteriores
 
+#### Scenario: Corte de alimentación sin reinstalación
+- **WHEN** se recupera alimentación después de completar la persistencia de un evento
+- **THEN** el registro sigue recuperable dentro de la capacidad circular documentada
+- **AND** una escritura interrumpida no se anuncia como persistida ni autoriza borrar el almacén completo
+
+#### Scenario: Reinstalación o actualización USB
+- **WHEN** se reinstala o actualiza el firmware mediante USB
+- **THEN** está permitida la reinicialización del historial sin migración entre versiones
+- **AND** esa excepción no se aplica a reinicios ordinarios ni a reconexiones de transporte
+
 ### Requirement: Recuperación paginada y pérdida visible
 Un cliente autorizado SHALL poder recuperar eventos posteriores a un cursor mediante páginas limitadas. Cuando el búfer sobrescriba registros, el dispositivo SHALL informar el rango aún disponible y la pérdida correspondiente.
 

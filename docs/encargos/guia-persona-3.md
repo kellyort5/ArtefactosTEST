@@ -1,5 +1,9 @@
 # Guía de Persona 3 — Cebo y servidor de alertas
 
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+
+P3 persistirá configuración aceptada de Cebo e historial sanitizado mediante recursos centrales, con límites, commit antes de confirmar y recuperación tras reinicio/corte sin USB; no iniciar servicios automáticamente. Mantener eventos/IDs/cursores y dedup dentro del ring. No guardar credenciales recibidas por HTTP/Telnet/honeypot o terceros. NVS estándar no promete cifrado físico; secretos propios solo por canal autorizado, nunca Git/log/event/status. Webhook y push mantienen sus encargos completos.
+
 Entregas el Módulo 3 completo y el componente que envía webhook y push. Persona 4 hace la UI y recibe el push en Android; tú implementas el envío en servidor. El Cebo es un servicio ficticio seguro en una LAN autorizada, sin administración real ni ejecución de comandos.
 
 ## 1. Qué leer antes de programar
@@ -7,14 +11,14 @@ Entregas el Módulo 3 completo y el componente que envía webhook y push. Person
 1. [Guía del equipo](guia-equipo.md) y [reparto](README.md): carpetas, dependencias, ramas, contratos y evidencias.
 2. [Arquitectura](../architecture.md), especialmente Cebo/persistencia/notificaciones; [R-04, R-06, R-10, R-11 y H-06/H-07/H-08](../technical-decisions.md).
 3. Tu [ficha HTTP](sentinel-cebo-http.md) y su diseño/spec/tareas; repetir esta lectura para cada encargo posterior.
-4. [Protocolo v2](../../contracts/module-protocol.md), [contrato de notificaciones](../../contracts/notifications.md) y [API de módulos propuesta](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/design.md).
+4. [Protocolo v2](../../contracts/module-protocol.md), [contrato de notificaciones](../../contracts/notifications.md) y [diseño de la API de módulos](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/design.md).
 5. [Firmware](../firmware.md), [broker](../../broker/README.md) y [guía física](../core-foundation-test-guide.md).
 
 No tienes que aprender OpenSpec ni generar cambios: las propuestas están preparadas. Sigue las tareas numeradas de las fichas y entrega evidencia a Jefry para el seguimiento oficial.
 
 ## 2. Tus zonas y límites
 
-- Firmware: futuro `firmware/components/cebo/`, `firmware/test/cebo/` y documentación `docs/modules/cebo-*.md` de tus fichas.
+- Firmware: futuro `firmware/SentinelNode/src/cebo/`, `firmware/test/cebo/` y documentación `docs/modules/cebo-*.md` de tus fichas.
 - Alertas: futuro `notifications/`, sus tests, package/lockfile y Compose propios, más sus documentos. No añadir sus dependencias al workspace raíz sin coordinar con P4.
 - P1 mantiene supervisor, radio, transportes, serialización y journal. Usar sus hooks y almacenamiento compartido; no crear otra instancia MQTT, otro gestor Wi-Fi o un journal firmware alternativo.
 - P4 mantiene `app/`, Android, broker/ACL y lockfiles del workspace. Entregarle necesidades de rol, endpoints y ejemplos; no editar sus archivos para completar tu entrega.
@@ -96,18 +100,18 @@ No registrar contraseñas, usuarios capturados, tokens, cookies o cuerpos comple
 ## 5. Primera sesión y pruebas breves
 
 1. Confirmar con P1 contrato/API y referencia revisada de partida; leer el diseño HTTP.
-2. Preparar PlatformIO y abrir la rama `feat/sentinel-cebo-http` en tu clon limpio según la [guía común](guia-equipo.md#5-preparar-tu-copia-y-tu-rama).
+2. Preparar [Arduino IDE Windows y la integración oficial (core3.3.12, dos bibliotecas y opción local documentados)](../firmware.md) y abrir la rama `feat/sentinel-cebo-http` en tu clon limpio según la [guía común](guia-equipo.md#5-preparar-tu-copia-y-tu-rama).
 3. Entregar primero módulo integrable/build, después panel real y bus de interacciones. Hacer pruebas breves con datos ficticios en red propia.
 4. Avisar temprano a P4 del rol `notify`, endpoint de estado y necesidad de una instalación Android para probar push. No esperar al final para aprovisionar destinos propios.
 
 Comandos existentes, desde raíz:
 
 ```sh
-pio run -d firmware -e sentinel_s3
+node firmware/test/arduino_build_test.mjs
 npm run check:contracts
 ```
 
-Para firmware, añadir tests propios de parsers, límites, sanitización, clasificación y recuperación según fichas. Para `notifications/`, definir y documentar sus scripts de build/test/arranque en sus encargos: **todavía no existe un servidor ejecutable ni un comando de arranque que esta guía pueda dar por implementado**. Seguir [broker/README.md](../../broker/README.md) para el broker y no regenerar secretos de otro laboratorio.
+Compilar además el sketch con **Verificar** y configuración oficial verificada cuando se entregue. Agregar fuentes a `SentinelNode/src/cebo/`, exportar `sentinel_cebo_module()` y habilitar `SENTINEL_MODULE_CEBO` solo al disponer de implementación real. Para firmware, añadir tests propios de parsers, límites, sanitización, clasificación y recuperación según fichas. Para `notifications/`, definir y documentar sus scripts de build/test/arranque en sus encargos: **todavía no existe un servidor ejecutable ni un comando de arranque que esta guía pueda dar por implementado**. Seguir [broker/README.md](../../broker/README.md) para el broker y no regenerar secretos de otro laboratorio.
 
 No exponer HTTP/Telnet a Internet ni abrir puertos del router. Limitar recursos y mantener el uso en redes propias/autorizadas. Al probar privacidad, usar marcadores ficticios y conservar evidencia sanitizada.
 

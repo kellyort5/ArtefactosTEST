@@ -5,6 +5,8 @@
     "dev": "npm run dev -w app", "build": "npm run build -w contracts && npm run build -w app",
     "check:contracts": "npm run check -w contracts", "test:app": "npm test -w app",
     "android:sync": "npm run build && npm run android:sync -w app",
-    "android:assemble": "npm run android:assemble -w app"
+    "android:assemble": "npm run android:assemble -w app",
+    "test:firmware": "node firmware/test/check_contracts.mjs",
+    "test:escudo": "node firmware/test/escudo/check_contracts.mjs"
   }
 }

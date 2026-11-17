@@ -1,5 +1,7 @@
 # Sentinel Node: roadmap de desarrollo acelerado
 
+**Política aprobada vigente:** [persistencia operativa y USB](persistence-policy.md), definida en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/design.md). Conservar identidad, bonds, configuración e historial confirmado en uso normal/reinicio/corte; USB permite reinicialización sin migración. Arduino oficial primero; justificar cada excepción mínima. La tabla nueva/cuatro claves/configuración persistente se verifican en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores son históricos y no cierran pruebas físicas.
+
 ## Estado y objetivo confirmado
 
 **Actualización confirmada el 2026-11-10:** desarrollar rápidamente una versión funcional sobre ESP32-S3-DevKitC-1 N16R8 con **Escudo Pasivo, Auditor/Sanitizador y Cebo completos**, aplicación Android e infraestructura real de comunicación y notificación. Los tres módulos se desarrollan en paralelo con un responsable por cambio.
@@ -17,7 +19,7 @@ Los incrementos se concretan en propuestas OpenSpec y fichas de trabajo para los
 | Categoría | Contenido | Tratamiento |
 | --- | --- | --- |
 | Funcionalidad obligatoria de la entrega | Escudo, Sanitizador y Cebo completos, app Android, comunicaciones seguras, registro, alertas e integración física. | Debe funcionar en el equipo antes de declarar terminada la entrega conjunta. |
-| Decisiones arquitectónicas confirmadas | PlatformIO + ESP-IDF + FreeRTOS; supervisor central; exclusión de modos; BLE en Escudo; MQTT en Cebo; contratos y componente de notificaciones de R-10. | Implementarlas directamente, reutilizando componentes oficiales adecuados. |
+| Decisiones arquitectónicas confirmadas | Arduino IDE Windows + paquete ESP32 Sentinel con C/C++/FreeRTOS y componentes ESP-IDF; supervisor central; exclusión de modos; BLE en Escudo; MQTT en Cebo; contratos y componente de notificaciones de R-10. | Implementarlas directamente, reutilizando componentes oficiales adecuados. |
 | Detalles por concretar | Versiones compatibles, pines efectivos, límites iniciales, esquema concreto, almacenamiento sencillo, proveedor/alojamiento push. | Resolverlos en el cambio que los necesita, con decisiones concretas y revisión solo si son arquitectónicas importantes. |
 | Validaciones pendientes H-01 a H-08 | Comportamiento real de hardware, captura/BLE, detectores, persistencia y notificaciones. | Comprobaciones breves durante implementación; sin fase de investigación previa. |
 | Mejoras posteriores | Benchmarks, autonomía, carga prolongada, optimización y campañas extensas de estabilidad/compatibilidad. | Después del MVP, salvo problemas que impidan funcionar. No incluyen funcionalidades prioritarias sin terminar. |
@@ -52,11 +54,11 @@ La regla temporal anterior de simular antes de integrar hardware queda sustituid
 
 | Incremento integrable | Entrega real | Comprobación breve |
 | --- | --- | --- |
-| 1.1 Arranque S3 | PlatformIO + ESP-IDF + FreeRTOS; configuración N16R8 y versiones compatibles fijadas. | Compilar, grabar, arrancar y comprobar detección de memoria/pines usados. Sin estudio previo de consumo o memoria. |
+| 1.1 Arranque S3 | Arduino IDE Windows + core oficial ESP32 3.3.12 y dependencias mantenidas, FreeRTOS y N16R8; build completo oficial PASS y regresiones host conservadas; hardware pendiente. Las cuatro claves mínimas y dos bibliotecas se preparan una vez por equipo, retirando cinco overrides propios antiguos. Consultar el estado del build de tabla nueva en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); primera carga limpia desde IDE, USB sin garantía de conservar datos. | Compilar, grabar, arrancar y comprobar detección de memoria/pines usados. Sin estudio previo de consumo o memoria. |
 | 1.2 Estado y controles | Supervisor central, estados básicos, gestión Wi-Fi/BLE, OLED y botón conectados al estado. | Orden física o de app y cambio de estado confirmado; error básico visible. |
 | 1.3 BLE y Android | React/Vite/Tailwind/Zustand/Capacitor Android, autorización/configuración BLE y contrato versionado inicial. | Teléfono real conecta, intercambia estado/comando y recibe confirmación. |
 | 1.4 MQTT seguro | Mosquitto/Docker, TLS/WSS, identidades/ACL, mqtt.js y adaptador del nodo para modos con conexión. | Evento y comando reales con acceso permitido; rechazo de identidad o permisos incorrectos. No activar STA/MQTT en Escudo. |
-| 1.5 Registro compartido | Identificadores, marca temporal/calidad, persistencia acotada, pendientes y recuperación/deduplicación. | Registrar, desconectar, reiniciar brevemente y recuperar un evento sin duplicarlo. |
+| 1.5 Registro compartido | Identificadores, marca temporal/calidad, persistencia acotada, pendientes y recuperación/deduplicación. | Registrar tras commit, desconectar, reiniciar/cortar sin upload y recuperar identidad/bonds/configuración/historial sin duplicar; Idle sin conexión ni UTC viejo. Separar USB con pérdida permitida y reconfiguración. |
 | 1.6 Base de alertas | Contratos para eventos/notificaciones, separación del componente de R-10 y configuración propia fuera de repo/logs. | Concretar entrega e infraestructura al abordar 3.4/3.5; no esperar que todo push esté listo para empezar Escudo/Cebo. |
 
 **Dependencias:** specs acotadas de cada incremento y hardware para las comprobaciones que lo requieran. H-01/H-02 se atienden aquí, no mediante una etapa 0 de investigación.

@@ -20,7 +20,7 @@ El dispositivo SHALL serializar solicitudes de app y botón, mantener como máxi
 #### Scenario: Transición de Cebo a Escudo de base
 - **WHEN** se acepta una solicitud válida al perfil Escudo desde Cebo
 - **THEN** se detienen MQTT y STA antes de confirmar el nuevo perfil
-- **AND** el estado identifica que captura y detección todavía no están implementadas
+- **AND** el estado identifica la disponibilidad y el estado reales de captura y detección del módulo Escudo registrado
 
 #### Scenario: Fallo o solicitudes concurrentes
 - **WHEN** una transición falla o llega otra orden con revisión obsoleta
@@ -28,11 +28,11 @@ El dispositivo SHALL serializar solicitudes de app y botón, mantener como máxi
 - **AND** un fallo de liberación deja estado de error sin iniciar recursos incompatibles
 
 ### Requirement: Recursos condicionados al perfil
-El dispositivo SHALL impedir asociación Wi-Fi, MQTT directo y pasarela en Escudo; permitir conectividad STA/MQTT en Cebo; y rechazar Sanitizador y operaciones específicas todavía no implementadas.
+El dispositivo SHALL impedir asociación Wi-Fi, MQTT directo y pasarela en Escudo; permitir conectividad STA/MQTT en Cebo cuando su módulo esté disponible; y rechazar modos u operaciones no implementados o no registrados.
 
 #### Scenario: Solicitud de una función excluida
-- **WHEN** se pide iniciar captura, honeypot o Sanitizador en esta base
-- **THEN** responde con operación no disponible sin simular detección, abrir HTTP/Telnet ni activar NAT
+- **WHEN** se pide una operación o un modo no implementado o no registrado
+- **THEN** responde con operación no disponible sin simular detección ni iniciar servicios ausentes
 
 ### Requirement: Estado físico coherente con el supervisor
 La pantalla SHALL mostrar perfil, fase, conectividad y errores básicos; el botón SHALL solicitar acciones al supervisor sin activar recursos por su cuenta.

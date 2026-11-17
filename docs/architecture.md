@@ -1,5 +1,7 @@
 # Sentinel Node: arquitectura propuesta
 
+**Política aprobada vigente:** [persistencia operativa y USB](persistence-policy.md), definida en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/design.md). Conservar identidad, bonds, configuración e historial confirmado en uso normal/reinicio/corte; USB permite reinicialización sin migración. Arduino oficial primero; justificar cada excepción mínima. La tabla nueva/cuatro claves/configuración persistente se verifican en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores son históricos y no cierran pruebas físicas.
+
 ## Estado y fuentes
 
 Este documento conserva la exploración y la estrategia vigente confirmada por el usuario. Registra el alcance y las decisiones aprobadas; no acredita funcionalidades implementadas ni sustituye las specs de cada cambio. Se complementa con [decisiones técnicas](technical-decisions.md) y [roadmap](roadmap.md).
@@ -28,7 +30,7 @@ La selección de placa está confirmada por el usuario y sustituye las referenci
 
 La variante N16R8 figura con 16 MB de flash y 8 MB de PSRAM en la [guía oficial de Espressif](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html). Esta capacidad nominal no equivale a memoria libre de aplicación ni a rendimiento validado.
 
-**Pendiente de validar:** revisión física y correspondencia del pinout aportado con la unidad USB-C adquirida, detección de memorias, GPIO disponibles y alimentación. La base configura OLED SSD1306 por I2C en SDA GPIO8/SCL GPIO9 y botón GPIO4, ajustables mediante Kconfig; el cableado y funcionamiento físico siguen pendientes. Ver [guía de firmware](firmware.md). La alimentación portátil permanece como referencia del PDF.
+**Pendiente de validar:** revisión física y correspondencia del pinout aportado con la unidad USB-C adquirida, detección de memorias, GPIO disponibles y alimentación. La base configura OLED SSD1306 por I2C en SDA GPIO8/SCL GPIO9 y botón GPIO4, ajustables mediante `SentinelConfig.h`; el cableado y funcionamiento físico siguen pendientes. Ver [guía de firmware](firmware.md). La alimentación portátil permanece como referencia del PDF.
 
 ### Pinout aportado por el usuario
 
@@ -51,7 +53,7 @@ Las restricciones de memoria y las funciones USB/UART se contrastaron con la [gu
 
 ## Componentes y límites
 
-**Confirmada:** separación de firmware, broker, aplicación y simulador. La distribución de carpetas continúa siendo una propuesta de organización; no representa componentes ya implementados.
+**Confirmada:** separación de firmware, broker, aplicación y simulador. Las carpetas existen; la disponibilidad de servicios se distingue del alcance funcional pendiente de cada componente.
 
 | Componente | Responsabilidad | Límite |
 | --- | --- | --- |
@@ -59,10 +61,10 @@ Las restricciones de memoria y las funciones USB/UART se contrastaron con la [gu
 | `broker/` | Mosquitto en Docker, autenticación, ACL y distribución MQTT. | No sustituye el registro local ni es por sí mismo una API histórica. |
 | `app/` | React/Vite/Tailwind/Zustand con Capacitor Android; BLE, mqtt.js, dashboard, historial y notificaciones. | Solo presenta como aplicado un comando confirmado por el nodo; diferencia datos simulados y reales. |
 | `simulator/` | Apoyo ligero para contratos, fixtures y reproducción de eventos. | No es una etapa previa obligatoria ni acredita una función de hardware. |
-| `contracts/` | Contratos versionados de estados, métricas, incidentes, comandos y confirmaciones. | Ruta y formato de archivos por concretar en cambios pequeños. |
+| `contracts/` | Contratos versionados de estados, métricas, incidentes, comandos y confirmaciones. | Schemas/fixtures v1/v2 y codec compartido existentes; cambios de contrato requieren revisión. |
 | Componente de notificaciones de R-10 | Consumir eventos autorizados, controlar repetición y entregar webhooks y push móvil. | Separado de la detección y del firmware; proveedor, ruta y alojamiento por concretar al implementar. No requiere diseñar una plataforma histórica compleja. |
 
-**Stack confirmado:** PlatformIO + ESP-IDF + FreeRTOS con C/C++, Mosquitto/Docker y React/Vite/Tailwind/Zustand/Capacitor Android. Se seleccionan y fijan versiones compatibles en el primer incremento; se reutilizan componentes oficiales adecuados antes de crear alternativas propias.
+**Stack actualizado por el usuario el 2026-11-13:** firmware con Arduino IDE Windows, core oficial ESP32 **3.3.12**, C/C++ y FreeRTOS, reutilizando APIs ESP-IDF y dependencias mantenidas. Esta simplificación sustituye el paquete SDK propio como objetivo. [La integración de dependencias](../openspec/changes/sentinel-arduino-dependencies/verification.md) tiene build completo Windows PASS con wolfMQTT2.2.0 y ESP_SSLClient3.1.3; esa evidencia corresponde a la configuración previa de nueve claves. Ahora se mantienen cuatro claves mínimas y recetas oficiales, con primera carga limpia y sin garantía de datos entre versiones USB. La compilación con SDK Sentinel se conserva como [evidencia histórica](../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md). No acredita el flujo nuevo ni upload, radio, periféricos o persistencia físicos. Mosquitto/Docker y React/Vite/Tailwind/Zustand/Capacitor Android conservan su stack. Ver [estado de migración](firmware-arduino-migration.md) y [flujo de firmware](firmware.md). Node queda como mantenimiento opcional, sin exigirlo para compilar/subir en el IDE.
 
 El componente de notificaciones y la infraestructura de entrega son necesarios para el alcance aprobado; no constituyen una funcionalidad opcional posterior. La elección concreta del proveedor y su despliegue se aborda en el cambio correspondiente, sin una fase extensa de investigación.
 
@@ -100,7 +102,7 @@ CEBO DE RED LOCAL
 [Simulador] <-- MQTT --> [Mosquitto]   (apoyo separado)
 ```
 
-**Decisiones confirmadas:** BLE para descubrir redes, seleccionar objetivo, controlar y recibir resultados del Escudo; MQTT para Cebo. TLS/WSS, identidades y ACL según R-04; autorización BLE según R-03/R-07. Los puertos concretos, credenciales de integración, protocolo BLE y despliegue se concretan en sus cambios, sin secretos en el repositorio o logs.
+**Decisiones confirmadas:** BLE para descubrir redes, seleccionar objetivo, controlar y recibir resultados del Escudo; MQTT para Cebo. TLS/WSS, identidades y ACL según R-04; autorización BLE según R-03/R-07. GATT/framing y MQTT están documentados en [conectividad](connectivity.md) y [contratos](../contracts/module-protocol.md); las credenciales de laboratorio se suministran fuera del repositorio y los logs.
 
 El control remoto utiliza el canal disponible. En Escudo no se enviarán órdenes al nodo por MQTT ni se lo asociará a una red para recuperar ese canal. Al pasar a Cebo se establece la conexión autorizada y MQTT; al volver a Escudo se detienen servicios y conexión Wi-Fi. La app reconcilia el resultado de una transición si se interrumpe el canal que la inició.
 
@@ -108,7 +110,7 @@ Internet y broker accesible son condiciones distintas: MQTT puede operar mediant
 
 ### Contratos y entrega
 
-**Confirmados por R-05 y usuario:** contratos versionados, identificación de eventos, comandos idempotentes, revisión esperada, caducidad verificable, confirmaciones y deduplicación. La versión exacta de MQTT, topics/QoS y forma del protocolo BLE todavía se concretarán; no se anuncian como seleccionados.
+**Confirmados por R-05 y usuario:** contratos versionados, identificación de eventos, comandos idempotentes, revisión esperada, caducidad verificable, confirmaciones y deduplicación. MQTT 5, topics/QoS/retained y framing BLE ya se describen en los [contratos de módulos](../contracts/module-protocol.md) y [conectividad](connectivity.md); la simplificación conserva esos acuerdos.
 
 Conservar identidad del nodo, identificador de arranque, secuencia, modo, origen real/simulado y marca temporal con calidad. Si no existe hora confiable en Escudo, establecer la referencia temporal mediante la app BLE y conservar tiempo monotónico; no abrir una conexión Wi-Fi para sincronizarlo. No inventar fechas cuando no exista referencia válida.
 
@@ -197,17 +199,18 @@ OLED, botón, autenticación y reconexión se integran desde la base. La etapa f
 
 ## Persistencia, historial y funcionamiento offline
 
-**Confirmados por R-06/R-10 y usuario:** registro local persistente y circular con capacidad limitada, pendientes y sincronización/deduplicación. Resolver mediante almacenamiento sencillo adecuado al ESP32; API/medio, capacidad, retención y política al llenarse se documentarán en el incremento respectivo. No se requiere diseñar una base de datos compleja ni hacer ensayos extensos de desgaste previamente.
+**Confirmados por R-06/R-10 y usuario:** registro local persistente y circular con capacidad limitada, pendientes y sincronización/deduplicación. La implementación compartida usa journal NVS de 64 registros de hasta 2048 bytes, cursores/páginas y pérdida visible, descritos en [firmware](firmware.md#registro-circular). No se requiere diseñar una base de datos compleja ni hacer ensayos extensos de desgaste previamente.
 
 | Condición | Comportamiento obligatorio |
 | --- | --- |
 | Escudo sin BLE | Continuar observación y registro según recursos; recuperar pendientes cuando vuelva BLE. |
 | Cebo sin broker | Mantener servicios locales y eventos persistentes; sincronizar al restablecer MQTT. |
 | Sin Internet, broker LAN accesible | Mantener MQTT local y mostrar disponibilidad de alertas externas. |
-| Reinicio breve | Recuperar los registros persistidos y reconciliar identificadores; no prometer memoria ilimitada ni cero pérdidas en cualquier corte. |
+| Reinicio o corte sin upload | Recuperar identidad, bonds, configuración validada e historial confirmado; Idle sin conexión ni reloj UTC viejo. No prometer pérdida cero de escrituras interrumpidas. |
+| Reinstalación/actualización USB | Puede reinicializar datos sin migración; primera carga de tabla nueva limpia desde IDE, después emparejar/reconfigurar y reconciliar app. |
 | Recuperación del canal | Entregar estado y pendientes sin duplicar el historial ni aplicar órdenes vencidas. |
 
-Zustand conserva el estado de interfaz; IndexedDB continúa como alternativa por concretar para historial recibido. Un registro histórico central completo no es requisito añadido. El componente de notificaciones de R-10 sí es parte de la arquitectura necesaria; no debe confundirse con una plataforma de almacenamiento histórico adicional.
+Zustand conserva el estado de interfaz y la app común v2 usa IndexedDB para historial recibido, con retención de 256 eventos por nodo y cursor confirmado al completar la página; ver [guía de Persona 1](guia-pruebas-persona-1.md). Un registro histórico central completo no es requisito añadido. El componente de notificaciones de R-10 sí es parte de la arquitectura necesaria; no debe confundirse con una plataforma de almacenamiento histórico adicional.
 
 ## Dashboard Android y notificaciones
 

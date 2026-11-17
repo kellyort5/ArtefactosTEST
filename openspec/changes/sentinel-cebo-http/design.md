@@ -1,5 +1,7 @@
 # Design
 
+**Política posterior aplicable:** [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) reemplaza RAM-only, continuidad USB y tabla inmutable si aparecen en el plan previo. Identidad/bonds/configuración/historial confirmado persisten en uso normal/reinicio/corte; USB permite reinicialización sin migración. Primera carga de tabla nueva limpia desde IDE; cuatro claves mínimas y recetas oficiales. Conservar responsables, alcance completo y pendientes físicos. Las evidencias previas son históricas; el build integrado nuevo requiere evidencia nueva.
+
 ## Context
 
 Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../archive/2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
@@ -24,7 +26,7 @@ Emitir interacción de conexión/acceso/auth_attempt con IP/puertos/tiempo y met
 
 Contrato único: [protocolo funcional](../../../contracts/module-protocol.md) y [spec principal](../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../archive/2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
 
-Archivos de implementación: `firmware/components/cebo/ (module, http_service y CMake)`, `firmware/test/cebo/`, `docs/modules/cebo-http.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
+Archivos de implementación: `firmware/SentinelNode/src/cebo/ (module y http_service)`, `firmware/test/cebo/`, `docs/modules/cebo-http.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
 
 ## Risks / Trade-offs
 
@@ -33,4 +35,10 @@ Archivos de implementación: `firmware/components/cebo/ (module, http_service y 
 
 ## Migration Plan
 
+Flujo de firmware actualizado por la migración autorizada: Arduino IDE Windows, sketch `firmware/SentinelNode` y plataforma aislada `sentinel:esp32:sentinel_s3_n16r8`. Ver [migración y estado de verificación](../../../docs/firmware-arduino-migration.md) y [desarrollo de módulos](../../../docs/development.md). Usar los módulos C/C++ de `src/`, `SentinelConfig.h` y las factories existentes; conservar APIs ESP-IDF/FreeRTOS y el único gestor de recursos, sin añadir WiFi.begin(), otra pila BLE ni otro supervisor. El SDK y sus requisitos globales pertenecen a P1. Esta actualización cambia herramientas y rutas; conserva responsables, contratos, funciones y comprobaciones físicas pendientes.
+
 Trabajar en rama `feat/sentinel-cebo-http`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+
+## Persistencia al implementar este encargo
+
+P3 persistirá configuración aceptada de Cebo e historial sanitizado mediante recursos centrales, con límites, commit antes de confirmar y recuperación tras reinicio/corte sin USB; no iniciar servicios automáticamente. Mantener eventos/IDs/cursores y dedup dentro del ring. No guardar credenciales recibidas por HTTP/Telnet/honeypot o terceros. NVS estándar no promete cifrado físico; secretos propios solo por canal autorizado, nunca Git/log/event/status. Webhook y push mantienen sus encargos completos.

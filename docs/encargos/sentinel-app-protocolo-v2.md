@@ -1,6 +1,10 @@
 # Encargo: App: protocolo funcional y navegación
 
-**Responsable único:** Persona 1 — Jefry, por reasignación expresa del usuario el 2026-11-12. **Estado:** software comprobado, 5/6 tareas; control físico 2.1 pendiente. Consultar tareas y verificación. **Rama prevista:** `feat/sentinel-app-protocolo-v2`. La reasignación afecta solo a esta spec; P4 conserva pantallas específicas, Android push, broker y laboratorio.
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+
+P4 debe contemplar que reinstalar/actualizar por USB puede reiniciar identidad, bonds e historial/cursores. Si ocurre, retirar vínculos/caché obsoletos del teléfono, volver a emparejar/configurar y reconciliar desde metadata/estado nuevos; no reutilizar el cursor anterior frente a un historial reinicializado, aunque el device_id derivado de MAC siga igual. No prometer migración de datos entre versiones. Conservar resultados históricos por separado y no presentar mensajes antiguos como actuales. En reinicios sin upload sí se exige recuperar datos confirmados. Esta documentación no declara implementada una UI nueva.
+
+**Responsable único:** Persona 1 — Jefry, por reasignación expresa del usuario el 2026-11-12. **Estado:** archivado con 5/6 tareas; control físico 2.1 pendiente aceptado por el usuario. Ver [cierre](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/closure.md), tareas y verificación. **Rama prevista:** `feat/sentinel-app-protocolo-v2`. La reasignación afecta solo a esta spec; P4 conserva pantallas específicas, Android push, broker y laboratorio.
 
 ## Qué debes entregar
 
@@ -8,7 +12,7 @@ La app base solo valida v1 y no tiene control/estado funcional de tres módulos;
 
 App nueva mantiene base y acepta protocolo funcional, con navegación/control/historial comunes.
 
-Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-app-protocolo-v2/design.md) y los [casos de aceptación](../../openspec/changes/sentinel-app-protocolo-v2/specs/app-module-protocol/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/sentinel-app-protocolo-v2/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
+Lee primero esta ficha, el [diseño concreto](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/design.md) y los [casos de aceptación](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/specs/app-module-protocol/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
 
 ## Dependencias para integrar
 
@@ -48,4 +52,4 @@ El PR debe enlazar esta ficha y la propuesta, describir el cambio e incluir coma
 
 **Criterio de terminación:** App nueva mantiene base y acepta protocolo funcional, con navegación/control/historial comunes. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
 
-[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/sentinel-app-protocolo-v2/proposal.md) · [Tareas](../../openspec/changes/sentinel-app-protocolo-v2/tasks.md)
+[Volver al reparto](README.md) · [Propuesta](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/proposal.md) · [Tareas](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/tasks.md)

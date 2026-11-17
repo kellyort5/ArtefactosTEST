@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Resources y Profile solo ejecutan la base; los otros autores necesitan integrar sus componentes sin editar runtime ni crear controladores Wi-Fi duplicados.
+Integrar módulos mediante el supervisor y recursos compartidos, anunciando únicamente capacidades reales.
 
 ## Requirements
 

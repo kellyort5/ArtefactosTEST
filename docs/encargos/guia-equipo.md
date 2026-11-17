@@ -1,5 +1,7 @@
 # Cómo trabajar con las guías de Sentinel Node
 
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+
 Estas guías explican el reparto existente; no añaden funcionalidades, cambian la arquitectura ni acreditan implementaciones pendientes. Cada spec tiene **un único autor**. Otro integrante revisa su entrega sin tomar sus tareas de implementación.
 
 | Integrante | Guía personal | Resultado a su cargo |
@@ -32,7 +34,7 @@ Ante una contradicción entre ficha, spec, contrato o decisión aprobada, indica
 
 - La base está [archivada con aceptación de pendientes](../../openspec/changes/archive/2026-11-10-sentinel-core-foundation/closure.md): 26/45 tareas verificadas y 19 comprobaciones aceptadas bajo una suposición de funcionamiento físico. No son 19 pruebas realizadas.
 - `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Ver [evidencia](../../contracts/evidence-v2.md) y [spec principal](../../openspec/specs/module-protocol/spec.md). Está publicado en el [PR #2](https://github.com/Jefry-P/ArtefactosProyecto/pull/2); no rehacer la biblioteca ni asumir que un PR abierto ya está integrado.
-- Las otras fichas describen trabajo futuro. La app y firmware de base conservan v1: la existencia de contratos v2 no los convierte automáticamente en consumidores v2.
+- Escudo tiene implementación y tests de software; sus pruebas físicas continúan pendientes. Sanitizador/Cebo y las pantallas específicas describen trabajo futuro. La base original usó v1. El firmware actual y la app común de P1 ya consumen v2; los eventos históricos v1 se conservan. Las pantallas específicas y los servicios de Sanitizador/Cebo siguen en sus encargos.
 - Las fichas/specs/guías están publicadas en el [PR #3](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), con dependencia de #2. Confirmar con Jefry la referencia de partida que incorpora ambas entregas antes de trabajar; no asumir merges por el hecho de estar publicadas.
 
 ## 3. Dónde está cada cosa
@@ -40,10 +42,10 @@ Ante una contradicción entre ficha, spec, contrato o decisión aprobada, indica
 | Ruta | Qué consultar o implementar | Autor |
 | --- | --- | --- |
 | `contracts/` | Protocolo, tipos, validadores, esquemas y ejemplos compartidos. | P1 |
-| `firmware/components/sentinel/`, futuro `sentinel_api/`, `firmware/main/` y configuración global | Supervisor, radio, transportes, journal y registro de módulos. | P1 |
-| Futuro `firmware/components/escudo/` | Descubrimiento, captura y detectores. | P1 |
-| Futuro `firmware/components/sanitizador/` | Auditoría, pasarela, DNS y DoH. | P2 |
-| Futuro `firmware/components/cebo/` | Servicios ficticios y clasificación. | P3 |
+| `firmware/SentinelNode/src/sentinel/`, `firmware/SentinelNode/src/sentinel_api/`, `firmware/SentinelNode/SentinelNode.ino` y configuración global | Supervisor, radio, transportes, journal y registro de módulos. | P1 |
+| `firmware/SentinelNode/src/escudo/` | Descubrimiento, captura y detectores. | P1 |
+| Futuro `firmware/SentinelNode/src/sanitizador/` | Auditoría, pasarela, DNS y DoH. | P2 |
+| Futuro `firmware/SentinelNode/src/cebo/` | Servicios ficticios y clasificación. | P3 |
 | Futuro `notifications/` | Componente de alertas con package/lockfile y Compose propios. | P3 |
 | `app/`, `package.json` y `package-lock.json` raíz | App y dependencias; excepción: app-protocolo-v2 corresponde a P1. | P4; P1 solo esa spec |
 | `broker/` | Mosquitto, TLS/WSS, ACL y preparación LAN. | P4 |
@@ -64,7 +66,7 @@ Un contrato acuerda qué datos envía cada componente y cómo se confirman. No c
 
 Reglas que todos deben conservar:
 
-- V1 sigue siendo compatible con la base y con eventos históricos. Negociar la versión; no mandar una operación v2 a un equipo v1.
+- La app negocia v1/v2 y conserva eventos históricos v1. El firmware actual anuncia v2 y rechaza órdenes v1 con `unsupported_version`; no mandar operaciones v2 a un equipo v1.
 - Mensaje ESP completo: máximo **2048 bytes UTF-8**; Metadata: **256 bytes**. Fragmentar BLE no permite mensajes lógicos mayores. Aplicar paginación y límites del contrato.
 - Eventos v2: `payload.origin` obligatorio, `real` para observaciones físicas y `simulated` para reproducción de prueba. Conservarlo durante el replay. El historial v1 permanece intacto.
 - Identidad de evento: `(device_id,message_id)`. Retransmitir conserva identidad; no crear un incidente nuevo por cada llegada. El push usa ese `message_id` como `event_id`.

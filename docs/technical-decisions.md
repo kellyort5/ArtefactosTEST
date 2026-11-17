@@ -1,5 +1,7 @@
 # Sentinel Node: decisiones técnicas y validaciones
 
+**Política aprobada vigente:** [persistencia operativa y USB](persistence-policy.md), definida en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/design.md). Conservar identidad, bonds, configuración e historial confirmado en uso normal/reinicio/corte; USB permite reinicialización sin migración. Arduino oficial primero; justificar cada excepción mínima. La tabla nueva/cuatro claves/configuración persistente se verifican en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores son históricos y no cierran pruebas físicas.
+
 ## Cómo leer este registro
 
 Este documento conserva decisiones y alternativas de la exploración y registra la estrategia de desarrollo acelerado aprobada por el usuario. Solo las instrucciones expresas y las aprobaciones existentes se presentan como acuerdos. Las etiquetas **Confirmada**, **Recomendación** e **Hipótesis pendiente de validar** tienen el significado definido en [arquitectura](architecture.md#estado-y-fuentes). El [roadmap](roadmap.md) propone cuándo resolverlas.
@@ -14,7 +16,7 @@ La referencia funcional es [brief.md](brief.md) y el PDF identificado en arquite
 | C-02 | Confirmada por el usuario, actualizada el 2026-11-10 | Tres módulos completos en desarrollo paralelo desde la primera ronda. | Entrega con Escudo R-03, Sanitizador R-08 y Cebo R-10, incluida aplicación y alertas externas. |
 | C-03 | Confirmada por brief/PDF y usuario | Tres modos de producto; un modo activo a la vez y supervisor central. | Desarrollar Escudo y Cebo en paralelo no autoriza ejecutarlos simultáneamente en la misma radio. |
 | C-04 | Confirmada por instrucciones y actualización del usuario | Separar firmware, broker, app y simulador; integración incremental sobre hardware real desde el inicio. | La indicación anterior de simular antes de hardware se sustituye como orden obligatorio. El simulador queda como apoyo ligero separado, no como prerrequisito ni evidencia de implementación real. |
-| C-05 | Confirmada por decisiones aprobadas y usuario | PlatformIO + ESP-IDF + FreeRTOS con C/C++; Mosquitto/Docker; React/Vite/Tailwind/Zustand/Capacitor para Android; BLE en Escudo y MQTT en Cebo. | Elegir versiones compatibles y fijarlas al implementar. Las versiones y proveedores concretos aún no están seleccionados. |
+| C-05 | Actualizada por el usuario el 2026-11-13 | Firmware con Arduino IDE Windows, core oficial ESP32 3.3.12, C/C++/FreeRTOS y dependencias mantenidas; Mosquitto/Docker y React/Vite/Tailwind/Zustand/Capacitor conservan su stack; BLE en Escudo y MQTT en Cebo. | Build completo oficial Windows PASS con dos bibliotecas mantenidas y opción local aprobada; el SDK propio queda como antecedente. Se conservan regresiones y pendientes físicos. PlatformIO/ESP-IDF directo permanece como antecedente de la base. |
 | C-06 | Confirmada por fuentes/instrucciones y usuario | Seguridad, persistencia offline y pruebas de lógica crítica; solo redes autorizadas; sin secretos en el repositorio ni credenciales de terceros almacenadas. | Comprobaciones funcionales breves y pruebas focalizadas; rendimiento, autonomía y estabilidad prolongada se evalúan después, salvo fallo que impida funcionar. |
 | C-07 | Confirmada por el usuario para esta tarea | Preparar documentación, propuestas OpenSpec y encargos con responsable único. | Cada integrante implementará los cambios que se le asignen después de revisar su contrato y diseño. |
 | C-08 | Confirmada por el usuario y R-10 | Webhooks y push Android con recepción con la app cerrada, mediante componente de notificaciones separado e infraestructura necesaria. | Las dos integraciones son obligatorias en el MVP; proveedor push, alojamiento y detalles operativos se elegirán al abordar la integración, sin investigación extensa previa. |
@@ -23,15 +25,20 @@ OLED, botón y alimentación portátil se conservan como requisitos de referenci
 
 ## Decisiones, recomendaciones, alternativas y riesgos
 
-### R-01. Framework de firmware
+### R-01. Framework y entorno de firmware
 
-**Estado: Decisión aprobada.** Utilizar PlatformIO + ESP-IDF + FreeRTOS con C/C++. Elegir una combinación compatible, fijar versiones y comenzar la implementación.
+**Estado: Decisión actualizada y ejecución autorizada por el usuario el 2026-11-13.** Todo el firmware se desarrolla, compila, sube y monitoriza con Arduino IDE Windows. La instrucción de simplificación prioriza el core oficial ESP32 **3.3.12** y bibliotecas mantenidas, sustituyendo el SDK propio como objetivo. Conserva C/C++, FreeRTOS, supervisor/gestor de radio únicos, API, contratos, Escudo completo, seguridad y datos. Node es mantenimiento opcional y no un requisito para compilar/subir firmware.
 
-**Alternativas evaluadas:** ESP-IDF; Arduino como framework dentro de PlatformIO. PlatformIO es una herramienta de desarrollo y no decide por sí solo el framework.
+**Antecedentes comprobados:** base PlatformIO + ESP-IDF 5.5.3 y posterior paquete Sentinel reconstruido para MQTT5, TLS con fechas, BLE SC-only/nivel4 y NVS sin formato automático. La [evidencia del SDK previo](../openspec/changes/sentinel-arduino-sdk/verification.md) y el [build Windows previo](../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md) permanecen vigentes como registro de lo ejecutado; no prueban el core oficial sin esas adaptaciones.
 
-**Justificación:** acceso a APIs y configuración de radio, memoria, TLS y red. Arduino puede facilitar prototipos y periféricos, pero debe comprobarse que exponga lo necesario para NAT, captura y coexistencia.
+**Evidencia histórica de software anterior a la tabla nueva:** [sentinel-arduino-dependencies](../openspec/changes/sentinel-arduino-dependencies/verification.md) integra wolfMQTT2.2.0 y ESP_SSLClient3.1.3 sobre el core oficial3.3.12. Build completo Windows **PASS exit0**, imagen1376726bytes y globalRAM160228bytes, sin referencias al SDK Sentinel en730depfiles. La preparación inicial usa install-wolfmqtt.ps1 e install-board-config.ps1 para descargar/verificar la biblioteca y combinar las nueve claves aprobadas con respaldos e idempotencia; ESP_SSLClient se instala desde el IDE. Después Verificar/Subir/Monitor usan Arduino normalmente. MQTT5 usa el worker acotado; TLS oficial comprueba identidad DNS/IP y BearSSL comprueba CA/cadena/fechas antes de autenticación. BLE exige SC-only/nivel4 por runtime y revisa datos previos sin escribir. Esta evidencia no acredita enlaces ni persistencia físicos.
 
-**Riesgos y validación:** compatibilidad del toolchain con S3 N16R8, componentes y versiones; complejidad de integración. Resolver incompatibilidades concretas al compilar, sin abrir un estudio comparativo previo. No se ha aprobado abandonar PlatformIO ni se han seleccionado todavía números de versión.
+**Decisión vigente confirmada por el usuario:** core oficial, hasta **tres teléfonos recordados**, tabla compatible con `boot_app0` y **cuatro claves**: menú, `build.partitions`, máximo4MiB y `--wrap=nvs_flash_init`. El instalador retira cinco overrides Sentinel obsoletos, con claves ajenas/respaldo/idempotencia; carga/exportación estándar. La primera carga es limpia desde el IDE; USB puede reinicializar identidad/bonds/configuración/historial sin migración. La protección del wrapper y el preflight BLE siguen evitando borrados silenciosos durante reinicios normales. Ver [tabla y motivos](persistence-policy.md).
+
+**Condiciones conservadas:** MQTT 5, CA/hostname/fechas, BLE SC autenticado/nivel4 y bonds, mismos GATT/framing y contratos; persistencia operativa según la tabla nueva aprobada. No bajar protocolos, omitir validaciones, quitar funciones o cambiar contratos para compilar. El arranque normal debe evitar borrado/formato automático de NVS y conservar identidad/bonds/configuración/historial confirmado; la reinstalación USB permite reinicialización sin migración.
+
+**Riesgos y validación:** adaptación de transportes, configuración efectiva, inicialización y conservación de datos. Reutilizar pruebas críticas sin debilitar aserciones y acreditar el build oficial completo. El botón Verificar, subida/monitor y BLE/radio/NVS físicos mantienen sus pendientes; la falta de placa identificada no bloquea la preparación de software. Ver [plan y límites](firmware-arduino-migration.md).
+
 
 ### R-02. Supervisor y propiedad de recursos
 
@@ -41,7 +48,7 @@ OLED, botón y alimentación portátil se conservan como requisitos de referenci
 
 **Justificación:** evitar carreras, servicios residuales y órdenes simultáneas incompatibles.
 
-**Riesgos y validación:** parada incompleta, bloqueo de callbacks y agotamiento de colas. Probar transiciones fallidas, comandos concurrentes y ráfagas. Detener/liberar antes de iniciar y volver a un estado conocido son políticas propuestas, todavía sin definición exacta.
+**Riesgos y validación:** parada incompleta, bloqueo de callbacks y agotamiento de colas. Probar transiciones fallidas, comandos concurrentes y ráfagas. La API entregada detiene/libera antes de iniciar y aplica un timeout inicial de 5000 ms; ante fallo conserva error y no inicia recursos incompatibles. Ver el ciclo de vida en desarrollo.
 
 ### R-03. Captura Wi-Fi pasiva y comunicación BLE
 
@@ -102,16 +109,16 @@ La selección de una red mediante BLE no implica conectarse a ella. La implement
 
 **Justificación:** proteger telemetría y comandos. La [documentación Mosquitto](https://mosquitto.org/man/mosquitto-conf-5.html) describe TLS, autenticación, ACL y listeners WebSocket. Elegir un puerto no habilita esas protecciones.
 
-**Riesgos:** presupuesto TLS, certificados, aprovisionamiento y credenciales expuestas en cliente web. Se propone separar observación y operación y restringir cada nodo a sus topics. Autenticación final, puertos y despliegue están pendientes; no se añade un backend de autenticación como decisión tomada.
+**Riesgos:** presupuesto TLS, certificados, aprovisionamiento y credenciales expuestas en cliente web. La base del broker separa observación y operación, y restringe cada nodo a sus topics. El despliegue LAN y ACL v2 permanecen en sentinel-broker-lan; no se añade un backend de autenticación como decisión tomada.
 
 ### R-05. Contratos y entrega
 
 **Estado: Recomendación aprobada.** Contratos versionados y eventos identificables; órdenes idempotentes con confirmación de resultado, revisión esperada y caducidad.
 
-Propuesta de topics bajo `sentinel/v1/nodes/{id}/`, aún no aprobada:
+Los contratos aprobados describen topics bajo `sentinel/v1/nodes/{id}/` y `sentinel/v2/nodes/{id}/` según versión. El firmware actual usa v2 y conserva eventos históricos v1; ver [protocolo funcional](../contracts/module-protocol.md) y [conectividad](connectivity.md).
 
 
-| Sufijo         | Política propuesta                                              |
+| Sufijo         | Política contractual                                              |
 | -------------- | --------------------------------------------------------------- |
 | `state`        | Estado retenido con revisión y antigüedad.                      |
 | `availability` | Presencia y Last Will, complementados con última comunicación.  |
@@ -123,21 +130,23 @@ Propuesta de topics bajo `sentinel/v1/nodes/{id}/`, aún no aprobada:
 
 **Alternativas evaluadas:** mensajes sin esquema común; uso de retención para comandos; confiar solo en acuses del transporte.
 
-**Justificación y riesgos:** QoS 1 permite duplicados; retención puede entregar mensajes a nuevos suscriptores. El acuse del broker no demuestra ejecución en firmware ni recepción por la app. La [especificación MQTT](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html) distingue esas garantías. Falta definir versión MQTT, sesiones, frescura sin reloj confiable y comportamiento tras reinicio; no se promete ejecución exactamente una vez.
+**Justificación y riesgos:** QoS 1 permite duplicados; retención puede entregar mensajes a nuevos suscriptores. El acuse del broker no demuestra ejecución en firmware ni recepción por la app. La [especificación MQTT](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html) distingue esas garantías. MQTT5, sesiones, frescura monotónica y comportamiento tras reinicio están descritos en los contratos y la base; no se promete ejecución exactamente una vez. La integración de nuevas bibliotecas debe conservarlos.
 
 ### R-06. Offline e historial
 
-**Estado: Recomendación aprobada.** Registro circular persistente de incidentes, métricas agregadas, recuperación por cursor, límites visibles y reconexión gradual. Evaluar IndexedDB para los eventos recibidos por la app; Zustand para el estado de interfaz.
+**Ampliación aprobada:** identidad, bonds BLE, configuración aceptada e historial confirmado persisten durante uso/reinicio/corte sin upload. Se sustituye explícitamente RAM-only para Wi-Fi/MQTT autorizados por NVS oficial con commit antes del ack aplicado, restauración validada en Idle sin conexión ni UTC obsoleto. USB puede reinicializar sin migración; no se promete cifrado físico. P2/P3 aplican esta política a configuraciones futuras y P4 reconcilia identidad/caché/cursores después de USB.
+
+**Estado: Recomendación aprobada.** Registro circular persistente de eventos, recuperación por cursor, límites visibles y reconexión gradual. La implementación compartida conserva 64 eventos de hasta 2048 bytes en NVS; las métricas de salida son efímeras. La app común v2 conserva hasta 256 eventos por nodo en IndexedDB y usa Zustand para el estado de interfaz.
 
 **Alternativas evaluadas:** solo RAM; confiar en persistencia MQTT; almacenamiento histórico central mediante servicio adicional.
 
 **Justificación:** sobrevivir a desconexiones y acotar memoria/escrituras. Un broker no recupera eventos que nunca recibió ni constituye por sí mismo una API histórica.
 
-**Riesgos:** desgaste, corrupción por corte eléctrico, sobrescritura y pérdida de eventos mientras la app no está disponible. Hay que fijar capacidad, política de borrado, garantías y recuperación. Un servicio adicional central no está aprobado.
+**Riesgos:** desgaste, corrupción por corte eléctrico, sobrescritura y pérdida de eventos mientras la app no está disponible. La capacidad y política de sobrescritura/gap están documentadas en [firmware](firmware.md#registro-circular); las garantías físicas siguen pendientes y no se borra automáticamente para recuperar. Un servicio adicional central no está aprobado.
 
 ### R-07. Aprovisionamiento BLE
 
-**Estado: Recomendación aprobada.** Evaluar ventana física de configuración y autenticación del dispositivo, tomando como referencia el [aprovisionamiento seguro de Espressif](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/provisioning/provisioning.html).
+**Estado: Recomendación aprobada.** La base implementa ventana física de 120 s mediante pulsación de 3 s y pairing con código OLED, BLE SC/MITM/nivel4 y bonds persistentes; su comprobación física sigue pendiente. El destino oficial aprobado recuerda tres teléfonos y conserva/falla de forma segura ante cuatro vínculos previos, con cuatro claves mínimas y protección de arranque normal; primera carga de tabla nueva limpia y sin garantía de continuidad USB. Referencia: [aprovisionamiento seguro de Espressif](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/provisioning/provisioning.html).
 
 **Alternativas evaluadas:** plugin BLE del brief con protocolo propio; integración con mecanismos de aprovisionamiento existentes. Un plugin GATT no aporta automáticamente seguridad de aplicación.
 
@@ -269,7 +278,7 @@ La conservación de metadatos permite identificar patrones sin recopilar contras
 - Almacenamiento local persistente, búfer circular limitado, conservación de pendientes, recuperación y sincronización MQTT con identificadores y deduplicación.
 - Límites de conexiones, tiempos y tamaños; sin exposición de HTTP/Telnet a Internet ni redirección pública de puertos. No almacenar contraseñas, tokens, cookies, credenciales reales ni cuerpos completos de solicitudes.
 
-**Infraestructura obligatoria compartida:** PlatformIO + ESP-IDF + FreeRTOS; supervisor central, gestión Wi-Fi/BLE y transición segura; OLED/botón; errores y reconexiones; contratos versionados, comunicaciones autenticadas y protegidas, confirmaciones de comandos y deduplicación. React/Vite/Tailwind/Zustand con Capacitor Android, configuración/selección de redes, gráficos, incidentes, historial y notificaciones. El control de modo usa el canal disponible: BLE para Escudo; MQTT para Cebo. La pérdida del canal al cambiar de modo se gestiona sin anunciar éxito antes de aplicar la transición.
+**Infraestructura obligatoria compartida:** Arduino IDE Windows con core oficial ESP32 3.3.12 y dependencias mantenidas (build oficial completo PASS; hardware pendiente), C/C++/FreeRTOS y APIs ESP-IDF; supervisor central, gestión Wi-Fi/BLE y transición segura; OLED/botón; errores y reconexiones; contratos versionados, comunicaciones autenticadas y protegidas, confirmaciones de comandos y deduplicación. React/Vite/Tailwind/Zustand con Capacitor Android, configuración/selección de redes, gráficos, incidentes, historial y notificaciones. El control de modo usa el canal disponible: BLE para Escudo; MQTT para Cebo. La pérdida del canal al cambiar de modo se gestiona sin anunciar éxito antes de aplicar la transición.
 
 **Módulo 2 incorporado a la entrega actual, conforme a R-08:** diagnóstico DNS/HTTPS/portal cautivo, STA+AP con autenticación y DHCP, NAT IPv4 y subredes separadas, clientes/RSSI/tráfico, DNS local con filtrado y DoH con verificación TLS y recuperación. Su línea de implementación comienza en paralelo. Las comprobaciones funcionales de R-08 forman parte del cierre conjunto.
 
@@ -329,12 +338,12 @@ La dirección de desarrollo y el alcance están confirmados; los resultados de h
 | ID | Decisión o tratamiento confirmado | Comprobación funcional mínima y momento | Pendiente posterior o condicionado |
 | --- | --- | --- | --- |
 | H-01 | Configurar inicialmente ESP32-S3 N16R8 y verificar rápidamente la unidad. | En etapa 1: compilar, grabar, arrancar, comprobar detección de flash/PSRAM, alimentación y pines realmente utilizados. Corregir incompatibilidades concretas. | Estudio exhaustivo de memoria, consumo y autonomía después de la integración; no exigirlo para comenzar. |
-| H-02 | Utilizar PlatformIO + ESP-IDF + FreeRTOS y componentes oficiales adecuados; conservar las versiones fijadas en la base. | La base fija espressif32 6.13.0 y ESP-IDF 5.5.3 en platformio.ini; comprobar compilación y BLE/MQTT según el modo. Resolver incompatibilidades concretas. | No investigar frameworks alternativos ni esperar validación NAT/DoH. Consultar evidencia de compilación y pendientes físicos de la base. |
+| H-02 | Arduino IDE Windows con core oficial ESP32 3.3.12 y dependencias mantenidas; sustituye el SDK propio como objetivo. | Configuración/instalación entregadas y [build oficial completo Windows PASS](../openspec/changes/sentinel-arduino-dependencies/verification.md), con wolfMQTT2.2.0 y ESP_SSLClient3.1.3; Node es mantenimiento opcional. SDK propio y base PlatformIO son evidencia histórica. Selección/Verificar visual y subida/BLE/MQTT/NVS físicos siguen pendientes. | Resolver incompatibilidades sin reducir Escudo, contratos, datos ni seguridad; no esperar benchmarks NAT/DoH para avanzar. |
 | H-03 | Intentar captura Wi-Fi/BLE concurrentes; si presentan problemas, sincronización periódica o pausas controladas conservando el Escudo completo. | En etapa 2: descubrimiento, selección/control y recepción de eventos reales; desconectar/reconectar BLE y recuperar pendientes. Mostrar intervalos sin captura. | Medición exhaustiva de pérdidas, cobertura y estabilidad después; no bloquear detectores ni exigir captura continua como garantía no demostrada. |
 | H-04 | Implementar STA+AP/NAT IPv4 desde la línea paralela del Sanitizador. | Integrar un cliente real, comprobar DHCP, salida IPv4, subredes separadas, contadores y parada de la pasarela según R-08. | Rendimiento sostenido y optimización posteriores a la integración funcional. |
 | H-05 | Implementar DNS local, filtrado y DoH en los incrementos del Sanitizador. | Comprobar resolución, bloqueo, CA/hostname/fecha y fallo de DoH con error DNS visible, conforme a R-08. | Estabilidad prolongada, rendimiento y afinado posteriores a la integración funcional. |
 | H-06 | Implementar todas las detecciones de Escudo y Cebo con heurísticas iniciales razonables y refinarlas al observar problemas. | En etapas 2 y 3: ejemplos breves benignos/sospechosos, Beacon/Deauth/Disassociation, ráfagas, Evil Twin, indicios Karma pasivos y actividad repetitiva HTTP/Telnet. Pruebas focalizadas para parser, clasificación y límites. | Evaluación estadística y ajuste fino después; no eliminar detectores por falta de benchmarks ni convertir SSID duplicado en veredicto malicioso. |
-| H-07 | Persistencia local sencilla y acotada, búfer circular y sincronización con identificación/deduplicación, conforme a R-06 y R-10. | Reutilizar journal NVS de 64 eventos de la base: producir un evento, perder canal, reiniciar brevemente y recuperar pendientes sin duplicar historial; comprobar sobrescritura/gap con pocos registros de prueba. | Desgaste y resistencia prolongada después. Los nuevos módulos no crean otro almacén ni requieren microSD; capacidad finita y pérdidas visibles. |
+| H-07 | Persistencia local sencilla y acotada, búfer circular y sincronización con identificación/deduplicación, conforme a R-06 y R-10. | Reutilizar journal NVS de64 eventos: probar reinicio y corte sin upload tras commit, recuperando identidad/bonds/configuración/historial; Idle sin conexión/reloj anterior y dedup/gap. Separar primera carga limpia USB y reconfiguración; no exigir migración entre versiones. | Desgaste y resistencia prolongada después. Los nuevos módulos no crean otro almacén ni requieren microSD; capacidad finita y pérdidas visibles. |
 | H-08 | Android con Capacitor, BLE, MQTT, dashboard, historial y notificaciones; webhooks y push son parte del MVP. | Teléfono real en etapas 1–4: permisos y flujo completo; comprobar cada integración externa y recepción push con la app cerrada. Configurar infraestructura mínima real, no mocks. | Compatibilidad extensa y campañas de segundo plano/estabilidad después. La comprobación mínima con app cerrada sí es obligatoria antes de cerrar el MVP. |
 
 No se han fijado garantías de Mbps o autonomía. La base tiene límites de colas/journal y los nuevos diseños proponen límites adicionales; estos son cotas de implementación, no mediciones de capacidad o estabilidad. Ajustarlos ante fallos básicos, sin crear una ronda previa de benchmarks.
@@ -353,6 +362,6 @@ No se han fijado garantías de Mbps o autonomía. La base tiene límites de cola
 
 La instrucción vigente del 2026-11-10 incluye los tres módulos completos desde la primera ronda de trabajo. Sustituye la priorización anterior que difería el Módulo 2; no recorta funciones de Escudo/Cebo. El orden de hardware real desde el inicio sustituye la prioridad temporal de simulación descrita en el brief; el componente simulador se conserva separado.
 
-La documentación queda preparada para proponer cambios OpenSpec acotados y después aplicarlos mediante solicitudes posteriores. No se han creado aquí propuestas, specs, tareas OpenSpec ni código.
+Los cambios OpenSpec existentes conservan sus tareas y evidencia. Esta actualización de documentación no acredita implementación nueva ni completa pendientes físicos.
 
 Si una función no cumple las pruebas, registrar resultado, condiciones, impacto y alternativa propuesta antes de pedir revisión del alcance. No retirarla silenciosamente ni presentarla como opcional por conveniencia. La restricción de no almacenar credenciales de terceros prevalece sobre el registro sensible descrito en el PDF.

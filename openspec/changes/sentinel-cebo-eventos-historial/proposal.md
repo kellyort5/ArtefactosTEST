@@ -1,5 +1,7 @@
 # Proposal
 
+**Política posterior aplicable:** [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) reemplaza RAM-only, continuidad USB y tabla inmutable si aparecen en el plan previo. Identidad/bonds/configuración/historial confirmado persisten en uso normal/reinicio/corte; USB permite reinicialización sin migración. Primera carga de tabla nueva limpia desde IDE; cuatro claves mínimas y recetas oficiales. Conservar responsables, alcance completo y pendientes físicos. Las evidencias previas son históricas; el build integrado nuevo requiere evidencia nueva.
+
 ## Why
 
 Las interacciones HTTP/Telnet necesitan clasificación, métricas, persistencia offline y recuperación del historial.
@@ -26,7 +28,7 @@ No se modifica una capacidad principal existente. Las siete capacidades canónic
 
 Archivos de futura implementación bajo propiedad de este autor:
 
-- `firmware/components/cebo/ (classifier, counters y event_adapter)`
+- `firmware/SentinelNode/src/cebo/ (classifier, counters y event_adapter)`
 - `firmware/test/cebo/`
 - `docs/modules/cebo-events.md`
 

@@ -1,6 +1,11 @@
 # Encargo: Escudo: desconexión y coexistencia
 
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+
 **Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** 3/6 tareas verificadas en software; coexistencia y pruebas físicas 1.3/2.1/2.2 pendientes. Ver [evidencia](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/verification.md). **Rama prevista:** `feat/sentinel-escudo-recuperacion`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
+
+
+**Flujo vigente de firmware (2026-11-13):** [Arduino IDE Windows con core oficial ESP32 3.3.12](../firmware.md), sketch único `firmware/SentinelNode/SentinelNode.ino`. El firmware completo tiene build oficial Windows PASS con las dos bibliotecas y configuración local documentadas; el SDK propio queda como antecedente. Las fuentes de módulos están bajo `SentinelNode/src/`; la [API/factories y propiedad de recursos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) se conservan. Los artefactos archivados documentan el entorno anterior; sus resultados físicos pendientes no se completan con el port. Sanitizador/Cebo continúan sin servicios implementados y sus flags permanecen en 0 hasta sus entregas reales.
 
 ## Qué debes entregar
 
@@ -18,9 +23,9 @@ Puedes preparar estructura/lógica/UI con fixtures del contrato revisado mientra
 
 ## Archivos de tu encargo
 
-- `firmware/components/escudo/ (coverage, reconnect y backlog)`
+- `firmware/SentinelNode/src/escudo/ (coverage, reconnect y backlog)`
 - `firmware/test/escudo/`
-- Ampliación aprobada por el usuario: `firmware/components/sentinel/include/module_runtime.h`, `module_runtime.cpp` y `runtime.cpp`, únicamente para reutilizar la rutina de persistencia del núcleo en producción y pruebas.
+- Ampliación aprobada por el usuario: `firmware/SentinelNode/src/sentinel/include/module_runtime.h`, `module_runtime.cpp` y `runtime.cpp`, únicamente para reutilizar la rutina de persistencia del núcleo en producción y pruebas.
 - `docs/modules/escudo-recovery.md`
 
 Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por rama/PR para evitar superposición. Otro autor revisa el PR, sin coimplementar la spec. Los cambios compartidos se solicitan al propietario de contratos (P1), núcleo (P1), app/lock raíz (P4), broker (P4) o notificaciones (P3).

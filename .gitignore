@@ -7,9 +7,15 @@ managed_components/
 sdkconfig.old
 compile_commands.json
 
-# Configuracion fuente ESP-IDF/PlatformIO conservada:
-# platformio.ini, CMakeLists.txt, sdkconfig, sdkconfig.defaults*,
-# idf_component.yml y dependencies.lock no se excluyen.
+# Arduino: generated caches/firmware artifacts; the reviewed validator is source.
+v2_validator.inc
+!/firmware/SentinelNode/src/sentinel/v2_validator.h
+/firmware/SentinelNode/generated/
+/firmware/SentinelNode/*.bin
+/firmware/SentinelNode/*.elf
+/firmware/SentinelNode/*.map
+__pycache__/
+*.py[cod]
 
 # Node.js / React / Vite: dependencias y caches locales.
 node_modules/

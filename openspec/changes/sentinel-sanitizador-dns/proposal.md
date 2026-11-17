@@ -1,5 +1,7 @@
 # Proposal
 
+**Política posterior aplicable:** [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) reemplaza RAM-only, continuidad USB y tabla inmutable si aparecen en el plan previo. Identidad/bonds/configuración/historial confirmado persisten en uso normal/reinicio/corte; USB permite reinicialización sin migración. Primera carga de tabla nueva limpia desde IDE; cuatro claves mínimas y recetas oficiales. Conservar responsables, alcance completo y pendientes físicos. Las evidencias previas son históricas; el build integrado nuevo requiere evidencia nueva.
+
 ## Why
 
 El tráfico DNS atendido por la pasarela debe aplicar reglas, caché y contadores antes de integrar el reenvío cifrado.
@@ -26,7 +28,7 @@ No se modifica una capacidad principal existente. Las siete capacidades canónic
 
 Archivos de futura implementación bajo propiedad de este autor:
 
-- `firmware/components/sanitizador/ (dns_server, rules y dns_cache)`
+- `firmware/SentinelNode/src/sanitizador/ (dns_server, rules y dns_cache)`
 - `firmware/test/sanitizador/`
 - `docs/modules/sanitizador-dns.md`
 
