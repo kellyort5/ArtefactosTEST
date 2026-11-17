@@ -16,7 +16,7 @@ El usuario pidió corregir la asignación de alertas recientes en OLED conforme 
 | Propuesta original | Páginas | Asignación vigente | Estado de alcance |
 | --- | --- | --- | --- |
 | ESP32, OLED SSD1306, botón, alimentación USB portátil y montaje modular | 4, 7–8 | P1: base, periféricos e integración | Contemplado; placa S3 aprobada y verificaciones físicas pendientes. La base usa OLED 128×32, coherente con la lista de componentes. |
-| C/C++, PlatformIO/FreeRTOS, Mosquitto/Docker y React/Vite/Tailwind/Zustand/Capacitor | 4–5 | P1: firmware/contratos; P4: app/broker | Contemplado en la base y en los encargos. |
+| C/C++, PlatformIO/FreeRTOS, Mosquitto/Docker y React/Vite/Tailwind/Zustand/Capacitor | 4–5 | P1: firmware/contratos; P4: app/broker | Stack histórico del PDF/base. El destino vigente del firmware es Arduino IDE Windows y core oficial ESP32 3.3.12 con dependencias mantenidas, con build completo oficial Windows PASS según [R-01](technical-decisions.md#r-01-framework-y-entorno-de-firmware); los otros componentes conservan su stack. |
 | Escudo: captura pasiva, canales, Deauth/Evil Twin/Karma, gráficos e incidentes | 6, 9 | P1: cuatro cambios Escudo; P4: app Escudo | Contemplado, con heurísticas e indicios; no se promete identificación concluyente de atacantes. |
 | Auditor/Sanitizador: DNS/HTTPS/portal, STA+AP/NAT, DNS filtrado/DoH, clientes y métricas | 6–7, 9–10 | P2: cuatro cambios; P4: app Sanitizador | Contemplado; NAT+DoH y su comportamiento conjunto aún requieren pruebas funcionales. |
 | Cebo: HTTP80/Telnet23, interacciones, historial, almacenamiento offline y alertas | 7, 10–11 | P3: cinco cambios; P4: app Cebo y recepción push | Contemplado, con las adaptaciones y límites indicados abajo. |

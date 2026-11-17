@@ -1,5 +1,7 @@
 # Design
 
+**Política posterior aplicable:** [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) reemplaza RAM-only, continuidad USB y tabla inmutable si aparecen en el plan previo. Identidad/bonds/configuración/historial confirmado persisten en uso normal/reinicio/corte; USB permite reinicialización sin migración. Primera carga de tabla nueva limpia desde IDE; cuatro claves mínimas y recetas oficiales. Conservar responsables, alcance completo y pendientes físicos. Las evidencias previas son históricas; el build integrado nuevo requiere evidencia nueva.
+
 ## Context
 
 Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../archive/2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
@@ -24,7 +26,7 @@ Integrar con DNS local/caché y métricas de latencia/errores; resolver destino 
 
 Contrato único: [protocolo funcional](../../../contracts/module-protocol.md) y [spec principal](../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../archive/2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
 
-Archivos de implementación: `firmware/components/sanitizador/ (doh_client y estado de protección)`, `firmware/test/sanitizador/`, `docs/modules/sanitizador-doh.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
+Archivos de implementación: `firmware/SentinelNode/src/sanitizador/ (doh_client y estado de protección)`, `firmware/test/sanitizador/`, `docs/modules/sanitizador-doh.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
 
 ## Risks / Trade-offs
 
@@ -33,4 +35,10 @@ Archivos de implementación: `firmware/components/sanitizador/ (doh_client y est
 
 ## Migration Plan
 
+Flujo de firmware actualizado por la migración autorizada: Arduino IDE Windows, sketch `firmware/SentinelNode` y plataforma aislada `sentinel:esp32:sentinel_s3_n16r8`. Ver [migración y estado de verificación](../../../docs/firmware-arduino-migration.md) y [desarrollo de módulos](../../../docs/development.md). Usar los módulos C/C++ de `src/`, `SentinelConfig.h` y las factories existentes; conservar APIs ESP-IDF/FreeRTOS y el único gestor de recursos, sin añadir WiFi.begin(), otra pila BLE ni otro supervisor. El SDK y sus requisitos globales pertenecen a P1. Esta actualización cambia herramientas y rutas; conserva responsables, contratos, funciones y comprobaciones físicas pendientes.
+
 Trabajar en rama `feat/sentinel-sanitizador-doh`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+
+## Persistencia al implementar este encargo
+
+P2 extenderá la persistencia oficial a configuración upstream/AP/DNS/DoH/reglas aceptadas cuando implemente cada encargo. Validar límites, guardar/commit antes de confirmar, conservar anterior ante fallo y restaurar en Idle sin activar STA/AP/NAT/DoH ni confiar en UTC viejo. Sustituye RAM-only para configuración; caché DNS y clientes observados siguen siendo datos transitorios. NVS estándar no promete cifrado físico. No crear otro gestor/journal ni dar módulos futuros por implementados.

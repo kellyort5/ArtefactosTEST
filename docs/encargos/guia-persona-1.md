@@ -1,12 +1,16 @@
 # Guía de Persona 1 — Jefry: coordinación, núcleo y Escudo
 
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+
+P1 mantiene núcleo, integración Arduino/Escudo y API central: cuatro claves mínimas, retirada de cinco overrides propios antiguos, wrapper anti-autoerase durante arranque normal y tabla nueva. Probar en placa identidad/bonds/configuración/historial tras reinicio y corte sin upload; restaurar en Idle y renovar UTC. Primera carga limpia y posteriores USB no prueban conservación; nunca grabar desde setup scripts.
+
 Tu resultado es entregar las interfaces que consumen los compañeros, el Escudo completo y la integración del núcleo. También mantienes OpenSpec para todos. Los compañeros implementan sus encargos y aportan evidencia; tú no debes absorber sus tareas para actualizar las specs.
 
 ## 1. Tu lectura y punto de partida
 
 Para tu primer montaje y prueba, seguir la [guía desde cero de software, hardware y specs de Persona 1](../guia-pruebas-persona-1.md), actualizada para tu app común v2: instalación, pairing, estado, Reposo ↔ Escudo, reconexión e historial. Distingue esos controles de las pantallas específicas pendientes del equipo.
 
-La [verificación](../../openspec/changes/sentinel-app-protocolo-v2/verification.md) y el [README de app](../../app/README.md) registran el incremento v2 y sus pendientes físicos. La primera sesión puede completar T03/T14/T15 de la guía; catálogo/selección y controles de captura siguen en `sentinel-app-escudo` de P4. Publicar o actualizar la guía no acredita esas pruebas ni cambia sus casillas OpenSpec.
+La [verificación](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) y el [README de app](../../app/README.md) registran el incremento v2 y sus pendientes físicos. La primera sesión puede completar T03/T14/T15 de la guía; catálogo/selección y controles de captura siguen en `sentinel-app-escudo` de P4. Publicar o actualizar la guía no acredita esas pruebas ni cambia sus casillas OpenSpec.
 
 Leer la [guía del equipo](guia-equipo.md), el [reparto](README.md), la [arquitectura](../architecture.md), [R-02 a R-07 y R-11, con H-01 a H-08](../technical-decisions.md) y el [roadmap](../roadmap.md).
 
@@ -26,7 +30,7 @@ Cada enlace abre una ficha con diseño, specs y tareas oficiales. La rama previs
 | 4 — software archivado; física pendiente | [sentinel-escudo-captura](sentinel-escudo-captura.md) | Modo promiscuo, cola limitada, parser Beacon/Deauth/Disassoc y metadatos Probe, prioridad de objetivo, recorrido de canales, cobertura y start/stop. | Flujo de observaciones para todos los detectores y métricas de captura. |
 | 5 — software archivado; física pendiente | [sentinel-escudo-detectores](sentinel-escudo-detectores.md) | Ráfagas Deauth, desconexión sospechosa, Evil Twin contextual e indicios Karma pasivos. Conectar los cuatro al parser, eventos y métricas v2. | P4 puede integrar todos los incidentes; P4 recibe casos positivos/negativos para laboratorio. |
 | 6 — software archivado; física pendiente | [sentinel-escudo-recuperacion](sentinel-escudo-recuperacion.md) | Journal compartido, recuperación tras BLE/reinicio, cursor/gap y cobertura. Intentar captura+BLE concurrentes; si fallan, pausa controlada con cobertura visible y todas las funciones conservadas. | Cierre del Escudo y prueba conjunta de historial sin duplicados. |
-| 6b — reasignado el 2026-11-12 | [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md) | Adaptación común v1/v2, navegación, comandos, historial y limpieza de secretos; entrega de P1 antes de las pantallas de P4. | Control/estado e historial comunes; faltan pantallas específicas y comprobación física. |
+| 6b — software archivado; física pendiente | [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md) | Adaptación común v1/v2, navegación, comandos, historial y limpieza de secretos; entrega de P1 antes de las pantallas de P4. | Control/estado e historial comunes; faltan pantallas específicas y comprobación física. |
 | 7 | [sentinel-integracion-tres-modos](sentinel-integracion-tres-modos.md) | Registrar módulos entregados, verificar parada/exclusión, OLED/botón y resumen de la alerta más reciente, reconciliación de estado/transportes/journal y recorrido final de tres modos. | Entrega conjunta de ESP32/app/alertas con evidencia de todos. |
 
 Solo `sentinel-app-protocolo-v2` pasa de P4 a P1 por instrucción expresa. P4 conserva sus demás encargos. Coordinar el traspaso de controller/store/transportes antes de que P4 añada pantallas.
@@ -37,15 +41,15 @@ La **tarea 1.5 del encargo 7 es tuya**: conectar las alertas del núcleo a la OL
 
 ## 3. Qué hacer primero
 
-1. Confirmar con el equipo la referencia que incorpora PR #2 de contratos y PR #3 de planificación; ambos están publicados hacia develop, sin merge automático. El contrato ya está aprobado y archivado. Mantener fuera los cambios ajenos existentes en tu copia.
-2. Revisar con P2/P3 el [diseño de API](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/design.md), en particular hooks, parada, callbacks y préstamo de netifs. Solicitar revisión de decisiones arquitectónicas nuevas importantes; resolver detalles rutinarios dentro del diseño acordado.
-3. Entregar la API en un incremento pequeño con build y consumidor mínimo de prueba. Documentar las firmas reales en `docs/development.md` dentro de ese encargo; la API real ya está documentada allí y fusionada en develop mediante PR #6.
-4. Comunicar a P2/P3 la referencia de integración, headers reales, ejemplo de ciclo de vida, flags disponibles y límites. A P4, comunicar cómo leer capacidades y enviar un comando v2 confirmado.
-5. Comenzar descubrimiento Escudo mientras P2 avanza auditoría, P3 HTTP y P4 app/broker. Mantener revisiones acotadas para no convertirte en una cola de aprobaciones de cada línea.
+1. Conservar la referencia actual y su trabajo local; no cambiar de rama ni descartar cambios ajenos. La rama compartida de simplificación es `feat/sentinel-arduino-migration`.
+2. Revisar el [estado de integración oficial](../firmware.md#preparar-arduino-ide). Legibilidad, mantenimiento host y build completo oficial Windows tienen evidencia; seguir las bibliotecas/opciones actuales y conservar las pruebas físicas pendientes. No reinstalar el SDK propio para declarar cumplido el destino nuevo.
+3. Reutilizar API/contratos y los cuatro incrementos de Escudo entregados. Consultar [mapa del núcleo](../development.md#mapa-de-lectura-del-núcleo) y sus límites; no repetir su implementación para conectar módulos futuros.
+4. Comunicar al equipo API, flags, dependencias definitivas y resultado del build cuando se entreguen. P2/P3 incorporan sus módulos; P4 conserva pantallas específicas, broker y laboratorio.
+5. Preparar cableado y criterios T01–T15 de la guía. Ejecutar upload/BLE/radio cuando exista placa identificada y procedimiento verificado; documentar pendientes sin inventar resultados. La integración final mantiene todas sus funciones, incluidas alertas recientes en OLED.
 
 ## 4. Límites de tu implementación
 
-Eres autor de `contracts/`, núcleo `sentinel`, futuro `sentinel_api`, `main`, configuración global y futuro componente `escudo`, con sus tests/documentación. Las rutas específicas se detallan en cada ficha.
+Eres autor de `contracts/`, núcleo `src/sentinel/`, API `src/sentinel_api/`, sketch `SentinelNode.ino`, `SentinelConfig.h` y `src/escudo/`, con sus tests/documentación. Las rutas específicas se detallan en cada ficha.
 
 - Un solo supervisor y gestor de radio. Los módulos solicitan recursos; no crean drivers/supervisores alternativos. Solo un modo activo por ESP32.
 - El núcleo crea identidad/cursor, valida y persiste eventos. Reutilizar el journal NVS de la base; P2/P3 no implementan otros journals en paralelo.
@@ -56,10 +60,10 @@ Eres autor de `contracts/`, núcleo `sentinel`, futuro `sentinel_api`, `main`, c
 
 ## 5. Cómo usar OpenSpec en tu día a día
 
-Las 23 propuestas ya existen. No volver a proponerlas ni aplicar todas juntas. Antes de cada cambio, revisar sus artefactos y dependencias. En una sesión con las skills del repositorio puedes pedir, por ejemplo:
+Las 23 propuestas ya existen. No volver a proponerlas ni aplicar todas juntas. El adaptador común v2 ya está archivado con 2.1 pendiente: sus tareas/evidencia se consultan en el archivo, no mediante `openspec apply`. El ejemplo siguiente es para integración y se ejecuta cuando estén listas sus dependencias. Antes de cada cambio, revisar sus artefactos y dependencias. En una sesión con las skills del repositorio puedes pedir, por ejemplo:
 
 ```text
-$openspec-apply-change sentinel-app-protocolo-v2
+$openspec-apply-change sentinel-integracion-tres-modos
 Lee AGENTS.md, su ficha, diseño, specs y tareas. Implementa solo este cambio,
 preserva trabajo ajeno y verifica compilación y comportamiento básico.
 No hagas commit, push, merge ni archivo sin autorización explícita.
@@ -68,9 +72,9 @@ No hagas commit, push, merge ni archivo sin autorización explícita.
 Después, repetir con cada nombre de la tabla cuando corresponda. Esa línea es una instrucción para el asistente, no un comando de shell. Para consultar desde terminal:
 
 ```sh
-openspec status --change sentinel-app-protocolo-v2 --json
-openspec instructions apply --change sentinel-app-protocolo-v2 --json
-openspec validate sentinel-app-protocolo-v2 --strict --json
+openspec status --change sentinel-integracion-tres-modos --json
+openspec instructions apply --change sentinel-integracion-tres-modos --json
+openspec validate sentinel-integracion-tres-modos --strict --json
 ```
 
 Para P2/P3/P4: pedir tarea numerada, resultado, referencia y evidencia. Leer la línea original de `tasks.md`, contrastarla con el comportamiento y marcar únicamente lo demostrado. Una aceptación de pendientes se documenta como aceptación, sin convertirla en prueba realizada. Si cambia alcance/interfaz, mantener ficha, diseño, spec y contrato coherentes antes del consumidor.
@@ -84,11 +88,12 @@ Desde raíz, con dependencias preparadas según [desarrollo](../development.md):
 ```sh
 npm run check:contracts
 npm run build -w contracts
-python3 firmware/test/check_contracts.py
-pio run -d firmware -e sentinel_s3
+SENTINEL_SANITIZE=1 npm run test:firmware
+SENTINEL_SANITIZE=1 npm run test:escudo
+node firmware/test/arduino_build_test.mjs
 ```
 
-Ejecutar las comprobaciones que corresponden al cambio y añadir tests focalizados de exclusión, admisión/duplicados, parsers, detectores o límites. Compilar no demuestra BLE/captura/NVS físicos. Para grabar y observar la placa, seguir la [guía física](../core-foundation-test-guide.md) y acordar el turno de hardware.
+La integración oficial todavía debe entregar sus bibliotecas/configuración y build completo; después compilar el sketch real con Arduino IDE Windows conforme a [firmware](../firmware.md). Node es mantenimiento opcional; los comandos anteriores son comprobaciones host/contratos. Ejecutar las comprobaciones que corresponden al cambio y añadir tests focalizados de exclusión, admisión/duplicados, parsers, detectores o límites. Compilar no demuestra BLE/captura/NVS físicos. Para grabar y observar la placa, seguir la [guía física](../core-foundation-test-guide.md) y acordar el turno de hardware.
 
 | Con quién | Lo que tú entregas | Lo que necesitas recibir |
 | --- | --- | --- |

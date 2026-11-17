@@ -11,7 +11,7 @@ Responsable único de todas las casillas: **Persona 3**. Estado inicial: todo pe
 
 ## 2. Comprobación del incremento
 
-- [ ] 2.1 Compilar pio run -d firmware y comprobar HTTP real y eventos desde teléfono/PC en LAN autorizada.
+- [ ] 2.1 Compilar `firmware/SentinelNode` desde Arduino IDE Windows con la placa `Sentinel ESP32-S3 N16R8 (secure SDK)` y comprobar HTTP real y eventos desde teléfono/PC en LAN autorizada.
 - [ ] 2.2 Detener Cebo/cambiar modo y comprobar puerto 80 cerrado, sin ejecución ni exposición a Internet.
 
 ## Workflow follow-up

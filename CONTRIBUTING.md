@@ -60,7 +60,7 @@ Estas son convenciones del equipo; su documentación no configura protecciones d
 
 ## Archivos que se conservan y archivos locales
 
-Versionar código fuente y configuración necesaria para reproducir el proyecto: `platformio.ini`, `CMakeLists.txt`, `sdkconfig.defaults*`, `sdkconfig` si forma parte de la configuración mantenida, `idf_component.yml`, `dependencies.lock`, `package.json`, lockfiles, configuración Vite/TypeScript/Tailwind y `capacitor.config.*`.
+Versionar las fuentes y configuración necesarias para reproducir el proyecto: sketch Arduino, árbol `src/`, `SentinelConfig.h`, particiones, dependencias/configuración verificadas y herramientas Node de mantenimiento; también `package.json`, lockfiles, configuración Vite/TypeScript/Tailwind y `capacitor.config.*`. El objetivo vigente es el core oficial ESP32 3.3.12; su integración previa de dependencias tiene build oficial comprobado; tabla nueva/configuración persistente se verifican en la [verificación vigente](openspec/changes/sentinel-mvp-standard-persistence/verification.md). Las recetas PlatformIO/CMake/Kconfig y runners Python retirados se conservan como evidencia histórica en Git y verificaciones, sin restaurarlos como flujo diario. Los paquetes SDK compilados y las instalaciones locales no se versionan ni se modifican para ocultar incompatibilidades.
 
 Conservar el proyecto Android nativo, su código Java/Kotlin, manifest, recursos, archivos Gradle y Gradle Wrapper. No ignorar la carpeta `android/` completa ni todos los archivos `.jar`: el wrapper necesario para compilar debe poder versionarse. Separar los archivos nativos mantenidos de los recursos web y metadatos regenerados por la sincronización de Capacitor.
 
@@ -75,3 +75,9 @@ Los `.env.example`, `.env.sample` y `.env.template`, incluidas variantes por ent
 Inspeccionar cada conflicto y resolverlo conservando las aportaciones necesarias. No descartar cambios ajenos ni usar operaciones destructivas o reescritura de historial para hacer desaparecer conflictos automáticamente. Consultar al responsable de la otra parte si la intención no está clara o la resolución modifica decisiones funcionales o arquitectónicas.
 
 Antes de dar una tarea por terminada, revisar diferencias y archivos nuevos, mantener la documentación/specs coherentes y registrar la comprobación realizada. No incluir automáticamente cambios preexistentes de otra tarea en el commit o PR actual.
+
+## Soluciones oficiales y persistencia
+
+Evaluar primero APIs, bibliotecas, opciones y recetas oficiales de Arduino antes de personalizar core, SDK, compilador, carga o exportación. Justificar por escrito la necesidad, alternativas y alcance mínimo de cualquier excepción; no fabricar un SDK si la solución oficial satisface el requisito.
+
+Aplicar la [política de persistencia](docs/persistence-policy.md): identidad, bonds, configuración e historial confirmado sobreviven a uso normal/reinicio/corte; reinstalación o actualización USB puede reinicializarlos sin migración. La primera carga de la tabla nueva es limpia desde el IDE; los scripts de preparación no graban placas. No borrar NVS automáticamente en arranque normal ni almacenar credenciales de terceros; secretos fuera de Git/logs/eventos/estado público.

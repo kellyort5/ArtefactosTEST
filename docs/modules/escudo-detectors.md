@@ -2,6 +2,8 @@
 
 Responsable: Persona 1. Cambio: [sentinel-escudo-detectores](../../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/proposal.md). Consume la [captura real](escudo-capture.md), el parser y el supervisor existentes. Las cuatro familias están conectadas al mismo flujo del firmware; las pruebas de host usan fixtures y no acreditan recepción física.
 
+Build, subida y monitor tienen como destino [Arduino IDE Windows y core oficial ESP32 3.3.12](../firmware.md); la integración de dependencias está en curso. Las órdenes conservan contratos y comportamiento. Los runners Node comprueban lógica host y no sustituyen build ni pruebas físicas; el [informe del port previo](../../openspec/changes/sentinel-arduino-firmware-port/verification.md) conserva su evidencia histórica.
+
 ## Activación e integración
 
 Seguir [descubrimiento y selección](escudo-discovery.md): entrar en Escudo, realizar escaneo pasivo y elegir una tupla real. Iniciar captura con el cliente BLE v2 autorizado:
@@ -58,14 +60,13 @@ La app de Persona 4 consume incidentes/historial, gráficos y métricas. Debe pr
 ## Comprobación breve
 
 ```sh
-pio run -d firmware
-python3 firmware/test/check_config.py
-SENTINEL_SANITIZE=1 python3 firmware/test/escudo/check_contracts.py
-python3 firmware/test/check_contracts.py
-openspec validate sentinel-escudo-detectores --strict
+node firmware/test/arduino_build_test.mjs
+SENTINEL_SANITIZE=1 node firmware/test/escudo/check_contracts.mjs
+node firmware/test/check_contracts.mjs
+openspec validate escudo-detection --type spec --strict
 ```
 
-Usar Node 24 según [desarrollo](../development.md) y el entorno PlatformIO fijado. `detectors_test.cpp` comprueba umbrales, expiración, enfriamiento, ventanas/generaciones, duplicados benignos, seguridad/PMF/canal/RSSI y correlaciones Karma positivas/negativas. El recorrido integrado utiliza comandos v2 y fixtures de bytes que pasan por cola, parser y componente reales, y valida eventos de cada familia y métricas con el codec compartido. No transmite paquetes. No sustituye la prueba física.
+Usar Node 24 según [desarrollo](../development.md) y compilar/subir con Arduino IDE Windows según [firmware](../firmware.md). `detectors_test.cpp` comprueba umbrales, expiración, enfriamiento, ventanas/generaciones, duplicados benignos, seguridad/PMF/canal/RSSI y correlaciones Karma positivas/negativas. El recorrido integrado utiliza comandos v2 y fixtures de bytes que pasan por cola, parser y componente reales, y valida eventos de cada familia y métricas con el codec compartido. No transmite paquetes. No sustituye la prueba física.
 
 ## Prueba física 2.1 pendiente
 

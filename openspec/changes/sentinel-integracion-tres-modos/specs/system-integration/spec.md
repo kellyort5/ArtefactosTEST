@@ -26,7 +26,7 @@ El sistema SHALL mostrar modo/subestado/error en OLED y permitir control físico
 
 ### Requirement: Recuperación conjunta
 
-El sistema SHALL conservar historial y recuperar canales tras una desconexión/reinicio sin secretos ni incidentes duplicados.
+El sistema SHALL conservar identidad, bonds, configuración aceptada e historial confirmado durante uso normal, reinicios y cortes sin programación USB, recuperar canales autorizados sin secretos ni incidentes duplicados y arrancar en Idle sin conexiones automáticas ni UTC obsoleto. La reinstalación/actualización USB SHALL permitir reinicialización sin migración.
 
 #### Scenario: Recuperación conjunta verificable
 

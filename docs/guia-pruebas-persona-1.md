@@ -1,18 +1,20 @@
 # Primera prueba de Sentinel Node — Persona 1 (Jefry)
 
-Guía de instalación, cableado y pruebas desde cero, actualizada para la app común **v2** de Persona 1. El firmware de recuperación está en `dd0840c` ([PR #10](https://github.com/Jefry-P/ArtefactosProyecto/pull/10)); el adaptador de app `sentinel-app-protocolo-v2` está implementado en `feat/sentinel-app-protocolo-v2`. Usar una referencia que contenga ambas entregas y reconstruir su APK; un nombre de rama, un PR o un APK antiguo no prueban qué código estás ejecutando.
+**Política vigente:** [persistencia y USB](persistence-policy.md). La primera carga de la tabla nueva requiere **Erase All Flash Before Sketch Upload: Enabled** y elimina datos previos; emparejar/configurar de nuevo. El estado del build final integrado se registra en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds/logs anteriores no prueban esta tabla.
 
-**Resultado de esta primera sesión:** preparar el entorno, compilar, cargar la ESP32, comprobar memoria/OLED/botón, instalar tu app v2 y probar BLE, estado, Reposo ↔ Escudo e historial real. Los controles específicos de descubrimiento/captura requieren todavía `sentinel-app-escudo` de Persona 4 o un cliente de diagnóstico v2 ya disponible y revisado. La integración final también requiere Sanitizador y Cebo.
+Guía de instalación, cableado y pruebas desde cero, actualizada para la app común **v2** de Persona 1. El firmware de recuperación de `dd0840c` ([PR #10](https://github.com/Jefry-P/ArtefactosProyecto/pull/10)) ya está integrado en la referencia `af7200a`; la migración actual vive en `feat/sentinel-arduino-migration`. El adaptador de app `sentinel-app-protocolo-v2` y su cierre archivado se versionan junto con esta entrega; consultar el estado del PR antes de asumir que está integrado en develop. Usar una entrega revisada que contenga ambas piezas y reconstruir su APK; un nombre de rama, un PR o un APK antiguo no prueban qué código estás ejecutando.
 
-La [verificación de app v2](../openspec/changes/sentinel-app-protocolo-v2/verification.md) registra build web/APK y 26 tests de app aprobados, con **5/6 tareas**. La tarea **2.1 sigue pendiente de control real**. La 2.2 permite compilar y documentar permisos/BLE físicos pendientes: su casilla no acredita que ya se probó el teléfono. Esta guía es un procedimiento, no evidencia de ejecución.
+**Objetivo de la primera sesión física:** compilar/cargar desde Arduino IDE, comprobar memoria/OLED/botón e instalar tu app v2 para probar BLE, estado, Reposo ↔ Escudo e historial real. **El firmware completo ya compiló con el core oficial ESP32 3.3.12** y las dos bibliotecas fijadas; seguir la instalación de [firmware](firmware.md#preparar-arduino-ide). Las pruebas de software y las comprobaciones físicas conservan sus evidencias y límites por separado. Los controles específicos de descubrimiento/captura requieren todavía `sentinel-app-escudo` de Persona 4 o un cliente de diagnóstico v2 ya disponible y revisado. La integración final también requiere Sanitizador y Cebo.
+
+La [verificación de app v2](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) registra build web/APK y 26 tests de app aprobados, con **5/6 tareas**. El cambio está [archivado con esa prueba pendiente aceptada](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/closure.md). La tarea **2.1 sigue pendiente de control real**. La 2.2 permite compilar y documentar permisos/BLE físicos pendientes: su casilla no acredita que ya se probó el teléfono. Esta guía es un procedimiento, no evidencia de ejecución.
 
 ## 0. Lee esto antes de copiar comandos
 
 - **PowerShell:** terminal de Windows. Inicio → buscar PowerShell. Cuando se indique administrador, abrir con clic derecho → Ejecutar como administrador.
-- **WSL / Ubuntu:** terminal Linux dentro de Windows. Inicio → Ubuntu. Allí se compilan firmware, contratos y app en esta guía.
+- **WSL / Ubuntu:** terminal Linux dentro de Windows. Inicio → Ubuntu. Allí se ejecutan los tests host y se compilan contratos/app; el firmware se compila y programa desde Arduino IDE Windows.
 - **Teléfono:** Bluetooth y aplicaciones Android. No se necesita llevar el Bluetooth de Windows a WSL: la comunicación BLE es teléfono ↔ ESP32.
 - Ejecutar los bloques en el orden indicado, una línea a la vez; esperar a que termine cada comando. No copiar las marcas de Markdown ni escribir un símbolo `$` delante.
-- `PUERTO_REAL`, `BUSID_REAL` y los ejemplos de redes son marcadores: reemplazarlos antes de ejecutar. No asumir que la placa tendrá un nombre de puerto específico.
+- `COM_REAL` y los ejemplos de redes son marcadores: reemplazarlos antes de ejecutar. No asumir que la placa tendrá un nombre de puerto específico.
 - Compilar genera archivos en la computadora. **Upload/grabar** transfiere el firmware a la ESP32. **Monitor** muestra su consola. **RESET/EN** reinicia; **BOOT** sirve para programación; el **botón externo GPIO4** controla Sentinel.
 
 ### Qué está disponible en esta referencia
@@ -27,11 +29,13 @@ La [verificación de app v2](../openspec/changes/sentinel-app-protocolo-v2/verif
 | Cebo y Sanitizador | No registrados en los defaults actuales. No se espera que funcionen ni que el botón entre en ellos. |
 | Alertas recientes en OLED e integración de tres modos | Trabajo pendiente de `sentinel-integracion-tres-modos`. La pantalla de estado actual no acredita ese resumen. |
 
-Fuentes locales: [firmware/configuración](../firmware/platformio.ini), [módulos habilitados](../firmware/sdkconfig.defaults), [app y versiones](../app/README.md), [transporte BLE](../app/src/transports/ble.ts) y [contrato v2](../contracts/module-protocol.md). Algunas guías de la fundación describen la versión inicial: usa las expectativas de esta guía para el firmware actual.
+Fuentes locales: [flujo y paquete Arduino](firmware.md), [pines y módulos habilitados](../firmware/SentinelNode/SentinelConfig.h), [app y versiones](../app/README.md), [transporte BLE](../app/src/transports/ble.ts) y [contrato v2](../contracts/module-protocol.md). Algunas guías de la fundación describen la versión inicial: usa las expectativas de esta guía para el firmware actual.
 
 ### Recorrido de tu primera sesión con v2
 
-1. Completar pasos 1–6: entorno, dependencias, pruebas y compilación.
+Para firmware basta Arduino IDE Windows con la integración oficial entregada; Node/WSL son mantenimiento opcional. Los pasos 2, 4.1, 4.3 y 5 preparan ese mantenimiento y la compilación de app; pueden omitirse para compilar/subir firmware si ya se dispone del APK de referencia. La app Android sigue siendo necesaria para las pruebas BLE.
+
+1. Reunir el equipo (paso 1), revisar el checkout (paso 3) y completar la instalación inicial y Verificar de 4.2/6.
 2. Completar pasos 7–10: cableado, USB, grabación y T01/T02.
 3. Seguir pasos 11–13: instalar APK, conectar por BLE y ejecutar T03 desde los botones reales.
 4. Ejecutar T14/T15 del paso 17: reconexión e historial básico, sin necesitar iniciar captura.
@@ -47,7 +51,7 @@ No necesitas broker, Wi-Fi del teléfono ni contraseña de tu AP para el recorri
 | Cable USB de datos | Alimentación, programación y consola. Un cable que solo carga no permite programar. |
 | OLED SSD1306 I2C de **128×32**, dirección inicial `0x3C` | Estado y código de emparejamiento. Confirmar el módulo real; el firmware actual está configurado para esa resolución. |
 | Botón pulsador externo, cables Dupont y protoboard | Conectar GPIO4 a GND únicamente al presionar. |
-| PC Windows con WSL 2 / Ubuntu e Internet | Instalación de dependencias y compilación. |
+| PC Windows con Arduino IDE 2 y core oficial ESP32 3.3.12 | Firmware nativo Windows; dos bibliotecas y configuración inicial documentadas en el paso4.2. WSL/Node se usan solo si haces mantenimiento host o compilas la app allí. |
 | Teléfono Android con BLE | Emparejar y probar estado/modos/historial con tu app v2; los controles específicos de Escudo dependen de su pantalla. |
 | Red propia de **2.4 GHz** | Objetivo de observación. Escudo no se conecta ni necesita su contraseña. |
 
@@ -55,7 +59,7 @@ Para probar dos redes/canales necesitas otra red propia de 2.4 GHz, por ejemplo 
 
 La primera prueba de Escudo no requiere broker Docker ni servicios de notificaciones. Esos componentes se incorporan a las pruebas conjuntas con P2/P3/P4.
 
-## 2. Comprobar WSL 2
+## 2. Comprobar WSL 2 (opcional para mantenimiento/app)
 
 **PowerShell:**
 
@@ -79,7 +83,17 @@ Referencia: [instalación oficial de WSL](https://learn.microsoft.com/en-us/wind
 
 ## 3. Abrir el repositorio correcto
 
-**Ubuntu / WSL:**
+**Windows:** abre en el Explorador `C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto`. La carpeta debe contener `firmware`, `contracts`, `app`, `docs` y `openspec`. Desde Arduino IDE, usa **Archivo → Abrir** y selecciona `firmware\SentinelNode\SentinelNode.ino`; conserva la carpeta completa del repositorio, no copies únicamente el `.ino`.
+
+Si tienes Git instalado en Windows, puedes registrar la referencia desde PowerShell:
+
+```powershell
+Set-Location 'C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto'
+git status --short --branch
+git log -1 --oneline
+```
+
+**Alternativa Ubuntu / WSL, solo si ya lo usas para mantenimiento o app:**
 
 ```sh
 cd "/mnt/c/Users/Jefry/Documents/Arduino/ArtefactosProyecto"
@@ -90,18 +104,18 @@ git log -1 --oneline
 
 Debes estar en la carpeta que contiene `firmware`, `contracts`, `app`, `docs` y `openspec`. Esta es la **raíz del repositorio**; los comandos siguientes parten de allí salvo que se indique otra cosa.
 
-Para incluir recuperación, la referencia de prueba debe contener `dd0840c` o una entrega posterior que lo integre, además de la app v2. La rama de entrega es `feat/sentinel-app-protocolo-v2`: usar el commit publicado en su PR que incluya la app v2 y la base de recuperación. Si pruebas modificaciones locales adicionales, registrar también `git status` y `git diff --stat`: el hash de HEAD por sí solo no las identifica. No cambiar a un `develop` antiguo solo por su nombre ni descartar cambios locales. Para otra máquina, usar la entrega publicada/revisada que incluya ambos componentes.
+Para incluir recuperación, la referencia de prueba debe contener `dd0840c` o una entrega posterior que lo integre, además de la app v2. La referencia de partida de esta migración es `af7200a` y la rama de trabajo `feat/sentinel-arduino-migration`; conserva además la app v2 local y su archivo previo sin commit. Para otro equipo, obtener una entrega revisada que incluya las fuentes Arduino, el paquete y la app v2. Si pruebas modificaciones locales adicionales, registrar también `git status` y `git diff --stat`: el hash de HEAD por sí solo no las identifica. No cambiar a un `develop` antiguo solo por su nombre ni descartar cambios locales. Para otra máquina, usar la entrega publicada/revisada que incluya ambos componentes.
 
-## 4. Instalar herramientas Linux
+## 4. Herramientas opcionales de mantenimiento y app
 
 **Ubuntu / WSL:**
 
 ```sh
 sudo apt-get update
-sudo apt-get install -y git curl unzip usbutils ripgrep build-essential libssl-dev python3 python3-pip python3-venv
+sudo apt-get install -y git curl unzip usbutils ripgrep build-essential libssl-dev
 ```
 
-`sudo` pedirá la contraseña de Ubuntu; al escribirla no se muestran caracteres. Estas herramientas permiten ejecutar Python, compilar las pruebas C++ del host y detectar USB.
+`sudo` pedirá la contraseña de Ubuntu; al escribirla no se muestran caracteres. Estas herramientas permiten compilar las pruebas C++ del host y preparar app/contratos. No son requisitos del build Arduino. Los runners de firmware usan Node 24 y no requieren Python.
 
 ### 4.1. Node y npm del proyecto
 
@@ -134,33 +148,38 @@ npm --version
 npm install -g npm@11.8.0
 ```
 
-### 4.2. PlatformIO
+### 4.2. Arduino IDE y core oficial en Windows
 
-Si `pio --version` ya devuelve **6.2.0**, puedes conservar esa instalación y su PATH. Para instalar la versión fijada en un entorno Python separado del repositorio:
+Abrir Arduino IDE Windows y el sketch `firmware/SentinelNode/SentinelNode.ino` desde el checkout completo. La simplificación usa el core oficial ESP32 **3.3.12**, instalado en este equipo junto al SDK estándar, separado de la plataforma Sentinel anterior.
 
-```sh
-python3 -m venv "$HOME/.venvs/sentinel-pio"
-source "$HOME/.venvs/sentinel-pio/bin/activate"
-python -m pip install -r firmware/requirements.txt
-pio --version
+Seguir la [instalación inicial](firmware.md#instalación-inicial): instalar el core oficial **3.3.12** y **ESP_SSLClient 3.1.3** desde el IDE; cerrarlo y ejecutar estos dos comandos en **PowerShell, desde la raíz del repositorio**:
+
+```powershell
+.\firmware\arduino\install-wolfmqtt.ps1
+.\firmware\arduino\install-board-config.ps1
 ```
 
-La instalación queda en tu usuario, sin instalar paquetes Python globales. PlatformIO documenta el [aislamiento de Core](https://docs.platformio.org/en/latest/core/installation/methods/pypi.html); aquí se fija la versión del repositorio mediante `requirements.txt`.
+El primero descarga/verifica wolfMQTT2.2.0 y aplica su configuración. El segundo mantiene cuatro claves y retira cinco overrides Sentinel obsoletos, conservando otras opciones y respaldo. Ambos son repetibles y conservan respaldos cuando reemplazan archivos; no requieren SDK propio ni se ejecutan por compilación. Si PowerShell bloquea los scripts, ver la opción de política de alcance Process de firmware.md. Reiniciar Arduino IDE al terminar.
+
+Después seleccionar **ESP32S3 Dev Module**, **16MB**, **QIO 80MHz**, **OPI PSRAM** y **Sentinel standard USB (4MiB factory, no OTA)**. Mantener **USB CDC On Boot: Disabled** para usar la consola UART0 de esta guía y **Erase All Flash Before Sketch Upload: Enabled** para la primera carga de la tabla nueva (después Disabled para no solicitar borrado total). Reiniciar el IDE si la nueva opción de particiones no aparece. La [tabla de opciones](firmware.md#seleccionar-placa-y-verificar) concentra estos valores.
+
+El usuario aprobó hasta tres teléfonos recordados. Si había cuatro vínculos antiguos o datos incompatibles, el preflight debe detener BLE sin sobrescribirlos; no borrarlos para superar la comprobación. El build histórico del SDK propio y las pruebas aisladas de bibliotecas se distinguen del resultado final en la [verificación de dependencias](../openspec/changes/sentinel-arduino-dependencies/verification.md).
+
+No instalar el SDK propio para cumplir el objetivo nuevo ni eliminar instalaciones globales. Los GPIO y flags del proyecto se revisan en `SentinelConfig.h`; no se cambian garantías mediante macros para ocultar errores.
 
 ### 4.3. Al abrir otra terminal Ubuntu
 
-Volver a la raíz y cargar las herramientas que instalaste:
+Para app/contratos y tests host:
 
 ```sh
 cd "/mnt/c/Users/Jefry/Documents/Arduino/ArtefactosProyecto"
 source "$HOME/.nvm/nvm.sh"
 nvm use
-source "$HOME/.venvs/sentinel-pio/bin/activate"
 ```
 
-Si conservaste el PlatformIO ya existente en `/home/jefry/.platformio/penv`, usa su `bin` en PATH en lugar de activar el entorno nuevo. No mezclar Node/Python de Windows con estas compilaciones Linux.
+El mantenimiento host requiere C/C++, OpenSSL y Node 24.13.1; los runners resuelven cJSON 1.7.19 por hash desde caché o descarga oficial. No activar un entorno PlatformIO. Mantener las herramientas npm de app/contratos en el mismo entorno Linux donde se instalaron sus dependencias.
 
-## 5. Instalar dependencias del repositorio
+## 5. Dependencias de app/contratos (opcional para firmware)
 
 **Ubuntu / WSL, raíz:**
 
@@ -188,35 +207,31 @@ npm run dev
 
 Abrir la URL que indique Vite (normalmente `http://localhost:5173`). Sin nodo, debe mostrar **Esperando un dispositivo**, sin redes ni incidentes inventados. El navegador sirve para UI/WSS; **Buscar y conectar BLE** explica que requiere Android. Cerrar Vite con `Ctrl+C` cuando termines. En WSL sobre `/mnt/c`, si no refleja una edición, reiniciar Vite antes de probar otra vez.
 
-## 6. Compilar firmware y ejecutar las pruebas de Persona 1
+## 6. Verificar firmware y mantenimiento opcional
 
-**Ubuntu / WSL, raíz:**
+**Arduino IDE Windows:** abrir `firmware/SentinelNode/SentinelNode.ino` desde el checkout completo y pulsar **Verificar** con las opciones del paso 4.2. Esperar a que termine sin errores. No es necesario conectar aún la placa para compilar. El CLI nativo equivalente está en [firmware](firmware.md#comandos-windows-equivalentes); no sustituirlo por el FQBN del SDK anterior.
 
-```sh
-pio run -d firmware -e sentinel_s3
-```
+Arduino compila el validador local `src/sentinel/v2_validator.h`; no necesita Node/Python ni generar código antes de **Verificar**. El build final oficial terminó **exit0**, imagen **1376726 bytes**, variables globales **160228 bytes**. Su [evidencia](../openspec/changes/sentinel-arduino-dependencies/verification.md) distingue esas cifras de la memoria que debe informar tu placa. El build anterior con SDK propio se conserva como antecedente.
 
-La primera ejecución descarga ESP-IDF y herramientas fijadas y puede tardar. Esperar a `[SUCCESS]`. La selección de placa puede mostrar un nombre de catálogo genérico; la configuración mantenida y la lectura de memoria del arranque son las comprobaciones pertinentes de N16R8.
-
-A continuación:
+**Mantenimiento opcional en Ubuntu/WSL**, con Node24, compilador C/C++ y OpenSSL:
 
 ```sh
-python3 firmware/test/check_config.py
-SENTINEL_SANITIZE=1 python3 firmware/test/check_contracts.py
-SENTINEL_SANITIZE=1 python3 firmware/test/escudo/check_contracts.py
+SENTINEL_SANITIZE=1 npm run test:firmware
+SENTINEL_SANITIZE=1 npm run test:escudo
+node firmware/test/arduino_build_test.mjs
 ```
 
 | Prueba | Qué demuestra |
 | --- | --- |
-| `check_config.py` | Configuración efectiva, límites de particiones y memoria configurada; no tamaño físico medido. |
-| `test/check_contracts.py` | Lógica del núcleo, comandos, supervisor, journal, compatibilidad y validación con contratos. |
-| `test/escudo/check_contracts.py` | Descubrimiento, parser/captura, cuatro detectores y recuperación; incluye escritura y lectura en procesos separados del host. |
+| `test:firmware` | Lógica del núcleo, comandos, supervisor, journal y paridad con contratos. |
+| `test:escudo` | Descubrimiento, parser/captura, cuatro detectores y recuperación entre procesos host. |
+| `arduino_build_test.mjs` | Flags/factories y guardas del core oficial y transportes; no sustituye el build completo. |
 
-Los runners ya compilan y ejecutan sus pruebas C++; no necesitas lanzar además cada `run_host.py`. Se esperan resultados `PASS`, sin `Assertion`, `Traceback` ni fallos de sanitizer. La referencia documentada produce 19 requests válidos y recorridos de 70/72/30/18/7 mensajes; una entrega posterior puede añadir casos.
+Los dos runners ya compilan C++; no repetir cada `run_host.mjs`. cJSON 1.7.19 se reutiliza de caché o se recupera con hash fijado. La auditoría `check_migration.mjs` usa el mapa externo preservado para este trabajo, no es un requisito diario del equipo. El checker de configuración ya inspecciona el header efectivo del SDK oficial y sus particiones; no prueba memoria física ni el enlace BLE negociado.
 
-Aquí se prueban patrones de ataque mediante fixtures locales, sin transmitir paquetes Wi-Fi. No son ataques reales ni acreditan radio/NVS de la placa.
+Se esperan `PASS` sin fallos de sanitizer. [Legibilidad](../openspec/changes/sentinel-firmware-readability/verification.md) y [limpieza](../openspec/changes/sentinel-firmware-cleanup/verification.md) registran las comprobaciones ya ejecutadas: núcleo con 69 fixtures v2, Escudo con cuatro detectores y recuperación de seis eventos únicos/seis repetidos. Esta guía no vuelve a declarar ejecutadas esas pruebas ni acredita radio/NVS físicos.
 
-**Punto de control A:** si estos pasos fallan, conservar la salida y resolver el fallo antes de atribuir un problema al cableado.
+**Punto de control A:** conservar y resolver fallos de software antes de atribuirlos al cableado. La falta de placa permite continuar el software; las pruebas físicas conservan sus pendientes.
 
 ## 7. Cablear con la ESP32 desconectada
 
@@ -240,91 +255,40 @@ El firmware activa pull-up interno: no hace falta añadir una resistencia para e
 
 ![Pinout aportado para la placa](assets/esp32-s3-devkitc-1-pinout.png)
 
-Usar etiquetas y revisión de la unidad real. En la configuración actual se evitan GPIO35–37 por memoria octal, 19/20 por USB y 43/44 por UART. La placa del usuario puede diferir mecánicamente de la oficial; ver [guía de Espressif](https://documentation.espressif.com/api/resource/path/docs/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.0.html) y [configuración de periféricos](../firmware/components/sentinel/Kconfig.projbuild).
+Usar etiquetas y revisión de la unidad real. En la configuración actual se evitan GPIO35–37 por memoria octal, 19/20 por USB y 43/44 por UART. La placa del usuario puede diferir mecánicamente de la oficial; ver [guía de Espressif](https://documentation.espressif.com/api/resource/path/docs/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.0.html) y [configuración de periféricos](../firmware/SentinelNode/SentinelConfig.h).
 
 Si tu pantalla es **128×64**, SH1106, SPI o tiene otra dirección, comunicarlo antes de dar por fallido el proyecto: esta imagen de firmware usa SSD1306 **128×32 / 0x3C**. Cambiar resolución requiere adaptar el driver; cambiar dirección/pines se hace mediante configuración revisada.
 
-## 8. Conectar USB y pasarlo a WSL
+## 8. Conectar USB e identificar el COM en Windows
 
-1. Conectar un cable de datos al puerto de la placa **USB-UART/UART**, según su etiqueta. Esta guía utiliza la consola UART0 configurada; no elegir por izquierda/derecha de una foto.
-2. En Windows, abrir Administrador de dispositivos → Puertos. Identificar el COM que aparece al conectar esa placa. El COM de un enlace Bluetooth de Windows no es la ESP32.
-3. Si Windows no detecta el puente USB, revisar cable/conector y su identificador de hardware antes de elegir un driver. No asumir CP210x/CH34x sin identificarlo.
+1. Conectar cable de datos al conector **USB-UART/UART** según su etiqueta, para la consola UART0. No elegir por izquierda/derecha de una foto.
+2. Abrir Administrador de dispositivos → Puertos e identificar el COM que aparece con esa placa. Un COM Bluetooth no identifica ESP32.
+3. Si no aparece el puente USB, revisar cable/conector y su identificador antes de instalar un driver. No asumir CP210x/CH34x.
 
-Instalar usbipd-win si todavía no está disponible. **PowerShell administrador:**
-
-```powershell
-winget install --interactive --exact dorssel.usbipd-win
-```
-
-Mantener Ubuntu abierto. En PowerShell administrador:
+**PowerShell:**
 
 ```powershell
-usbipd list
+Get-CimInstance Win32_SerialPort | Select-Object DeviceID, Name, PNPDeviceID
+
 ```
 
-Copiar el BUSID del **puente USB de la ESP32**, no el del teléfono. Compartirlo reemplazando el marcador:
+Seleccionar ese COM en Arduino. Si hay varios equipos, confirmar cuál pertenece al usuario antes de programar. No es necesario adjuntar USB a WSL ni instalar usbipd para este flujo; Windows debe conservar el acceso a la placa.
 
-```powershell
-usbipd bind --busid BUSID_REAL
-```
-
-Luego, en PowerShell:
-
-```powershell
-usbipd attach --wsl --busid BUSID_REAL
-usbipd list
-```
-
-La asociación a WSL impide usar ese mismo dispositivo desde Windows a la vez. Secuencia contrastada con [Microsoft](https://learn.microsoft.com/en-us/windows/wsl/connect-usb) y [usbipd-win](https://github.com/dorssel/usbipd-win#readme).
-
-**Ubuntu / WSL:**
-
-```sh
-lsusb
-pio device list
-```
-
-Identificar el dispositivo real `/dev/ttyUSB…` o `/dev/ttyACM…`. No basta con que exista algún `/dev/ttyS…`.
-
-Definir el puerto reemplazando el texto entre comillas:
-
-```sh
-export SENTINEL_PORT="PUERTO_REAL"
-ls -l "$SENTINEL_PORT"
-```
-
-Ejemplo: si `pio device list` muestra `/dev/ttyUSB0` para tu placa, ese es el valor que escribes. Si no aparece, detenerse aquí y revisar attach/cable/driver. Al desconectar USB puede ser necesario repetir attach y comprobar de nuevo BUSID/puerto.
-
-Si aparece `Permission denied`, mirar el grupo en `ls -l`. Si es `dialout`, añadir tu usuario:
-
-```sh
-sudo usermod -aG dialout "$USER"
-newgrp dialout
-```
-
-Se abre otra shell; volver a cargar las herramientas del paso 4.3 y definir `SENTINEL_PORT`. Si pertenece a otro grupo, usar el apropiado o las [reglas oficiales de PlatformIO](https://docs.platformio.org/en/latest/core/installation/udev-rules.html).
+La detección registrada el 2026-11-13 solo mostró COM3/COM4 de Bluetooth y ningún teléfono en ADB. No se grabó ni monitorizó un dispositivo; T01–T03/T14–T15 siguen pendientes de hardware.
 
 ## 9. Grabar la ESP32
 
-Cerrar monitores serie/Arduino IDE que tengan ocupado el puerto. **Ubuntu / WSL, raíz:**
+Cerrar monitores que ocupen el puerto. Confirmar **Partition Scheme: Sentinel standard USB (4MiB factory, no OTA)** y seleccionar **Erase All Flash Before Sketch Upload: Enabled** para esta primera carga con tabla nueva. Elegir el COM real y pulsar **Subir**. La receta oficial escribe bootloader, tabla, `boot_app0` en0xe000 reservado a `otadata` y aplicación. Se pierden datos anteriores; después poner Disabled para no solicitar borrado total en cargas normales. USB posterior tampoco garantiza conservar datos.
 
-```sh
-pio run -d firmware -e sentinel_s3 -t upload --upload-port "$SENTINEL_PORT"
-```
+No hay migración entre versiones. Emparejar/configurar de nuevo y, si quedan vínculos/caché antiguos del teléfono, retirarlos y reconciliar identidad/cursores en la app. `merged.bin` es imagen de inicialización sin garantía de preservar NVS. En reinicio normal sin upload, conservar identidad, bonds, configuración e historial confirmado; error NVS visible sin formato automático. Un build no acredita ninguna de estas pruebas físicas.
 
-Esperar confirmación de escritura/verificación y `SUCCESS`. No ejecutar un borrado total de flash como paso rutinario: se perderían identidad, bonds e historial que queremos comprobar.
-
-Si queda en `Connecting…`, comprobar primero puerto/cable. Como recuperación de programación, mantener BOOT al iniciar upload y durante el reset; soltarlo cuando empiece la conexión/escritura. Si se entra manualmente al bootloader, puede hacer falta RESET después para ejecutar. Referencia: [modo de arranque ESP32-S3](https://docs.espressif.com/projects/esptool/en/latest/esp32s3/advanced-topics/boot-mode-selection.html).
+Tras disponer del procedimiento y ejecutar la subida, esperar escritura/verificación correctas. Si queda en `Connecting…`, revisar puerto/cable y seguir BOOT/RESET de la placa; no borrar flash. Ver [modo de arranque ESP32-S3](https://docs.espressif.com/projects/esptool/en/latest/esp32s3/advanced-topics/boot-mode-selection.html).
 
 ## 10. Leer el arranque y probar hardware básico
 
-**Ubuntu / WSL:**
+Abrir **Monitor serie** en Arduino a **115200** después de la subida verificada. No se necesita Node ni WSL para el monitor.
 
-```sh
-pio device monitor -d firmware -e sentinel_s3 --port "$SENTINEL_PORT" --baud 115200
-```
-
-Con el monitor abierto, pulsar RESET/EN. Para salir del monitor, `Ctrl+C`.
+Con el monitor abierto, pulsar RESET/EN. Para cerrarlo, cerrar el panel **Monitor serie** del IDE; `Ctrl+C` solo se usa si ejecutas un monitor desde una terminal.
 
 Buscar una línea parecida a esta; los IDs son ilustrativos:
 
@@ -394,7 +358,7 @@ $sentinelPhoneSerial = 'SERIAL_REAL'
 & $sentinelAdb -s $sentinelPhoneSerial install -r 'C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto\app\android\app\build\outputs\apk\debug\app-debug.apk'
 ```
 
-Esperar `Success` y abrir Sentinel en el teléfono. No pasar el USB del teléfono a WSL con usbipd; el flujo de esta guía reserva ese attach para la ESP32. El SDK Linux compila el APK y ADB Windows puede instalar ese archivo; cada herramienta usa las rutas de su propio entorno.
+Esperar `Success` y abrir Sentinel en el teléfono. No pasar el USB del teléfono ni el de la ESP32 a WSL: ADB y Arduino usan Windows en este flujo. El SDK Linux compila el APK y ADB Windows puede instalar ese archivo; cada herramienta usa las rutas de su propio entorno.
 
 ## 12. Conectar el teléfono y reconocer la interfaz v2
 
@@ -436,7 +400,7 @@ En esta sesión dejar sin configurar **MQTT sobre WSS** y **Conectividad del dis
 2. Confirmar **Reposo** (`idle`), boot actual coincidente con consola, transportes y capacidades reales. En este firmware `capture:true` y `detectors:true` describen funciones incluidas, no captura en ejecución. El supervisor las anuncia también desde Reposo.
 3. En **Órdenes de esta sesión**, comprobar que `get_state` termina `applied`. Anotar ID/boot/revisión sin copiar secretos.
 4. En **Perfiles de recursos**, pulsar **Escudo**. Esperar que `set_mode` termine `applied` y que el estado real indique perfil Escudo, fase `ready` y revisión actualizada. `accepted` solo indica aceptación; el click no debe activar visualmente un modo sin confirmación.
-5. Abrir la pestaña **Escudo Pasivo**: debe mostrar objetivo sin seleccionar y captura detenida. Consultar de nuevo **General**: Wi-Fi/MQTT del nodo deben estar desconectados. No se inicia captura al entrar en el modo.
+5. Abrir la pestaña **Escudo Pasivo**: tras una primera carga limpia sin selección aceptada debe mostrar objetivo sin seleccionar y captura detenida. Si ya hay una selección guardada, debe mostrar la misma tupla SSID/BSSID/canal con captura detenida, sin catálogo recuperado ni exploración automática. Consultar de nuevo **General**: Wi-Fi/MQTT del nodo deben estar desconectados. No se inicia captura al entrar en el modo.
 6. Regresar a **General** y pulsar **Reposo** en perfiles. Esperar `applied`, perfil `idle` y recursos de radio liberados. La pestaña Escudo puede seguir disponible por capacidad; eso no significa que siga activo.
 7. Volver a Escudo y pulsar **Sincronizar hora por BLE**, con el teléfono en hora correcta. Esperar aplicación y comprobar hora/calidad reportada; los eventos antiguos con hora desconocida no se reescriben con una fecha inventada.
 8. Confirmar que Cebo/Sanitizador ausentes figuran no disponibles y no pueden activarse desde los controles normales. Su rechazo `not_implemented` se prueba con un cliente de diagnóstico que permita enviar esa orden; no hay un botón oculto para forzarlo en esta UI.
@@ -590,11 +554,13 @@ Ejemplo de primera sincronización, o de una app que aún no confirmó ningún c
 
 ### Prueba T11 — Reinicio después del commit
 
-1. Elegir un evento que ya recibiste en vivo y fue persistido; conservar ID/boot/cursor. No cortar alimentación inmediatamente después de una simple aceptación de comando.
+1. Elegir un evento que ya recibiste en vivo y fue persistido; conservar ID/boot/cursor. Tener también un objetivo de Escudo confirmado mediante ACK aplicado después de commit y anotar su tupla SSID/BSSID/canal para compararla tras recuperar. No cortar alimentación inmediatamente después de una simple aceptación de comando.
 2. Pulsar RESET. Reconectar por BLE y leer metadata.
-3. Confirmar mismo device, nuevo boot e Idle. Recuperar el historial pronto, antes de sobrescribirlo.
+3. Confirmar mismo device, nuevo boot e Idle sin asociación Wi-Fi ni arranque de módulos; el vínculo BLE autorizado debe seguir disponible. Recuperar el historial pronto, antes de sobrescribirlo.
 4. El evento anterior mantiene sus bytes/identidad/tiempo originales, aunque el ACK de recuperación use el nuevo boot. No inventar una fecha si su calidad original era unknown.
-5. Entrar en Escudo, escanear, seleccionar e iniciar de nuevo. Repetir control/métricas para demostrar que las funciones siguen disponibles tras recuperar.
+5. Si se había configurado Wi-Fi/MQTT por BLE protegido y se recibió confirmación aplicada después de commit, comprobar configuración validada restaurada sin volver a enviarla ni revelar secretos. Renovar referencia UTC antes de TLS; el reloj anterior no se considera vigente. Si faltan Cebo/UI/cliente para probar conexión, registrar ese alcance pendiente.
+6. Repetir el caso cortando alimentación después de persistencia confirmada, sin subir firmware entre medias. Comprobar identidad, bonds, configuración, objetivo anterior de Escudo e historial retenidos; verificar el objetivo siguiendo el paso 7 también después de este corte. No confundirlo con reinstalación USB, que permite pérdida.
+7. Después de cada reinicio/corte, entrar explícitamente en Escudo y consultar `get_state` antes de explorar o seleccionar: debe mostrar exactamente la tupla guardada, `capture_status:"stopped"`, `scan_status:"idle"` y `scan_id:null`, sin catálogo ni evidencia temporal recuperados. Iniciar captura mediante `escudo.capture_start` sobre ese objetivo, sin volver a seleccionarlo, y repetir control/métricas para demostrar que las funciones siguen disponibles y usan observaciones nuevas. Pasar a Idle y volver a Escudo también debe conservar el objetivo y dejar captura detenida. Una exploración nueva es opcional después de verificar esta recuperación; no puede sustituirla.
 
 ### Prueba T12 — Sobrescritura visible
 
@@ -634,7 +600,7 @@ Con los componentes actuales no se puede dar por aprobado ese recorrido ni MQTT/
 | [escudo-captura](../openspec/changes/archive/2026-11-12-sentinel-escudo-captura/tasks.md) | Parser/generaciones/canales por host. | 2.1: T06 con evidencia de las redes/canales propios; 2.2: stop/resume y ausencia de asociación/probes. |
 | [escudo-detectores](../openspec/changes/archive/2026-11-12-sentinel-escudo-detectores/tasks.md) | T07, cuatro familias. | 2.1: T08, flujo benigno real y BLE; instrumentación/laboratorio cuando corresponda. |
 | [escudo-recuperacion](../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/tasks.md) | Persistencia/identidad/gap por host. | 1.3: T13; 2.1: T09/T10/T11; 2.2: funciones tras T11. |
-| [app-protocolo-v2](../openspec/changes/sentinel-app-protocolo-v2/tasks.md) | Tests/build web y Android aprobados; 5/6 tareas. | 2.1: paso 5 + instalación/pairing + T03 real. T14/T15 aportan reconexión/historial; permisos/BLE de 2.2 siguen pendientes pese a su alternativa documentada. |
+| [app-protocolo-v2](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/tasks.md) | Tests/build web y Android aprobados; 5/6 tareas. | 2.1: paso 5 + instalación/pairing + T03 real. T14/T15 aportan reconexión/historial; permisos/BLE de 2.2 siguen pendientes pese a su alternativa documentada. |
 | [integracion-tres-modos](../openspec/changes/sentinel-integracion-tres-modos/tasks.md) | Pendiente de implementación e integración. | Paso 18; las siete tareas conservan sus criterios completos. |
 | [core-foundation](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/tasks.md) | Base histórica reutilizada. | T01/T02/BLE aportan evidencia parcial; MQTT/TLS/app completa y demás pendientes se comprueban con sus componentes reales. |
 
@@ -657,7 +623,7 @@ APK usado / fecha de build / SHA-256:
 Teléfono / versión Android / permisos concedidos:
 ESP32 / módulo OLED / cableado:
 Puerto:
-Versiones Node / npm / PlatformIO:
+Versiones Arduino IDE / CLI / core oficial / bibliotecas; Node/npm solo si usados:
 Device / boot antes y después:
 Prueba Txx y tarea OpenSpec:
 Pasos realmente ejecutados:
@@ -671,13 +637,13 @@ Dependencia o siguiente acción:
 
 | Problema | Primer paso útil |
 | --- | --- |
-| `pio` no existe | Cargar/activar el entorno del paso 4; comprobar `pio --version`. |
+| Configuración oficial incompleta | Seguir instalación inicial y opciones de firmware.md; comprobar core3.3.12, las dos bibliotecas y la opción de particiones Sentinel, conservando otras configuraciones. |
 | Node incorrecto | Cargar nvm y ejecutar `nvm use` en la raíz. |
 | Paquetes npm con errores de plataforma | Confirmar que Node/npm y la instalación usada pertenecen a WSL; no alternar `npm ci` Windows/Linux sobre los mismos node_modules. |
-| Placa ausente en WSL | Revisar Windows, cable de datos, BUSID y attach; no elegir un ttyS al azar. |
+| Placa ausente en Windows | Revisar cable de datos, conector USB-UART y dispositivo/COM real; no usar COM Bluetooth. |
 | Puerto ocupado | Cerrar otro monitor/IDE antes de upload. |
 | `Connecting…` | Revisar puerto y entrada BOOT; ver paso 9. |
-| Consola ilegible/vacía | UART correcto, 115200, RESET y puerto todavía adjunto. |
+| Consola ilegible/vacía | UART correcto, 115200, RESET y COM correcto disponible. |
 | OLED negra | GND/VCC/SDA/SCL, modelo, altura y dirección. Leer el error de consola. |
 | BLE no empareja | OLED operativa, ventana larga de 120 s, permisos y ausencia de otro cliente conectado. |
 | App no entiende metadata / `unsupported_version` | Reconstruir e instalar el APK de tu app v2, no el antiguo de base. Confirmar referencia y cabecera tras conectar; no bajar el firmware para fingir integración. |
@@ -691,7 +657,7 @@ Dependencia o siguiente acción:
 | Historial con gap | Registrar pérdida/rango y continuar por cursor; no es motivo para borrar flash. |
 | Cebo/Sanitizador no disponibles | Es la expectativa actual hasta integrar los módulos de tus compañeros. |
 
-**Primera sesión práctica:** completar pasos 1–13 y T14/T15 del paso 17. Guardar T01/T02/T03, datos de pairing, referencia del APK y resultados de software. Después ejecutar las pruebas específicas de firmware cuando esté disponible su cliente; el paso 18 espera las entregas del equipo y tu última spec. Actualizar documentación no marca como realizadas las pruebas físicas.
+**Primera sesión práctica tras entregar el flujo oficial:** completar pasos 1–13 y T14/T15 del paso 17; el mantenimiento Node/WSL es opcional para firmware. Guardar resultados T01/T02/T03, método de pairing sin passkey, referencia del APK y resultados de software. Después ejecutar las pruebas específicas de firmware cuando esté disponible su cliente; el paso 18 espera las entregas del equipo y tu última spec. Actualizar documentación no marca como realizadas las pruebas físicas.
 
 ## Anexo A. Preparar la compilación Android v2 en WSL
 

@@ -33,3 +33,9 @@
 - No incluir secretos, credenciales, archivos `.env` reales, dependencias instaladas, compilaciones ni artefactos generados. Los ejemplos de configuración solo deben contener valores ficticios. Conservar configuración fuente, lockfiles y código, incluido el proyecto Android nativo.
 - Revisar los cambios antes de considerarlos terminados: alcance, diferencias, archivos nuevos, secretos y comprobaciones apropiadas. Para cambios funcionales, compilar y hacer una comprobación breve; mantener pruebas focalizadas para lógica crítica. Para documentación, verificar coherencia y enlaces.
 - No resolver conflictos automáticamente mediante operaciones destructivas de Git: no usar `reset --hard`, `clean -f`, descarte masivo con `restore`/`checkout`, reescritura de historial ni push forzado para eliminar el conflicto. Inspeccionar los archivos, conservar el trabajo ajeno y resolver de forma explícita; pedir orientación si la resolución cambia el comportamiento o el alcance acordado.
+
+## Soluciones oficiales y persistencia
+
+Evaluar primero APIs, bibliotecas, opciones y recetas oficiales de Arduino antes de personalizar core, SDK, compilador, carga o exportación. Justificar por escrito la necesidad, alternativas y alcance mínimo de cualquier excepción; no fabricar un SDK si la solución oficial satisface el requisito.
+
+Aplicar la [política de persistencia](docs/persistence-policy.md): identidad, bonds, configuración e historial confirmado sobreviven a uso normal/reinicio/corte; reinstalación o actualización USB puede reinicializarlos sin migración. La primera carga de la tabla nueva es limpia desde el IDE; los scripts de preparación no graban placas. No borrar NVS automáticamente en arranque normal ni almacenar credenciales de terceros; secretos fuera de Git/logs/eventos/estado público.

@@ -1,0 +1,9 @@
+# Merge these keys into boards.local.txt for official esp32 3.3.12.
+# Select only for SentinelNode: Tools > Partition Scheme > Sentinel standard USB.
+# USB programming may reset persistent data; ordinary restarts must not format NVS.
+# Keep stock ESP32S3 Dev Module, core, compiler, SDK and upload/export recipes.
+esp32s3.menu.PartitionScheme.sentinel=Sentinel standard USB (4MiB factory, no OTA)
+esp32s3.menu.PartitionScheme.sentinel.build.partitions=sentinel
+esp32s3.menu.PartitionScheme.sentinel.upload.maximum_size=4194304
+# Prevent core startup from automatically erasing NVS before setup; no version migration.
+esp32s3.menu.PartitionScheme.sentinel.compiler.c.elf.extra_flags=-Wl,--wrap=nvs_flash_init

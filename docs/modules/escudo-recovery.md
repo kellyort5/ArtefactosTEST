@@ -2,6 +2,8 @@
 
 Responsable: Persona 1. Cambio: [sentinel-escudo-recuperacion](../../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/proposal.md). Reutiliza [captura](escudo-capture.md), [detectores](escudo-detectors.md), journal NVS, identidad, supervisor y BLE comunes. La recuperación no crea un segundo almacén ni inicia Wi-Fi/MQTT en Escudo.
 
+Build, subida y monitor tienen como destino [Arduino IDE Windows y core oficial ESP32 3.3.12](../firmware.md); la integración de dependencias está en curso. Las órdenes conservan contratos y comportamiento. Los runners Node comprueban lógica host y no sustituyen build ni pruebas físicas; el [informe del port previo](../../openspec/changes/sentinel-arduino-firmware-port/verification.md) conserva su evidencia histórica.
+
 ## Qué se conserva
 
 Los eventos aceptados del módulo pasan por la cola de salida común, se serializan con identidad/tiempo del núcleo, se escriben en el journal y solo entonces se intenta enviarlos en vivo. La falta de conexión BLE no impide el procesamiento ni la persistencia. Un retorno exitoso de `emit_event` significa admisión a la cola, no escritura ya confirmada: un corte antes del commit puede perder eventos pendientes.
@@ -73,14 +75,13 @@ Esta es la alternativa condicionada del diseño; no se anuncia una pausa automá
 ## Verificación y entrega
 
 ```sh
-pio run -d firmware
-python3 firmware/test/check_config.py
-SENTINEL_SANITIZE=1 python3 firmware/test/escudo/check_contracts.py
-python3 firmware/test/check_contracts.py
-openspec validate sentinel-escudo-recuperacion --strict
+node firmware/test/arduino_build_test.mjs
+SENTINEL_SANITIZE=1 node firmware/test/escudo/check_contracts.mjs
+node firmware/test/check_contracts.mjs
+openspec validate escudo-recovery --type spec --strict
 ```
 
-Usar Node 24 y PlatformIO según [desarrollo](../development.md). Los casos de software deben recorrer el productor Escudo, la cola/serialización/journal comunes, recuperación de identidad/cursor, repetición y un anillo pequeño con sobrescritura. Las pruebas de host acreditan lógica y persistencia en su adaptador; no NVS, radio ni deduplicación de la app Android física.
+Usar Node 24 para las pruebas host y Arduino IDE Windows para compilar/subir, según [desarrollo](../development.md) y [firmware](../firmware.md). Los casos de software deben recorrer el productor Escudo, la cola/serialización/journal comunes, recuperación de identidad/cursor, repetición y un anillo pequeño con sobrescritura. Las pruebas de host acreditan lógica y persistencia en su adaptador; no NVS, radio ni deduplicación de la app Android física.
 
 ## Recorrido físico pendiente
 

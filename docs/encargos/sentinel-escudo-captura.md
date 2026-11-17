@@ -2,6 +2,9 @@
 
 **Responsable único:** Persona 1 — tú: OpenSpec, contratos, núcleo, Escudo e integración de firmware. **Estado:** implementación y build verificados (4/6 tareas); pruebas físicas 2.1 y 2.2 pendientes. Ver [guía](../modules/escudo-capture.md). **Rama prevista:** `feat/sentinel-escudo-captura`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
+
+**Flujo vigente de firmware (2026-11-13):** [Arduino IDE Windows con core oficial ESP32 3.3.12](../firmware.md), sketch único `firmware/SentinelNode/SentinelNode.ino`. El firmware completo tiene build oficial Windows PASS con las dos bibliotecas y configuración local documentadas; el SDK propio queda como antecedente. Las fuentes de módulos están bajo `SentinelNode/src/`; la [API/factories y propiedad de recursos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) se conservan. Los artefactos archivados documentan el entorno anterior; sus resultados físicos pendientes no se completan con el port. Sanitizador/Cebo continúan sin servicios implementados y sus flags permanecen en 0 hasta sus entregas reales.
+
 ## Qué debes entregar
 
 El catálogo debe alimentar observaciones 802.11 reales que puedan consumir todos los detectores.
@@ -18,7 +21,7 @@ Puedes preparar estructura/lógica/UI con fixtures del contrato revisado mientra
 
 ## Archivos de tu encargo
 
-- `firmware/components/escudo/ (capture, frame_parser, channel_scheduler)`
+- `firmware/SentinelNode/src/escudo/ (capture, frame_parser, channel_scheduler)`
 - `firmware/test/escudo/`
 - `docs/modules/escudo-capture.md`
 
@@ -34,7 +37,7 @@ Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por ram
 4. **1.4** Conectar capture_start/stop y cambio de objetivo; comprobar que no se procesa una generación cerrada.
 ### Comprobación del incremento
 
-1. **2.1** Compilar pio run -d firmware y observar Beacons reales del objetivo y otra red propia por BLE; registrar canales y contadores.
+1. **2.1** Compilar desde Arduino IDE Windows y observar Beacons reales del objetivo y otra red propia por BLE; registrar canales y contadores.
 2. **2.2** Detener/reanudar desde teléfono y comprobar ausencia de asociación/probes enviados por el nodo.
 
 ## Cómo entregar a tu compañero

@@ -17,7 +17,7 @@ Cebo SHALL registrar origen, puertos, protocolo, tipo, tiempo/calidad, cantidad 
 
 ### Requirement: Registro persistente offline
 
-Cebo SHALL conservar eventos pendientes en un búfer persistente limitado y recuperarlos tras desconexión/reinicio con IDs estables.
+Cebo SHALL conservar eventos pendientes en un búfer persistente limitado y recuperarlos tras desconexión/reinicio/corte sin programación USB con IDs estables. SHALL confirmar persistencia solo tras commit. La reinstalación/actualización USB permite reinicialización sin migración y no habilita borrado automático en reinicios normales.
 
 #### Scenario: Registro persistente offline verificable
 
@@ -32,3 +32,11 @@ Cebo SHALL publicar eventos y métricas por MQTT seguro y permitir lectura pagin
 
 - **WHEN** se repite una entrega o el cursor ya fue sobrescrito
 - **THEN** el consumidor reconoce la identidad repetida o recibe gap explícito
+
+### Requirement: Configuración de Cebo persistente y privada
+
+Cebo SHALL conservar configuración propia aceptada en NVS oficial y recursos centrales con validación, límites y confirmación después de commit; SHALL conservar la anterior ante fallo y restaurar en Idle sin activar servicios ni confiar en UTC anterior. No SHALL guardar credenciales recibidas por HTTP/Telnet/terceros ni secretos en Git, eventos, estado o logs. No se promete cifrado físico ni continuidad tras reinstalación/actualización USB.
+
+#### Scenario: Reinicio con configuración de Cebo confirmada
+- **WHEN** se reinicia sin programar USB después de confirmar configuración persistida
+- **THEN** se restaura la configuración válida sin iniciar servicios y siguen disponibles los eventos retenidos con sus IDs

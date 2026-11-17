@@ -2,11 +2,13 @@
 
 Responsable: Persona 1. Cambio: [sentinel-escudo-captura](../../openspec/changes/archive/2026-11-12-sentinel-escudo-captura/proposal.md), sobre [descubrimiento archivado](../../openspec/changes/archive/2026-11-11-sentinel-escudo-descubrimiento/closure.md). Usa los contratos v2 existentes, el supervisor, el gestor y la cola de radio compartidos. No agrega servicios, instancias MQTT ni formatos de mensajes.
 
+Build, subida y monitor tienen como destino [Arduino IDE Windows y core oficial ESP32 3.3.12](../firmware.md); la integración de dependencias está en curso. Las órdenes conservan contratos y comportamiento. Los runners Node comprueban lógica host y no sustituyen build ni pruebas físicas; el [informe del port previo](../../openspec/changes/sentinel-arduino-firmware-port/verification.md) conserva su evidencia histórica.
+
 El componente implementa captura promiscua de administración, parser, control y cobertura. `capabilities.capture=true`. El incremento posterior de [detectores](escudo-detectors.md) conecta las cuatro familias, anuncia `capabilities.detectors=true` y alimenta los contadores `alerts`. Cero alertas no demuestra que la red sea segura.
 
 ## Uso desde BLE v2
 
-Usar metadata y revisión actuales, un `command_id` nuevo por orden y el framing/autorización comunes de [module-protocol.md](../../contracts/module-protocol.md). Estos JSON son requests para `makeModuleCommand`, no mensajes completos ni escrituras GATT directas. La app necesita la adaptación v2 de Persona 4.
+Usar metadata y revisión actuales, un `command_id` nuevo por orden y el framing/autorización comunes de [module-protocol.md](../../contracts/module-protocol.md). Estos JSON son requests para `makeModuleCommand`, no mensajes completos ni escrituras GATT directas. Usar el adaptador v2 integrado en la app; las pantallas funcionales específicas conservan su encargo de Persona 4.
 
 1. Entrar en Escudo, escanear y elegir una tupla observada conforme a [descubrimiento](escudo-discovery.md).
 2. Iniciar la captura. `accepted` confirma recepción; `applied` confirma que el gestor habilitó la captura. Las observaciones llegan después, no se fabrican al confirmar.
@@ -87,10 +89,9 @@ El firmware nunca inicia asociación, NAT, DNS ni MQTT desde Escudo. No persiste
 ## Verificación de software
 
 ```sh
-pio run -d firmware
-python3 firmware/test/check_config.py
-PATH=/home/jefry/.nvm/versions/node/v24.13.1/bin:$PATH SENTINEL_SANITIZE=1 python3 firmware/test/escudo/check_contracts.py
-PATH=/home/jefry/.nvm/versions/node/v24.13.1/bin:$PATH python3 firmware/test/check_contracts.py
+node firmware/test/arduino_build_test.mjs
+PATH=/home/jefry/.nvm/versions/node/v24.13.1/bin:$PATH SENTINEL_SANITIZE=1 node firmware/test/escudo/check_contracts.mjs
+PATH=/home/jefry/.nvm/versions/node/v24.13.1/bin:$PATH node firmware/test/check_contracts.mjs
 ```
 
 El build compila y enlaza `capture.cpp`, `frame_parser.cpp` y `channel_scheduler.cpp`. Las pruebas focalizadas reutilizan el código de ingreso y el componente real con un recurso de radio de host: cola acotada, generaciones cerradas, IE/RSN truncados/válidos, cuerpos protegidos, prioridad/rotación, tiempos con reloj controlado, cambio de objetivo, pausa por scan, métricas y parada fallida. Los mensajes del sink de host se identifican como simulados y se contrastan con el codec v2 y correlación de ACK. Esto no acredita recepción ni convivencia Wi-Fi/BLE físicas.

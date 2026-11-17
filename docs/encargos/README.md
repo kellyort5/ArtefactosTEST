@@ -1,10 +1,15 @@
 # Reparto de Sentinel Node para cuatro integrantes
 
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+
 Resumen de la planificación original (2026-11-11): de los **23 encargos originales**, `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Sus seis requisitos están en la [spec principal](../../openspec/specs/module-protocol/spec.md), con [resultados y límites](../../contracts/evidence-v2.md). Los otros **22 cambios** estaban planificados entonces; consultar sus tareas y evidencia actuales antes de empezar. La publicación está separada en [PR #2: contratos](https://github.com/Jefry-P/ArtefactosProyecto/pull/2) y [PR #3: planificación y guías](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), ambos hacia develop. Integrar #2 antes de #3; esta publicación no realizó merges.
 
 Verificación de la planificación original: `openspec validate --all --strict --json` aprobó los 24 cambios que estaban presentes (23 nuevos y la base), sin incidencias. Se comprobaron enlaces locales, ausencia de ciclos entre encargos y asignación de un único autor. Es evidencia de aquella planificación, no una afirmación de que todos los módulos estén implementados o físicamente verificados.
 
-Estado del incremento al 2026-11-12: contratos, API y los cuatro incrementos Escudo están archivados; conservan las pruebas físicas pendientes indicadas en sus cierres. `sentinel-app-protocolo-v2` entrega software comprobado (5/6 tareas) por P1, con control físico pendiente; el [seguimiento actual](../../openspec/changes/sentinel-app-protocolo-v2/tasks.md) y su [verificación](../../openspec/changes/sentinel-app-protocolo-v2/verification.md) distinguen software comprobado de integración física pendiente. No se asumen merges por archivar.
+Estado del incremento al 2026-11-12: contratos, API y los cuatro incrementos Escudo están archivados; conservan las pruebas físicas pendientes indicadas en sus cierres. `sentinel-app-protocolo-v2` también está [archivado](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/closure.md) por P1 con 5/6 tareas y control físico pendiente aceptado; el [seguimiento actual](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/tasks.md) y su [verificación](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) distinguen software comprobado de integración física pendiente. No se asumen merges por archivar.
+
+
+**Flujo de todos los módulos de firmware:** [Arduino IDE Windows y core oficial ESP32 3.3.12](../firmware.md), sketch único `firmware/SentinelNode/SentinelNode.ino`. Firmware completo con build oficial Windows PASS; el build del SDK propio se conserva como [antecedente](../../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md). Escudo mantiene regresión host y toda su lógica; Sanitizador/Cebo mantienen autores, API/factories y alcance pendientes. Node es mantenimiento opcional, no un requisito del IDE.
 
 ## Guías personalizadas: empezar aquí
 
@@ -119,10 +124,10 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | Zona                                                                  | Único autor | Cómo pedir un cambio                                                               |
 | --------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------- |
 | contracts/ y schemas/fixtures de contrato                             | P1          | Describir campo, unidad, límite y caso; el cambio entra por su spec de contrato    |
-| Núcleo firmware, sentinel\_api, main, CMake global y sdkconfig        | P1          | P2/P3 entregan requisito de hook/config, P1 integra sin editar lógica ajena        |
-| firmware/components/escudo y sus tests/docs                           | P1          | Hallazgo con observación/fixture y resultado esperado                              |
-| firmware/components/sanitizador y sus tests/docs                      | P2          | Mismo procedimiento; P1 solo integra el registro en núcleo                         |
-| firmware/components/cebo y sus tests/docs                             | P3          | Mismo procedimiento; no editar desde laboratorio                                   |
+| Núcleo firmware, sentinel\_api, sketch, SentinelConfig y integración Arduino        | P1          | P2/P3 entregan requisito de hook/config, P1 integra sin editar lógica ajena        |
+| firmware/SentinelNode/src/escudo y sus tests/docs                           | P1          | Hallazgo con observación/fixture y resultado esperado                              |
+| firmware/SentinelNode/src/sanitizador y sus tests/docs                      | P2          | Mismo procedimiento; P1 solo integra el registro en núcleo                         |
+| firmware/SentinelNode/src/cebo y sus tests/docs                             | P3          | Mismo procedimiento; no editar desde laboratorio                                   |
 | notifications/ y su package/lock/Compose propios                      | P3          | P4 consume API HTTPS; entrega casos de error/registro                              |
 | app/, package.json y package-lock.json raíz                           | P4          | P1 entrega app-protocolo-v2; P4 conserva pantallas/dependencias; no editar a la vez         |
 | broker/                                                               | P4          | P3 solicita rol notify; P4 adapta permisos con pruebas negativas                   |

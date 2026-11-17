@@ -1,5 +1,7 @@
 # Proposal
 
+**Política posterior aplicable:** [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) reemplaza RAM-only, continuidad USB y tabla inmutable si aparecen en el plan previo. Identidad/bonds/configuración/historial confirmado persisten en uso normal/reinicio/corte; USB permite reinicialización sin migración. Primera carga de tabla nueva limpia desde IDE; cuatro claves mínimas y recetas oficiales. Conservar responsables, alcance completo y pendientes físicos. Las evidencias previas son históricas; el build integrado nuevo requiere evidencia nueva.
+
 ## Why
 
 Cambios aislados no acreditan recursos compartidos, transiciones, OLED/botón y recuperación del sistema completo.
@@ -27,9 +29,9 @@ No se modifica una capacidad principal existente. Las siete capacidades canónic
 
 Archivos de futura implementación bajo propiedad de este autor:
 
-- `firmware/components/sentinel/ (registro final y recursos compartidos)`
-- `firmware/main/`
-- `firmware/sdkconfig.defaults`
+- `firmware/SentinelNode/src/sentinel/ (registro final y recursos compartidos)`
+- `firmware/SentinelNode/SentinelNode.ino`
+- `firmware/SentinelNode/SentinelConfig.h` y configuración fuente del paquete `firmware/arduino-package/`
 - `firmware/test/integration/`
 - `docs/integration-three-modes.md`
 

@@ -1,5 +1,9 @@
 # Guía de Persona 2 — Auditor y Sanitizador
 
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+
+P2 extenderá la persistencia oficial a configuración upstream/AP/DNS/DoH/reglas aceptadas cuando implemente cada encargo. Validar límites, guardar/commit antes de confirmar, conservar anterior ante fallo y restaurar en Idle sin activar STA/AP/NAT/DoH ni confiar en UTC viejo. Sustituye RAM-only para configuración; caché DNS y clientes observados siguen siendo datos transitorios. NVS estándar no promete cifrado físico. No crear otro gestor/journal ni dar módulos futuros por implementados.
+
 Tu responsabilidad es el firmware completo del Módulo 2: auditar una red y ofrecer una pasarela IPv4 con DNS filtrado y DoH. Empiezas en paralelo con Escudo y Cebo; el módulo ya forma parte de la entrega conjunta. Persona 4 hace su pantalla y Jefry integra tu componente en el núcleo.
 
 ## 1. Qué leer antes de programar
@@ -14,11 +18,11 @@ No necesitas instalar OpenSpec ni generar propuestas. Lee los Markdown como requ
 
 ## 2. Tu carpeta y dependencias
 
-Creas `firmware/components/sanitizador/`, sus tests en `firmware/test/sanitizador/` y los documentos `docs/modules/sanitizador-*.md` indicados en cada ficha. No hay que crear otro proyecto PlatformIO ni un firmware separado.
+Creas `firmware/SentinelNode/src/sanitizador/`, sus tests en `firmware/test/sanitizador/` y los documentos `docs/modules/sanitizador-*.md` indicados en cada ficha. Usas el mismo sketch Arduino y la integración oficial que P1/P3 (dependencias todavía en curso); no crear un firmware separado.
 
-Necesitas el contrato revisado y `sentinel-firmware-module-api` de P1 para integrar. La API real ya está fusionada en develop mediante PR #6: usa [module_api.hpp](../../firmware/components/sentinel_api/include/module_api.hpp) y la [guía de integración](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3). Se archivó con 6/7 tareas y la prueba física 2.2 pendiente; no confundir compilación con validación en la placa.
+Necesitas el contrato revisado y `sentinel-firmware-module-api` de P1 para integrar. La API real ya está fusionada en develop mediante PR #6: usa [module_api.hpp](../../firmware/SentinelNode/src/sentinel_api/include/module_api.hpp) y la [guía de integración](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3). Se archivó con 6/7 tareas y la prueba física 2.2 pendiente; no confundir compilación con validación en la placa.
 
-Solicitas a P1 cambios en `main`, CMake global, `sdkconfig`, radio, supervisor, serializador o journal. Solicitas a P4 cualquier pantalla o cambio del workspace npm. No inicialices/inicies/detengas Wi-Fi por tu cuenta: usa el gestor del núcleo y las netifs prestadas conforme a la API entregada.
+Solicitas a P1 cambios en el sketch, `SentinelConfig.h`, configuración de la integración Arduino, radio, supervisor, serializador o journal. Solicitas a P4 cualquier pantalla o cambio del workspace npm. No inicialices/inicies/detengas Wi-Fi por tu cuenta: usa el gestor del núcleo y las netifs prestadas conforme a la API entregada.
 
 ## 3. Tus cuatro encargos, uno por rama y PR
 
@@ -29,7 +33,7 @@ Las ramas son `feat/<nombre completo del cambio>`. Dentro de cada encargo, segui
 [Ficha, diseño, spec y tareas](sentinel-sanitizador-auditoria.md). Depende de la API del núcleo.
 
 1. Crear el módulo con sus hooks y solicitud STA al gestor; conseguir un build integrable.
-2. Recibir configuración upstream por BLE protegido, mantener secretos en RAM y permitir cancelación. Rechazar el canal MQTT para estas operaciones.
+2. Recibir configuración upstream por BLE protegido, persistir configuración propia validada en NVS oficial según la política, manteniendo secretos fuera de mensajes/logs y permitir cancelación. Rechazar el canal MQTT para estas operaciones.
 3. Ejecutar trabajos de DNS, HTTPS/certificados y portal cautivo con timeout. Distinguir resultados válidos, fallos e inconclusos con sus motivos.
 4. Publicar resultado/evento v2 correlacionado y documentar destinos/criterios en `docs/modules/sanitizador-audit.md`.
 5. Comprobar auditoría real con endpoint HTTPS válido e inválido controlados; salir de modo durante una auditoría y verificar cancelación/liberación sin arrancar AP.
@@ -91,18 +95,18 @@ No cambies nombres/enums/unidades para ajustarlos a una estructura C++ propia. L
 ## 5. Primera sesión y comprobaciones
 
 1. Obtener de Jefry el PR/referencia de contrato y API que debes consumir.
-2. Preparar PlatformIO siguiendo `docs/firmware.md`; leer `platformio.ini` y conservar las versiones fijadas para ESP32-S3 N16R8.
+2. Preparar Arduino IDE Windows y la integración oficial (core3.3.12, dos bibliotecas y opción local documentados) siguiendo [firmware](../firmware.md); leer `SentinelConfig.h` y conservar las versiones fijadas. Agregar fuentes a `SentinelNode/src/sanitizador/`, exportar `sentinel_sanitizador_module()` y habilitar su flag solo al disponer de implementación real.
 3. En tu clon limpio, crear `feat/sentinel-sanitizador-auditoria` desde la base acordada según la [guía común](guia-equipo.md#5-preparar-tu-copia-y-tu-rama).
 4. Hacer funcionar el módulo mínimo, compilar y entregar la primera comprobación antes de añadir NAT/DNS/DoH.
 
 Comandos desde raíz, cuando sus herramientas/dependencias estén preparadas:
 
 ```sh
-pio run -d firmware -e sentinel_s3
+node firmware/test/arduino_build_test.mjs
 npm run check:contracts
 ```
 
-El segundo valida la biblioteca compartida, no sustituye tests de tu C++ ni pruebas de hardware. Añadir tests focalizados de clasificación de auditoría, subredes, parser/reglas/caché DNS y fallos DoH en tu carpeta. Usa la [guía física](../core-foundation-test-guide.md) para upload/monitor y acuerda el turno de placa con P1/P3/P4.
+Compilar además el sketch con **Verificar** y configuración oficial verificada cuando se entregue según [firmware](../firmware.md). El segundo comando valida la biblioteca compartida, no sustituye tests de tu C++ ni pruebas de hardware. Añadir tests focalizados de clasificación de auditoría, subredes, parser/reglas/caché DNS y fallos DoH en tu carpeta. Usa la [guía física](../core-foundation-test-guide.md) para upload/monitor y acuerda el turno de placa con P1/P3/P4.
 
 Al informar una prueba, registrar tarea, versión, cliente/AP autorizados, pasos, esperado, resultado e IDs sin claves. P4 consolida tu informe; tú corriges tus fallos. La falta temporal de placa se registra PENDIENTE, sin marcar comprobación física como PASS.
 

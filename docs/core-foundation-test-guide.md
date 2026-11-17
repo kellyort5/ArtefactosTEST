@@ -18,46 +18,35 @@ Realizar el cableado con la placa desconectada de la alimentación.
 
 El firmware configura pull-up interno para el botón. La pantalla prevista es SSD1306 I2C de 128×32, dirección `0x3C`. Confirmar modelo y resolución antes de probar otra pantalla. Los pines son los valores iniciales del cambio y están pendientes de comprobación física.
 
-## 2. Preparar la terminal WSL
+## 2. Preparar Arduino Windows y pruebas host
 
-```sh
-cd /mnt/c/Users/Jefry/Documents/Arduino/ArtefactosProyecto
-export PATH="/home/jefry/.nvm/versions/node/v24.13.1/bin:/home/jefry/.platformio/penv/bin:$PATH"
-node --version
-pio --version
-```
+Abrir `firmware/SentinelNode/SentinelNode.ino` conforme a [firmware.md](firmware.md). El objetivo vigente es core oficial ESP32 3.3.12 con bibliotecas mantenidas. El firmware completo tiene build oficial Windows PASS; SDK propio y PlatformIO se conservan como antecedentes. La [guía de Persona 1](guia-pruebas-persona-1.md) contiene cableado, app v2 y criterios completos del Escudo.
 
-Se esperan Node 24.13.1 y PlatformIO Core 6.2.0.
+Node24, C/C++ y OpenSSL permiten mantenimiento host opcional en WSL. Los runners de firmware ya no requieren Python. Node y WSL tampoco son requisitos para compilar/subir firmware en Arduino IDE Windows.
 
 ## 3. Compilar y localizar la placa
 
-```sh
-pio run -d firmware -e sentinel_s3
-pio device list
+Instalar las dos bibliotecas y la configuración inicial conforme a [firmware](firmware.md#preparar-arduino-ide), seleccionar las opciones N16R8 y pulsar **Verificar**. El resultado final del build oficial se registra en el cambio de dependencias; no se confunde con el SDK anterior. Se puede identificar el puerto sin programar ningún dispositivo:
+
+```powershell
+Get-CimInstance Win32_SerialPort | Select-Object DeviceID, Name, PNPDeviceID
 ```
 
-La compilación debe terminar en `SUCCESS`. Conectar la placa mediante un cable USB de datos al conector USB-UART para utilizar la consola UART0 configurada. Identificar su puerto real en la lista.
-
-Si Windows detecta un COM y WSL carece del dispositivo, resolver el acceso USB entre ambos entornos antes de grabar. `PUERTO_REAL` en los comandos siguientes es un marcador que se debe sustituir.
+Usar cable USB de datos y el COM correspondiente a la placa; un COM Bluetooth no es evidencia de ESP32. Si hay varios dispositivos, confirmar cuál programar.
 
 ## 4. Grabar y comprobar el arranque
 
-```sh
-pio run -d firmware -e sentinel_s3 -t upload --upload-port PUERTO_REAL
-pio device monitor -d firmware -e sentinel_s3 --port PUERTO_REAL --baud 115200
-```
+Con las opciones oficiales y el COM real seleccionados, preparar primero **Erase All Flash Before Sketch Upload: Enabled** desde el IDE para la primera carga de la tabla nueva, después pulsar **Subir** y abrir **Monitor serie**, 115200; se pierden datos anteriores y hay que emparejar/configurar. Después volver a Disabled si no se solicita borrado total. La actualización USB normal y la imagen merged de inicialización no garantizan conservar datos ni ofrecen migración. En reinicios normales el arranque no formatea NVS automáticamente. Ver [política vigente](persistence-policy.md).
 
-Presionar RESET con el monitor abierto. Registrar el `device_id`, `boot_id`, perfil inicial y memoria detectada. Se esperan flash de 16777216 bytes, PSRAM de 8388608 bytes y perfil `idle`. La OLED debe mostrar perfil y conectividad.
-
-Ante un diagnóstico de memoria o pantalla, resolverlo antes de continuar con el emparejamiento.
+Presionar RESET con el monitor abierto. Registrar device ID persistente, boot ID nuevo, perfil `idle`, flash 16777216 y PSRAM 8388608 medidas por el firmware, además de OLED. Resolver diagnósticos de memoria/pantalla antes de pairing. El [build del SDK previo](../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md) es evidencia histórica; las pruebas físicas siguen pendientes; el build oficial nuevo tiene evidencia separada.
 
 ## 5. Probar los controles físicos
 
 1. Pulsar brevemente el botón externo y soltarlo. Desde `idle` debe seleccionar `escudo`.
-2. Pulsar brevemente otra vez. Debe seleccionar `cebo` y reflejarlo en OLED.
+2. Volver a pulsar y comprobar rotación solo entre módulos registrados. Actualmente solo Escudo está habilitado; no esperar Cebo/Sanitizador hasta sus entregas.
 3. Mantener el botón tres segundos y soltarlo. Debe abrir la ventana de emparejamiento durante 120 segundos y conservar el perfil al soltar.
 
-La conexión de Cebo permanece pendiente hasta aprovisionar la red y el broker.
+La conexión de Cebo requiere además su implementación real y registro, aprovisionamiento de red y broker. No habilitar un mock para dar por hecha esta prueba.
 
 ## 6. Instalar la aplicación Android
 
@@ -88,10 +77,10 @@ Registrar el resultado físico y comprobar la seguridad negociada para cerrar la
 Ejecutar cada acción después de recibir la confirmación de la anterior.
 
 1. Consultar estado.
-2. Seleccionar Reposo, Escudo y Cebo, comprobando coincidencia con OLED.
+2. Seleccionar Reposo y Escudo, comprobando coincidencia con OLED. Probar Cebo/Sanitizador solo al estar implementados y registrados.
 3. Sincronizar hora por BLE.
 4. Comprobar los resultados `applied` y los eventos de sistema.
-5. Revisar las capacidades reportadas. Captura, detectores, HTTP/Telnet y notificaciones siguen pendientes de sus cambios.
+5. Revisar capacidades: Escudo ya incorpora captura/detectores en firmware, con pruebas físicas pendientes. HTTP/Telnet, Sanitizador, notificaciones y las pantallas específicas siguen en sus cambios.
 
 ## 9. Preparar MQTT para el equipo real
 
@@ -102,6 +91,8 @@ El laboratorio de la implementación inicial utiliza `lab-node` y SAN `localhost
 Suministrar las cuentas mediante el archivo privado de laboratorio y los formularios de la app. Guardar contraseñas y claves en las rutas privadas ignoradas, y compartir únicamente la CA pública cuando se configure confianza Android.
 
 ## 10. Aprovisionar y comprobar Cebo
+
+Este recorrido espera el módulo real de P3; actualmente su flag vale 0 y no anuncia servicios. No se puede acreditar con la base/port por sí solos.
 
 1. Sincronizar la hora mediante BLE y esperar el resultado aplicado.
 2. En Conectividad del dispositivo, introducir SSID de 2.4 GHz, contraseña, URI `mqtts://HOST_REAL:8883`, cuenta de nodo y CA pública PEM.
@@ -121,7 +112,7 @@ Suministrar las cuentas mediante el archivo privado de laboratorio y los formula
 3. Comprobar que el evento aparece una vez.
 4. Reiniciar la placa y reconectar BLE. Comprobar identidad estable, boot ID nuevo y recuperación de los eventos persistidos con sus IDs originales.
 5. Repetir una recuperación y comprobar deduplicación.
-6. Aprovisionar otra vez hora y conectividad antes de volver a probar MQTT, porque esa configuración se conserva en RAM.
+6. Comprobar configuración validada restaurada en Idle sin asociación; renovar la hora UTC antes de MQTT. La configuración autorizada persiste en NVS y solo se reprovisiona si fue reinicializada por USB o si falta/es inválida. Probar también corte de alimentación tras commit sin subir firmware y comprobar identidad/bonds/historial retenidos.
 
 ## 12. Registrar resultados
 
