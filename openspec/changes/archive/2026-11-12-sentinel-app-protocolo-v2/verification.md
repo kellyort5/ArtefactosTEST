@@ -10,7 +10,7 @@ Fecha: 2026-11-12. Autor único: Persona 1 — Jefry, por reasignación expresa.
 - Navegación común por capacidades, estado confirmado y métricas del mismo arranque. Historial distingue origen real/simulado de v2; v1 no inventa origen. Un origen declarado no es autenticación criptográfica del evento.
 - Formularios limpian claves al enviar y se restablecen al terminar, incluso ante error. Correlación de órdenes privadas sin argumentos; IndexedDB admite solo eventos validados. MQTT elimina credenciales en desconexión, cierre y fallo de conexión; sin persistencia de claves ni logs de payloads.
 
-## Comprobaciones reproducibles
+## Comprobaciones del incremento antes del archivo
 
 Entorno: WSL/Linux, Node24.13.1/npm11.8.0, JDK21, SDK Android36 y Build Tools36, versiones existentes del repositorio. Sin dependencias nuevas.
 
@@ -24,7 +24,7 @@ Entorno: WSL/Linux, Node24.13.1/npm11.8.0, JDK21, SDK Android36 y Build Tools36,
 | `npm run android:assemble` | PASS, `BUILD SUCCESSFUL`, 124 tareas (27 ejecutadas y 97 actualizadas), APK debug generado. Compilar no acredita permisos, pairing ni radio real. |
 | `openspec validate --all --strict --json` | PASS, 30/30: 13 specs principales y 17 cambios activos. |
 
-Los fixtures solo se inyectan desde tests/checks; la app de producto espera mensajes reales. Progreso: **5/6 tareas**, pendiente 2.1; app v2 sigue activa y sin archivar. El smoke de navegador también comprueba limpieza del formulario y ausencia de clave de prueba en store/localStorage tras error local de cuenta.
+Los fixtures solo se inyectan desde tests/checks; la app de producto espera mensajes reales. Progreso al entregar el software: **5/6 tareas**, pendiente 2.1. Posteriormente el usuario autorizó sincronizar y archivar manteniendo esa prueba pendiente; ver [cierre](closure.md). El smoke de navegador también comprueba limpieza del formulario y ausencia de clave de prueba en store/localStorage tras error local de cuenta.
 
 ## Pendientes físicos y dependencias
 
@@ -36,7 +36,7 @@ Contraste de integración en fuentes: `ModuleSupervisor::capabilities()` agrega 
 
 Recorrido breve cuando haya hardware:
 
-1. Seguir el [montaje y configuración de base](../../../docs/core-foundation-test-guide.md), con OLED y botón; compilar/grabar el firmware revisado por el flujo de Persona 1.
+1. Seguir el [montaje y configuración de base](../../../../docs/core-foundation-test-guide.md), con OLED y botón; compilar/grabar el firmware revisado por el flujo de Persona 1.
 2. Instalar el APK de este incremento en el teléfono autorizado, conceder permisos cercanos, abrir la ventana con el botón y emparejar con código OLED. Comprobar rechazo de operaciones protegidas sin autenticación.
 3. Leer versión/boot/capacidades reales, consultar estado y cambiar Reposo/Escudo; comprobar ACK y estado/revisión, incluido rechazo sin éxito aparente. La app común no añade catálogo ni controles de captura: siguen en `sentinel-app-escudo`.
 4. Desconectar/reconectar BLE y reiniciar app; verificar pendientes y recuperación de eventos disponibles por cursor, mismos IDs, dedup y gap visible. Registrar versión, paso y resultado sin secretos.
@@ -48,4 +48,4 @@ La plantilla actual de broker solo concede v1. La app tolera ACL v1 para la base
 
 ## Recuperación archivada
 
-Antes de este apply se sincronizaron los tres requisitos de [escudo-recovery](../../specs/escudo-recovery/spec.md) y se [archivó recuperación](../archive/2026-11-12-sentinel-escudo-recuperacion/closure.md), conforme a autorización expresa. Sus tareas físicas 1.3, 2.1 y 2.2 continúan pendientes. PR #10 y su integración se gestionan por separado; este trabajo no realizó merge.
+Antes de este apply se sincronizaron los tres requisitos de [escudo-recovery](../../../specs/escudo-recovery/spec.md) y se [archivó recuperación](../2026-11-12-sentinel-escudo-recuperacion/closure.md), conforme a autorización expresa. Sus tareas físicas 1.3, 2.1 y 2.2 continúan pendientes. PR #10 y su integración se gestionan por separado; este trabajo no realizó merge.
