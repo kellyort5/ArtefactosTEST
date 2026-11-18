@@ -1,33 +1,26 @@
 # Spec Delta
 
+## ADDED Requirements
+
+### Requirement: MQTT anónimo en LAN de confianza
+El broker SHALL permitir MQTT5/TCP1883 y WS9001 sin TLS, usuarios, contraseñas ni ACL. SHALL conservar datos persistentes y no exigir preparación de secretos. La documentación SHALL indicar que cualquier cliente con acceso puede leer/publicar y que device_id no autentica.
+
+#### Scenario: Arranque sin cuentas
+- **WHEN** se inicia Compose sin material privado previo
+- **THEN** dos clientes conectan y publican/suscriben por TCP/WS sin credenciales
+- **AND** el reinicio conserva el volumen sin instalar certificados o generar cuentas
+
+#### Scenario: Sin aislamiento por identidad
+- **WHEN** un cliente alcanza el broker y usa un topic de otro nodo
+- **THEN** no se presupone filtrado de autorización por rol o identidad
+- **AND** se documenta uso en LAN propia/autorizada de confianza sin exposición Internet
+
 ## MODIFIED Requirements
 
-### Requirement: Listeners LAN autenticados sin certificados
-El broker SHALL ofrecer MQTT5/TCP en 1883 y MQTT5/WS en 9001 para redes de confianza autorizadas, con autenticación obligatoria y sin certificados. SHALL permitir acceso LAN sin cambios de router y documentar que el tráfico no está cifrado.
+### Requirement: Persistencia MQTT con alcance explícito
+El broker SHALL conservar su estado MQTT configurado en almacenamiento persistente entre reinicios y documentar que no reemplaza el registro local del dispositivo ni un archivo histórico de incidentes.
 
-#### Scenario: Arranque con configuración privada
-- **WHEN** se inicia el broker con credenciales locales válidas
-- **THEN** el nodo y la app pueden conectar mediante TCP y WS sin CA
-- **AND** una conexión anónima o con contraseña incorrecta se rechaza
-
-#### Scenario: Material privado ausente
-- **WHEN** falta el archivo de usuarios o ACL
-- **THEN** el arranque falla con instrucciones de configuración sin generar credenciales públicas ni habilitar acceso anónimo
-
-#### Scenario: Acceso desde teléfono
-- **WHEN** el teléfono y el PC pueden comunicarse en una red de confianza
-- **THEN** la app accede al broker usando la IP LAN del PC sin instalar certificados ni configurar DNS o el router
-- **AND** las instrucciones distinguen firewall local y aislamiento de clientes de fallos de autenticación
-
-### Requirement: Configuración y datos privados fuera del repositorio
-El despliegue SHALL separar configuración fuente, datos persistentes y secretos locales; generar usuarios de laboratorio sin requerir certificados, sin guardar contraseñas, claves privadas o contenido sensible en Git o logs.
-
-#### Scenario: Preparación de un entorno
-- **WHEN** el equipo sigue las instrucciones de configuración
-- **THEN** crea su propio material privado fuera del seguimiento de Git y conserva configuraciones y ACL revisables
-- **AND** no recibe una cuenta administrativa incorporada al frontend
-
-## RENAMED Requirements
-
-- FROM: `### Requirement: Listeners cifrados sin acceso anónimo`
-- TO: `### Requirement: Listeners LAN autenticados sin certificados`
+#### Scenario: Reinicio del contenedor
+- **WHEN** se reinicia el broker conservando el almacenamiento configurado
+- **THEN** el estado retenido puede recuperarse al reconectar y el nodo informa disponibilidad actualizada
+- **AND** ningún cliente interpreta un estado retenido antiguo como prueba de conexión actual

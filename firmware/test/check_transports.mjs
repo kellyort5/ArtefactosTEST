@@ -34,6 +34,7 @@ function checkPackets(output) {
     const connect = packets.find(p => p.cmd === 'connect');
     assert(connect,name+': CONNECT');
     assert.equal(connect.protocolVersion,5); assert.equal(connect.clean,true);
+    assert.equal(connect.username,undefined); assert.equal(connect.password,undefined);
     assert.equal(connect.properties.sessionExpiryInterval,0);
     assert.equal(connect.will.qos,1); assert.equal(connect.will.retain,true);
     const subscribe = packets.find(p => p.cmd === 'subscribe');

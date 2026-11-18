@@ -297,8 +297,6 @@ void Network::tick(uint64_t now, bool /*time_valid*/) {
   memcpy(cfg.host, config.uri + parsed.field_data[UF_HOST].off,
          parsed.field_data[UF_HOST].len);
   cfg.port = parsed.field_set & (1 << UF_PORT) ? parsed.port : 1883;
-  snprintf(cfg.user, sizeof(cfg.user), "%s", config.username);
-  snprintf(cfg.password, sizeof(cfg.password), "%s", config.password);
   snprintf(cfg.client_id, sizeof(cfg.client_id), "%s", client_id);
   snprintf(cfg.commands, sizeof(cfg.commands), "%s", command_topic);
   snprintf(cfg.availability, sizeof(cfg.availability), "%s", will_topic);

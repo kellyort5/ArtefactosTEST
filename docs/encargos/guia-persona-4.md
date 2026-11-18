@@ -1,12 +1,14 @@
 # Guía de Persona 4 — App, broker LAN y laboratorio
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
 
 P4 debe contemplar que reinstalar/actualizar por USB puede reiniciar identidad, bonds e historial/cursores. Si ocurre, retirar vínculos/caché obsoletos del teléfono, volver a emparejar/configurar y reconciliar desde metadata/estado nuevos; no reutilizar el cursor anterior frente a un historial reinicializado, aunque el device_id derivado de MAC siga igual. No prometer migración de datos entre versiones. Conservar resultados históricos por separado y no presentar mensajes antiguos como actuales. En reinicios sin upload sí se exige recuperar datos confirmados. Esta documentación no declara implementada una UI nueva.
 
 Tu entrega es la aplicación de los tres módulos, su integración Android/BLE/WS/push, el broker accesible en LAN y la consolidación de evidencia del equipo. Los otros tres autores implementan firmware y P3 envía alertas desde servidor. Tú consumes esas entregas; no programas sus detectores, NAT o servicios Cebo.
 
-El usuario reasignó únicamente `sentinel-app-protocolo-v2` a P1 el 2026-11-12. Tú consumes esa entrega y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
+El usuario reasignó únicamente `sentinel-app-protocolo-v2` a P1 el 2026-11-12. Tú consumes esa entrega y el panel diagnóstico P1, y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
 
 ## 1. Qué leer antes de programar
 
@@ -20,9 +22,9 @@ Las specs son Markdown que puedes seguir sin instalar OpenSpec. Informa tareas n
 
 ## 2. Qué archivos son tuyos
 
-- `app/`: UI, controller, store, journal, transportes, tests y proyecto Android fuente. Las pantallas nuevas se organizan en `app/src/features/<modulo>/` según diseño.
+- `app/`: pantallas de producto, estilos, tests propios y proyecto Android fuente. Las pantallas nuevas se organizan en `app/src/features/<modulo>/`. Reutiliza controller/store/journal/transportes y diagnóstico P1 ya entregados; coordina cualquier cambio en esos archivos con P1 mientras completa4.3, sin editarlos simultáneamente desde tus specs de UX.
 - `package.json` y `package-lock.json` raíz: dependencias del workspace `app`/`contracts`. Los otros integrantes te piden cambios aquí; evitar ediciones concurrentes del lockfile.
-- `broker/`: Mosquitto, TCP/WS, ACL y documentación de LAN.
+- `broker/`: Mosquitto, TCP/WS anónimos y documentación de LAN.
 - `simulator/`, futuros `docs/lab/` y `docs/evidence/`: reproductor de mensajes, procedimientos e informes sanitizados.
 
 P1 mantiene contratos/núcleo/Escudo; P2 Sanitizador; P3 Cebo y `notifications/` con dependencias propias. Un fallo del componente ajeno se devuelve a su autor con reproducción; no lo corriges modificando su carpeta dentro de tu PR.
@@ -50,11 +52,11 @@ Esta secuencia concreta el reparto, sin poner fechas ni cambiar sus dependencias
 
 ### B. Broker: sentinel-broker-lan
 
-1. Revisar preparación existente y soporte SAN LAN: hay generación local con `--san`, pero aún debes comprobar su uso real y completar ACL/rol v2 del encargo. No recrear un laboratorio con secretos ya preparados.
-2. Usar IP LAN del PC, MQTT TCP1883/WS9001 y cuentas autorizadas, sin CA/SAN ni cambios de router. Mantener autenticación y permisos.
-3. Completar ACL exactas v1/v2 y rol `notify` de lectura mínima para P3. Conservar replay histórico v1. Probar denegación de otro nodo/rol, además de conexión permitida.
-4. Documentar host/firewall y comprobar TCP/WS desde ESP32/teléfono reales. `localhost` en el teléfono es el teléfono, no el PC del broker.
-5. Entregar a P3 endpoints por IP y configuración de rol por canal privado para los secretos. No publicar credenciales en Git, capturas, chat o variables `VITE_*`.
+1. Reutilizar Compose/transportes anónimos entregados. No generar CA, usuarios, contraseñas, rol notify ni ACL.
+2. Comprobar desde la red del equipo TCP1883/WS9001 por IP, firewall y aislamiento de clientes. Conservar el volumen y topics/replay v1/v2.
+3. Verificar con P3 suscripción a eventos y con app/nodo publicación/ACK. No hay pruebas de permisos por rol o rechazo cross-node: no existe ese aislamiento. Validación/topic/device_id no acreditan autenticación.
+4. Entregar endpoints/topics a P3 y registrar pruebas físicas con teléfono/ESP32 cuando estén disponibles. localhost del teléfono no es el PC.
+5. Documentar resultados en docs/modules/broker-lan.md con los números de tarea de la ficha. No declarar hardware probado por un smoke local.
 
 ### C. Laboratorio: sentinel-laboratorio-pruebas
 
@@ -148,21 +150,21 @@ python3 broker/scripts/manage.py up
 python3 broker/scripts/manage.py ps
 ```
 
-Estos comandos existen; no prueban por sí solos ACL v2, acceso LAN o push. Seguir las verificaciones de la ficha y del README. Un emulador sirve para UI, arranque y casos de permisos; no sustituye la evidencia BLE físico o push con el teléfono real requerida por las specs. Para periféricos y pairing de la ESP32, coordinar con P1 y seguir la [guía de base](../core-foundation-test-guide.md).
+Estos comandos existen; no prueban por sí solos acceso LAN físico o push. Seguir las verificaciones de la ficha y del README. Un emulador sirve para UI, arranque y casos de permisos; no sustituye la evidencia BLE físico o push con el teléfono real requerida por las specs. Para periféricos y pairing de la ESP32, coordinar con P1 y seguir la [guía de base](../core-foundation-test-guide.md).
 
 ## 6. Primera sesión y cierre
 
 1. Confirmar con Jefry la referencia publicada de contratos y revisar estado real de las dependencias.
 2. Consumir la referencia revisada de app común de P1 y ejecutar tests/build antes de ampliar la app en tu propia spec.
-3. Comenzar `feat/sentinel-broker-lan` para completar seguridad/ACL v2 y desbloquear P3; preparar cada pantalla en su propia rama/PR.
+3. Comenzar `feat/sentinel-broker-lan` para verificar LAN anónima del equipo y desbloquear P3; preparar cada pantalla en su propia rama/PR.
 4. Preparar procedimientos/plantillas de laboratorio; integrar las pantallas conforme lleguen los módulos y reservar una sesión de teléfono/ESP32 para cada flujo real.
-5. Coordinar push con P3 desde temprano para que cuentas/configuración no queden para el último día.
+5. Coordinar push con P3 desde temprano para que claves de proveedor/configuración no queden para el último día.
 
 | Compañero | Lo que intercambian |
 | --- | --- |
 | P1 | Contratos/capacidades Escudo y núcleo ↔ comandos/UI, revisión de interfaces e informes de integración. |
 | P2 | Resultados y métricas reales Sanitizador ↔ pantalla BLE y pruebas conjuntas con cliente AP. |
-| P3 | Eventos y API/servidor de alertas ↔ broker/rol, UI Cebo y registro/recepción Android. |
+| P3 | Eventos y API/servidor de alertas ↔ broker anónimo, UI Cebo y registro/recepción Android. |
 
 Tu cierre exige tres pantallas integradas con hardware, broker con seguridad real, push recibido con app cerrada y matriz de evidencia completa. Los fixtures permiten preparar interfaces; no reemplazan esos cierres. Mantener pruebas focalizadas de negociación, ACK, dedup/paginación, privacidad y registro push. Los benchmarks/estabilidad prolongada quedan después.
 

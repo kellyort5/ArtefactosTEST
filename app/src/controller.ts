@@ -70,7 +70,7 @@ export class NodeController {
  }
  async connectMqtt(settings:MqttSettings){
   if(this.store.getState().deviceId&&this.store.getState().deviceId!==settings.deviceId)await this.ble.disconnect();
-  this.store.getState().select(settings.deviceId);this.store.getState().setRole(settings.role);await this.loadHistory();await this.mqtt.connect(settings);
+  this.store.getState().select(settings.deviceId);await this.loadHistory();await this.mqtt.connect(settings);
  }
  send(request:NodeRequest,preferred?:Channel):Promise<string>{return this.dispatch(request,preferred);}
  sendDiagnostic(request:NodeRequest,fault:DiagnosticFault,enabled:boolean):Promise<string>{
@@ -101,7 +101,6 @@ export class NodeController {
    const channel=preferred??(s.links.ble==='connected'?'ble':'mqtt');
    if(s.links[channel]!=='connected')throw new Error('Conecta un canal autorizado.');
    if(bleOnly(request.operation)&&channel!=='ble')throw new Error('Usa BLE protegido para esta operación.');
-   if(channel==='mqtt'&&s.role==='viewer')throw new Error('Observador: solo lectura.');
    let metadata=s.metadata,metadataAt=s.metadataAt;
    if(channel==='ble'){
     metadata=await this.ble.readMetadata();metadataAt=this.now();

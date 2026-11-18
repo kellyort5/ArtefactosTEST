@@ -1,8 +1,10 @@
 # Primera prueba de Sentinel Node — Persona 1 (Jefry)
 
-**Política vigente:** [persistencia y USB](persistence-policy.md). La primera carga de la tabla nueva requiere **Erase All Flash Before Sketch Upload: Enabled** y elimina datos previos; emparejar/configurar de nuevo. El estado del build final integrado se registra en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds/logs anteriores no prueban esta tabla.
+**Estado actual:** [acuerdos del MVP y reparto](mvp-policy.md), [verificación integrada](../openspec/changes/sentinel-mvp-sin-cuentas/verification.md). MQTT sin TLS/cuentas/roles/ACL y correcciones de memoria/pila BLE incluidas. La tarea física4.3 sigue pendiente.
 
-Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `sentinel-p1-pruebas-sin-oled`. La fuente se mantiene con opciones de pruebas desactivadas; activarlas según 0.1. La [verificación de esta adaptación](../openspec/changes/sentinel-p1-pruebas-sin-oled/verification.md) identifica builds, APK y pendientes. Esta guía describe un procedimiento; no acredita pruebas físicas realizadas.
+**Política vigente:** [persistencia y USB](persistence-policy.md). La primera carga de la tabla nueva requiere **Erase All Flash Before Sketch Upload: Enabled** y elimina datos previos; emparejar/configurar de nuevo. El estado del build final integrado se registra en la [verificación vigente](../openspec/changes/sentinel-mvp-sin-cuentas/verification.md); los builds/logs anteriores no prueban esta tabla.
+
+Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `sentinel-p1-pruebas-sin-oled`. La fuente se mantiene con opciones de pruebas desactivadas; activarlas según 0.1. La [verificación de esta adaptación](../openspec/changes/sentinel-mvp-sin-cuentas/verification.md) identifica builds, APK y pendientes. Esta guía describe un procedimiento; no acredita pruebas físicas realizadas.
 
 **Primera sesión:** cargar firmware con visualización serie, conectar el botón externo, instalar APK diagnóstico, emparejar por BLE y ejecutar T01–T15 con las condiciones de cada caso. Se añaden controles de diagnóstico para probar el firmware existente; las pantallas finales de P4, OLED real, ensayos RF de ataques y los módulos de los compañeros conservan sus entregas y comprobaciones pendientes.
 
@@ -23,7 +25,7 @@ Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `senti
    #define SENTINEL_SERIAL_TEST_DISPLAY 1
    ```
 
-   El valor de Git es `0`; la copia preparada del paso 3 ya usa `1`. No cambies seguridad BLE ni flags de módulos. Selecciona **USB CDC On Boot: Disabled**, usa el conector **USB-UART** y abre **Monitor serie a 115200** antes de abrir la ventana BLE. El modo de pruebas acepta ausencia de OLED, pero sigue informando `peripherals.oled:false`.
+   El valor de Git es `0`; activar `1` en el sketch que realmente vas a cargar. La copia opcional Windows del build integrado ya usa `1`. No cambies seguridad BLE ni flags de módulos. Selecciona **USB CDC On Boot: Disabled**, usa el conector **USB-UART** y abre **Monitor serie a 115200** antes de abrir la ventana BLE. El modo de pruebas acepta ausencia de OLED, pero sigue informando `peripherals.oled:false`.
 2. Construye el APK con `VITE_SENTINEL_P1_TOOLS=1` según paso 11. Verifica que aparece **Diagnóstico P1**. El navegador permite revisar la interfaz pero las órdenes BLE requieren Android real.
 3. El passkey se muestra como `[P1 PAIR CODE]` únicamente durante un intento real dentro de la ventana física. Introduce las seis cifras, incluidos ceros iniciales, en Android. **No guardes consola/capturas con ese código ni las adjuntes al repositorio.** UART confirma entrega al controlador, no que una persona haya abierto el monitor: mantenlo abierto antes de emparejar. Si pasó el código, cancela y repite el intento; no se reproduce automáticamente.
 4. Al recibir OLED, vuelve a `SENTINEL_SERIAL_TEST_DISPLAY=0`, recompila/carga y genera APK sin la variable de diagnóstico. La pantalla del producto y su prueba física siguen siendo obligatorias. No hace falta borrar flash para RESET ni para probar persistencia.
@@ -93,37 +95,30 @@ wsl --set-version Ubuntu 2
 
 Referencia: [instalación oficial de WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-## 3. Abrir el checkout de esta adaptación
+## 3. Abrir la entrega integrada
 
-La adaptación se preparó en **`feat/sentinel-p1-serial`**, desde `b1f8729`, para preservar el trabajo MQTT concurrente del directorio original. Las fuentes se mantienen en esa rama; su publicación no mezcla automáticamente el trabajo MQTT LAN.
+La referencia compartida es **develop**, con P1, correcciones BLE y MQTT anónimo integrados. Usa una entrega publicada que incluya este cambio; una rama o APK viejo no acredita qué versión ejecutas. No descartar cambios locales para cambiar de rama.
 
-**Ubuntu / WSL:**
+**Windows:** abrir `C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto` y comprobar estado/referencia:
+
+```powershell
+Set-Location 'C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto'
+git status --short --branch
+git log -1 --oneline
+```
+
+En Arduino IDE abrir `firmware\SentinelNode\SentinelNode.ino` desde esa raíz completa. Activar la opción serie según0.1 antes de Verificar/Upload. No copiar solo el .ino ni abrir el sketch de una entrega anterior.
+
+**Ubuntu/WSL**, para app y mantenimiento:
 
 ```sh
-cd /home/jefry/orca/workspaces/ArtefactosProyecto/sentinel-p1-serial
+cd /mnt/c/Users/Jefry/Documents/Arduino/ArtefactosProyecto
 pwd
 git status --short --branch
 git log -1 --oneline
 ```
 
-Esa es la raíz usada para app, tests y documentación. En Windows se puede abrir desde `\\wsl.localhost\Ubuntu\home\jefry\orca\workspaces\ArtefactosProyecto\sentinel-p1-serial`.
-
-Para Arduino Windows usa una copia local completa del sketch, evitando que las herramientas intenten compilar desde una ruta UNC. Ya se preparó una copia de prueba en:
-
-```text
-C:\Users\Jefry\AppData\Local\Temp\sentinel-p1-serial-check\input\SentinelNode\SentinelNode.ino
-```
-
-Puedes abrirla directamente en el IDE para esta sesión. Tiene `SENTINEL_SERIAL_TEST_DISPLAY=1`. Si necesitas recrearla, cierra el sketch y ejecuta en **PowerShell**:
-
-```powershell
-$repoP1 = '\\wsl.localhost\Ubuntu\home\jefry\orca\workspaces\ArtefactosProyecto\sentinel-p1-serial'
-$sketchP1 = Join-Path $env:TEMP 'sentinel-p1-manual\SentinelNode'
-New-Item -ItemType Directory -Force (Split-Path $sketchP1) | Out-Null
-Copy-Item -Recurse "$repoP1\firmware\SentinelNode" $sketchP1
-```
-
-Usa un destino nuevo si ya hay una copia; no superpongas archivos de versiones distintas. Después abre el `.ino` y cambia la opción según 0.1. No copies únicamente el `.ino`. Los instaladores de bibliotecas/menú se ejecutan desde la raíz completa del checkout, nunca desde el sketch aislado. No cambiar ramas ni descartar los cambios de MQTT para probar esto.
+Opcionalmente, la copia local de la compilación integrada sin OLED está en `%LOCALAPPDATA%\Temp\sentinel-mvp-integrated\input\SentinelNode\SentinelNode.ino`. Tiene la opción serie1. Sus binarios y logs son artefactos locales, no fuentes versionadas ni prueba de que se haya cargado la ESP32. Los instaladores de bibliotecas/menú se ejecutan desde el repositorio completo.
 
 ## 4. Herramientas opcionales de mantenimiento y app
 
@@ -191,7 +186,7 @@ No instalar el SDK propio para cumplir el objetivo nuevo ni eliminar instalacion
 Para app/contratos y tests host:
 
 ```sh
-cd /home/jefry/orca/workspaces/ArtefactosProyecto/sentinel-p1-serial
+cd /mnt/c/Users/Jefry/Documents/Arduino/ArtefactosProyecto
 source "$HOME/.nvm/nvm.sh"
 nvm use
 ```
@@ -216,7 +211,7 @@ npm run test:app
 npm run build
 ```
 
-Resultado esperado: comandos sin fallos. `check:contracts` cubre el contrato compartido; `test:app` cubre negociación v1/v2, ACK, retención/boot/revisión, familias de eventos, dedup/páginas/gap y privacidad. `build` compila web/contratos. La evidencia de este incremento registra 154 tests de contratos y 26 de app; las cifras pueden crecer. Estos resultados no prueban Bluetooth ni control con la placa.
+Resultado esperado: comandos sin fallos. `check:contracts` cubre el contrato compartido; `test:app` cubre negociación v1/v2, ACK, retención/boot/revisión, familias de eventos, dedup/páginas/gap y privacidad. `build` compila web/contratos. La verificación integrada registra156 tests de contratos y30 de app; las cifras anteriores se conservan en sus informes históricos. Estos resultados no prueban Bluetooth ni control con la placa.
 
 Para ver la interfaz en Windows, mantener esta terminal abierta:
 
@@ -352,7 +347,7 @@ ls -lh app/android/app/build/outputs/apk/debug/app-debug.apk
 
 ### 11.2. Instalar copiando el archivo (opción sencilla)
 
-1. Para la copia ya generada de esta adaptación, abrir `C:\Users\Jefry\AppData\Local\Temp\sentinel-p1-serial-check` y usar **sentinel-p1-diagnostic.apk**. Si acabas de reconstruir, usa `app/android/app/build/outputs/apk/debug/app-debug.apk` del checkout del paso 3, accesible en Windows por su ruta WSL; no uses el APK del checkout MQTT original.
+1. Para la copia ya generada de esta adaptación, abrir `C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto\.cache` y usar **sentinel-mvp-integrated-debug.apk**. Si acabas de reconstruir, usa `app/android/app/build/outputs/apk/debug/app-debug.apk` del checkout integrado del paso3. No uses los APK anteriores con TLS/cuentas.
 2. Conectar el teléfono por USB en modo transferencia de archivos y copiar ese APK a Descargas. También puedes transferirlo por otro medio propio.
 3. Abrir el APK desde el gestor de archivos del teléfono y permitir la instalación desde esa fuente si Android lo solicita. Instalar/actualizar **Sentinel Node**.
 4. No desinstalar ni borrar datos como paso rutinario: perderías el historial local que queremos comprobar. Ante un conflicto de firma, conservar primero la evidencia y resolver qué APK/referencia corresponde.
@@ -374,7 +369,7 @@ $sentinelAdb = 'C:\Users\Jefry\AppData\Local\Android\Sdk\platform-tools\adb.exe'
 
 ```powershell
 $sentinelPhoneSerial = 'SERIAL_REAL'
-& $sentinelAdb -s $sentinelPhoneSerial install -r 'C:\Users\Jefry\AppData\Local\Temp\sentinel-p1-serial-check\sentinel-p1-diagnostic.apk'
+& $sentinelAdb -s $sentinelPhoneSerial install -r 'C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto\.cache\sentinel-mvp-integrated-debug.apk'
 ```
 
 Esperar `Success` y abrir Sentinel en el teléfono. No pasar el USB del teléfono ni el de la ESP32 a WSL: ADB y Arduino usan Windows en este flujo. El SDK Linux compila el APK y ADB Windows puede instalar ese archivo; cada herramienta usa las rutas de su propio entorno.
@@ -611,12 +606,12 @@ Detalles: [recuperación](modules/escudo-recovery.md). Los resultados del host n
 | Auditoría, pasarela, DNS y DoH | P2 |
 | HTTP/Telnet, eventos/historial y alertas externas del Cebo | P3 |
 | Adaptador común de app v2 (entregado en software; física pendiente) | Tú, P1 |
-| Pantallas específicas, broker LAN/ACL v2, push Android y laboratorio | P4 |
+| Pantallas específicas, LAN anónima, push Android y laboratorio | P4 |
 | Registro final, transiciones, OLED/botón y resumen de alerta reciente | Tú, P1 |
 
 Cuando estén integradas, recorrer Idle → Escudo → Sanitizador → Cebo → Idle; comprobar recursos de cada modo, errores y comandos viejos, canales disponibles, journal y recuperaciones. Probar OLED con ausencia de alertas, nueva alerta y sustitución por otra, origen/tipo/tiempo disponible, funcionamiento sin teléfono y prioridad del emparejamiento. Los campos/señales reales se verifican en la [spec de integración](../openspec/changes/sentinel-integracion-tres-modos/specs/system-integration/spec.md).
 
-Con los componentes actuales no se puede dar por aprobado ese recorrido ni MQTT/NAT/HTTP/Telnet/push. La app común ya suscribe/publica la versión negociada, y la plantilla actual del broker concede v1/v2; el recorrido físico MQTT requiere Cebo real de P3 y comprobar acceso LAN. Broker/TCP y canales externos se preparan con sus dueños según [broker](../broker/README.md) y [conectividad](connectivity.md), usando los contratos v2 actuales. Un estado MQTT retenido aislado no cuenta como nodo vivo ni confirma órdenes.
+Con los componentes actuales no se puede aprobar todavía el recorrido conjunto MQTT/NAT/HTTP/Telnet/push: faltan las entregas de los módulos y sus pantallas. El broker ya admite v1/v2 anónimos, sin ACL o rol notify. P4 verifica la red física y P3 sus consumidores reales; no reimplementan cuentas.
 
 ## 19. Mapa de pruebas a tus specs
 
@@ -633,6 +628,8 @@ Con los componentes actuales no se puede dar por aprobado ese recorrido ni MQTT/
 | [core-foundation](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/tasks.md) | Base histórica reutilizada. | T01/T02/BLE aportan evidencia parcial; MQTT/TCP/app completa y demás pendientes se comprueban con sus componentes reales. |
 
 **Sin OLED:** T01/T02 comprueban visualización local por serie y botón; la prueba de la pantalla física sigue pendiente. El panel habilita T04–T06 y T08–T13 con hardware real; T07 y el ring reducido de T12 son host. Detectar ataques reales y descartar probes en aire requieren laboratorio autorizado. El paso 18 depende de entregas P2/P3/P4.
+
+La spec [pruebas P1 sin OLED](../openspec/changes/sentinel-p1-pruebas-sin-oled/tasks.md) conserva **4.3 pendiente**: cargar la imagen integrada con la corrección de pila, emparejar Android, consultar estado/ACK y comprobar ausencia de reinicios. La prueba intermedia de botón/código no la cierra.
 
 No marcar una casilla solo porque una parte pasó. El archivo de una spec tampoco convierte sus pendientes físicos en pruebas realizadas.
 

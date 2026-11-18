@@ -1,5 +1,7 @@
 # Verificación — persistencia operativa y Arduino estándar
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## Estado
 
 Implementación, regresiones host, documentación y build nativo Windows verificados. La inspección de artefactos y fuentes confirma el estado final del firmware. Los nueve trabajos software están implementados; la comprobación física permanece pendiente. No se ha programado una placa ni completado pendientes físicos por compilar. Cambio activo `sentinel-mvp-standard-persistence`, rama `feat/sentinel-arduino-migration`; sin commit, push, merge ni archivo.

@@ -131,7 +131,7 @@ export type ModuleCommandContext = {
   authenticated: boolean;
   authorized: boolean;
   encrypted: boolean;
-  authorizedDeviceId: string;
+  deviceId: string;
   bootId: string;
   revision: number;
   uptimeMs: number;
@@ -155,7 +155,7 @@ function validatedCommand(message: V2CommandMessage): V2CommandMessage {
 }
 
 function admission(message: V2CommandMessage, context: ModuleCommandContext): ModuleCommandRejection | null {
-  if (!context.authenticated || !context.authorized || (context.channel === 'ble' && !context.encrypted) || message.device_id !== context.authorizedDeviceId) return 'unauthorized';
+  if (message.device_id !== context.deviceId || (context.channel === 'ble' && (!context.authenticated || !context.authorized || !context.encrypted))) return 'unauthorized';
   if (context.channel !== 'ble' && context.channel !== 'mqtt') return 'unauthorized';
   if (context.retained) return 'invalid_message';
   if (message.boot_id !== context.bootId || message.payload.target_boot_id !== context.bootId) return 'wrong_boot';

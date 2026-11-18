@@ -1,5 +1,7 @@
 # Tasks
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## 1. Contratos y configuración
 
 - [x] 1.1 Cambiar configure_connectivity v1/v2 a mqtt:// sin CA; regenerar tipos/validador y documentar contrato; verificar fixtures y pruebas de contratos.

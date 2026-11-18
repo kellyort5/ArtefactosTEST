@@ -1,5 +1,7 @@
 # Verificación de ejecución — sentinel-arduino-sdk
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 **Aviso posterior de vigencia:** este registro conserva resultados, comandos, hashes y pendientes históricos. [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) sustituye las exigencias anteriores de RAM-only, continuidad USB y tabla inmutable: NVS explícita para configuración autorizada, tabla nueva/cuatro claves y carga/exportación oficial. Primera carga limpia desde IDE; USB permite reinicializar sin migración. Los resultados de este informe no acreditan la nueva tabla ni el build integrado nuevo, pendiente de evidencia del coordinador; los pendientes físicos siguen abiertos.
 
 Fecha: 2026-11-13. Repositorio: `C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto`, rama `feat/sentinel-arduino-migration`, HEAD `af7200ab1047f2d0dfc09b64047dfec6a3ce3309`. Se aplicó `openspec-apply-change`; instrucciones actuales `ready`, esquema `spec-driven`. Las casillas de `tasks.md` quedan bajo control del coordinador. No se realizaron commits, push, merges ni operaciones sobre componentes externos.
@@ -19,12 +21,12 @@ SDK ESP32-S3 real reconstruido y paquete Windows disponible, con placa `sentinel
 
 | Tarea | Evidencia concreta |
 | --- | --- |
-| 1.1 | [Manifiesto fuente](../../../firmware/arduino-package/manifest.json), overrides sin asignaciones duplicadas y SHA de distribución. Core `94afccf35fb1e401facddbcf9e13bcf7c76a31d8` (3.3.12), IDF `b774170ff46c393eeb5e495ea37936038d3f4f4f` (5.5.5), builder `6671d0bd65cdb9d4cc1001b759e8610de945a8d5`. |
+| 1.1 | Manifiesto fuente (`firmware/arduino-package/manifest.json`, artefacto SDK local retirado), overrides sin asignaciones duplicadas y SHA de distribución. Core `94afccf35fb1e401facddbcf9e13bcf7c76a31d8` (3.3.12), IDF `b774170ff46c393eeb5e495ea37936038d3f4f4f` (5.5.5), builder `6671d0bd65cdb9d4cc1001b759e8610de945a8d5`. |
 | 1.2 | Primer SDK `sdk-build.log` exit 0; reproducción mediante script definitivo `sdk-repro-build.log` exit 0, termina `SDK built: .../esp32s3`. Config efectiva idéntica al primer build, después de normalizar la asignación redundante de selección Arduino. |
-| 1.3 | [Parche NVS](../../../firmware/arduino-package/patches/0001-preserve-nvs-before-setup.patch), ejecutado sobre el `initArduino()` real con seis resultados inyectados y ASan/UBSan: una inicialización, cero borrados/reintentos y accessor conserva cada resultado. La implementación se enlaza en ELF Windows como `sentinel_arduino_nvs_status`. |
+| 1.3 | Parche NVS (`firmware/arduino-package/patches/0001-preserve-nvs-before-setup.patch`, artefacto SDK local retirado), ejecutado sobre el `initArduino()` real con seis resultados inyectados y ASan/UBSan: una inicialización, cero borrados/reintentos y accessor conserva cada resultado. La implementación se enlaza en ELF Windows como `sentinel_arduino_nvs_status`. |
 | 1.4 | Instalador PowerShell nativo: extracción/verificación completa antes de activar; salida `Installed sentinel:esp32:sentinel_s3_n16r8 at C:\Users\Jefry\Documents\Arduino\hardware\sentinel\esp32`, exit 0. `board listall Sentinel --format json` identifica `manually_installed: true`, plataforma compatible y versión correcta. Herramientas propias, sin referencia a los binarios globales de Boards Manager en compilación/upload. |
 | 2.1 | `arduino-cli.exe` Windows 1.5.1, commit `01f3d4f2b`, compila/enlaza `Capabilities.ino`, exit 0; `Sketch uses 337018 bytes (8%)`, `Global variables use 23300 bytes (7%)`. Log `capabilities-windows-v2.log`. |
-| 2.2 | [Guía reproducible](../../../firmware/arduino-package/README.md), builder/empaquetador/instalador/verificador fuente, hashes, logs y esta evidencia. Builds/ZIP/SDK/caches fuera del repositorio; ninguna prueba física se declara realizada. |
+| 2.2 | Guía reproducible (`firmware/arduino-package/README.md`, artefacto SDK local retirado), builder/empaquetador/instalador/verificador fuente, hashes, logs y esta evidencia. Builds/ZIP/SDK/caches fuera del repositorio; ninguna prueba física se declara realizada. |
 
 Los logs de esta tabla están en `/home/jefry/.cache/sentinel-arduino/`. La preservación de trabajo previo corresponde al snapshot del coordinador `/tmp/arduino-execution-before-dirty.json`; no se editaron archivos ajenos a la propiedad asignada ni `tasks.md`.
 

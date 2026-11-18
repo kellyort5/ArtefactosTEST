@@ -1,16 +1,24 @@
 # Guía de Persona 1 — Jefry: coordinación, núcleo y Escudo
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
 
 P1 mantiene núcleo, integración Arduino/Escudo y API central: cuatro claves mínimas, retirada de cinco overrides propios antiguos, wrapper anti-autoerase durante arranque normal y tabla nueva. Probar en placa identidad/bonds/configuración/historial tras reinicio y corte sin upload; restaurar en Idle y renovar UTC. Primera carga limpia y posteriores USB no prueban conservación; nunca grabar desde setup scripts.
 
 Tu resultado es entregar las interfaces que consumen los compañeros, el Escudo completo y la integración del núcleo. También mantienes OpenSpec para todos. Los compañeros implementan sus encargos y aportan evidencia; tú no debes absorber sus tareas para actualizar las specs.
 
+## Estado actual y tu siguiente trabajo
+
+La base P1 (Escudo, contratos/API, app v2 y herramientas de pruebas sin OLED) está entregada en software. El commit b63772a incluye correcciones de caché/pila BLE: conservar y ejecutar la tarea física4.3 de [pruebas sin OLED](../../openspec/changes/sentinel-p1-pruebas-sin-oled/tasks.md), con la imagen integrada actual. Sigue [la guía P1](../guia-pruebas-persona-1.md). No cerrar por mostrar el passkey de una versión intermedia.
+
+Coordina la retirada transversal MQTT de usuarios/roles/ACL/TLS y comparte endpoint/topics, sin credenciales MQTT. Después integra las entregas de P2/P3/P4 en sentinel-integracion-tres-modos, incluyendo OLED y alertas recientes reales. P4 consume tu controller/store/journal y panel; sus pantallas finales y gráficos siguen siendo su responsabilidad. Las correcciones del núcleo/contratos siguen contigo, un autor por spec.
+
 ## 1. Tu lectura y punto de partida
 
 Para tu primer montaje y prueba, seguir la [guía desde cero de software, hardware y specs de Persona 1](../guia-pruebas-persona-1.md), actualizada para tu app común v2: instalación, pairing, estado, Reposo ↔ Escudo, reconexión e historial. Distingue esos controles de las pantallas específicas pendientes del equipo.
 
-La [verificación](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) y el [README de app](../../app/README.md) registran el incremento v2 y sus pendientes físicos. La primera sesión puede completar T03/T14/T15 de la guía; catálogo/selección y controles de captura siguen en `sentinel-app-escudo` de P4. Publicar o actualizar la guía no acredita esas pruebas ni cambia sus casillas OpenSpec.
+La [verificación](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) y el [README de app](../../app/README.md) registran el incremento v2 y sus pendientes físicos. La sesión actual permite recorrer T01–T15 según condiciones usando Diagnóstico P1 para catálogo/selección/captura; P4 sigue implementando la UX final, gráficos e incidentes de sentinel-app-escudo. Publicar o actualizar la guía no acredita esas pruebas ni cambia sus casillas OpenSpec.
 
 Leer la [guía del equipo](guia-equipo.md), el [reparto](README.md), la [arquitectura](../architecture.md), [R-02 a R-07 y R-11, con H-01 a H-08](../technical-decisions.md) y el [roadmap](../roadmap.md).
 

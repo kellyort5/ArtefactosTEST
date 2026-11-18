@@ -1,6 +1,8 @@
 # Migración y simplificación del firmware para Arduino IDE Windows
 
-**MQTT vigente (2026-11-17):** TCP1883/WS9001 autenticados en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
+> Registro histórico de su entrega. Para instalación y alcance actual consultar [acuerdos vigentes](mvp-policy.md). TLS, cuentas/ACL o dependencias anteriores aquí descritas no se reinstalan para el MVP actual; se conservan las evidencias y pendientes originales.
+
+**MQTT vigente (2026-11-17):** TCP1883/WS9001 anónimos en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
 
 
 **Política actual:** [persistencia operativa y carga USB](persistence-policy.md). Sustituye la conservación entre versiones y las recetas especiales anteriores. El [build final de tabla nueva/cuatro claves/configuración persistente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md) terminó PASS en Windows; los hashes citados como antecedentes abajo pertenecen al build anterior.

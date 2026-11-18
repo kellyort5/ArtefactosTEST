@@ -1,5 +1,7 @@
 # Guía de Persona 3 — Cebo y servidor de alertas
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
 
 P3 persistirá configuración aceptada de Cebo e historial sanitizado mediante recursos centrales, con límites, commit antes de confirmar y recuperación tras reinicio/corte sin USB; no iniciar servicios automáticamente. Mantener eventos/IDs/cursores y dedup dentro del ring. No guardar credenciales recibidas por HTTP/Telnet/honeypot o terceros. NVS estándar no promete cifrado físico; secretos propios solo por canal autorizado, nunca Git/log/event/status. Webhook y push mantienen sus encargos completos.
@@ -21,7 +23,7 @@ No tienes que aprender OpenSpec ni generar cambios: las propuestas están prepar
 - Firmware: futuro `firmware/SentinelNode/src/cebo/`, `firmware/test/cebo/` y documentación `docs/modules/cebo-*.md` de tus fichas.
 - Alertas: futuro `notifications/`, sus tests, package/lockfile y Compose propios, más sus documentos. No añadir sus dependencias al workspace raíz sin coordinar con P4.
 - P1 mantiene supervisor, radio, transportes, serialización y journal. Usar sus hooks y almacenamiento compartido; no crear otra instancia MQTT, otro gestor Wi-Fi o un journal firmware alternativo.
-- P4 mantiene `app/`, Android, broker/ACL y lockfiles del workspace. Entregarle necesidades de rol, endpoints y ejemplos; no editar sus archivos para completar tu entrega.
+- P4 mantiene `app/`, Android, broker LAN y lockfiles del workspace. Entregarle endpoints, topics y ejemplos; no editar sus archivos para completar tu entrega.
 
 Para integrar HTTP necesitas la API de P1; para alertas completas necesitas broker LAN de P4 y eventos reales del Cebo. Puedes preparar lógica/servicio con fixtures revisados mientras llegan, distinguiendo preparación de integración real.
 
@@ -62,7 +64,7 @@ Una rama `feat/<nombre completo del cambio>` y un PR por encargo. No abrir dos i
 
 [Ficha, diseño, spec y tareas](sentinel-alertas-webhook.md). Requiere contratos, broker LAN y eventos Cebo.
 
-1. Crear componente Node mínimo con package/lockfile y Compose propios. Consumir MQTT TCP con rol de lectura limitado a nodos autorizados; pedir ACL a P4.
+1. Crear componente Node mínimo con package/lockfile y Compose propios. Consumir MQTT TCP anónimo por los topics de Cebo del contrato; pedir endpoints a P4.
 2. Implementar enrutado, dedup y outbox persistente acotada con reintentos/vencimiento. No convertirlo en una plataforma histórica adicional.
 3. Integrar webhook HTTPS con destinos/cuentas propios configurados fuera de Git. Mantener la gestión de fallos del webhook separada del futuro canal push.
 4. Implementar estado por HTTPS con autenticación por nodo y CORS explícito conforme al contrato; no devolver tokens/destinos privados.
@@ -102,7 +104,7 @@ No registrar contraseñas, usuarios capturados, tokens, cookies o cuerpos comple
 1. Confirmar con P1 contrato/API y referencia revisada de partida; leer el diseño HTTP.
 2. Preparar [Arduino IDE Windows y la integración oficial (core3.3.12, dos bibliotecas y opción local documentados)](../firmware.md) y abrir la rama `feat/sentinel-cebo-http` en tu clon limpio según la [guía común](guia-equipo.md#5-preparar-tu-copia-y-tu-rama).
 3. Entregar primero módulo integrable/build, después panel real y bus de interacciones. Hacer pruebas breves con datos ficticios en red propia.
-4. Avisar temprano a P4 del rol `notify`, endpoint de estado y necesidad de una instalación Android para probar push. No esperar al final para aprovisionar destinos propios.
+4. Avisar temprano a P4 del endpoint MQTT y del endpoint de estado y necesidad de una instalación Android para probar push. No esperar al final para aprovisionar destinos propios.
 
 Comandos existentes, desde raíz:
 
@@ -121,7 +123,7 @@ No exponer HTTP/Telnet a Internet ni abrir puertos del router. Limitar recursos 
 | --- | --- |
 | P1 | Recibir hooks/journal; solicitar cambios globales. Entregar registro Cebo y evidencia de parada, replay y límites. |
 | P2 | Acordar turnos de ESP32; no modificar Sanitizador ni ejecutar ambos modos a la vez en una placa. |
-| P4 | Recibir broker TCP/WS y rol mínimo; entregar API de estado/registro y servidor push. Él implementa la UI, registro Android y recepción/tap. |
+| P4 | Recibir broker TCP/WS anónimo y topics de integración; entregar API de estado/registro y servidor push. Él implementa la UI, registro Android y recepción/tap. |
 
 Tu cierre requiere servicios reales, eventos válidos, persistencia/replay sin secretos, webhook recibidos y envío push real con evidencia coordinada de recepción Android. Entregar por número de tarea, comandos y resultados; P4 consolida y Jefry mantiene OpenSpec. Usa el [formato de entrega](guia-equipo.md#6-rutina-por-tarea-y-entrega) y conserva pendientes físicos como PENDIENTE.
 

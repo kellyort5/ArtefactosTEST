@@ -7,7 +7,7 @@ class MqttTransport {
 public:
   static constexpr size_t MaxPayload = 2048;
   struct Config {
-    char host[257] = {}, user[257] = {}, password[513] = {};
+    char host[257] = {};
     char client_id[72] = {}, commands[160] = {}, availability[160] = {};
     uint16_t port = 1883;
   };

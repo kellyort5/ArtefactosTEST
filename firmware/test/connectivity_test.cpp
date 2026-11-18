@@ -31,13 +31,14 @@ std::string read(const char *path) {
 cJSON *args(const char *ssid = "own-lab") {
   auto j = cJSON_CreateObject();
   for (auto pair : {std::pair{"ssid", ssid}, {"wifi_password", "fixture-wifi"},
-       {"mqtt_uri", "mqtt://broker.example:1883"}, {"mqtt_username", "fixture-user"},
-       {"mqtt_password", "fixture-mqtt"}})
+       {"mqtt_uri", "mqtt://broker.example:1883"}})
     cJSON_AddStringToObject(j, pair.first, pair.second);
   return j;
 }
 void replace(cJSON *j, const char *key, const std::string &value) {
-  assert(cJSON_ReplaceItemInObjectCaseSensitive(j, key, cJSON_CreateString(value.c_str())));
+  if (cJSON_GetObjectItemCaseSensitive(j,key))
+    assert(cJSON_ReplaceItemInObjectCaseSensitive(j, key, cJSON_CreateString(value.c_str())));
+  else cJSON_AddStringToObject(j,key,value.c_str());
 }
 void expect_error(const char *error, const char *expected) {
   assert(error && !strcmp(error, expected));
@@ -146,8 +147,7 @@ bool post(Signal) { return true; }
 bool submit(Channel, const char *, size_t, bool, bool, uint32_t) { return true; }
 bool MqttTransport::init(StateCallback, MessageCallback) { return true; }
 bool MqttTransport::start(const Config &cfg) {
-  assert(cfg.port == 1883 && !strcmp(cfg.user, "fixture-user") &&
-         !strcmp(cfg.password, "fixture-mqtt") && !strcmp(cfg.host, "broker.example"));
+  assert(cfg.port == 1883 && !strcmp(cfg.host, "broker.example"));
   ++mqtt_starts; mqtt_stopped = false; return true;
 }
 void MqttTransport::request_stop() { mqtt_stopped = true; }
@@ -273,18 +273,18 @@ int main() {
   // Even correctly-sized blobs must pass content validation on restore.
   ConnectivityConfig invalid;
   assert(invalid.from_args(original));
-  for (auto target : {invalid.uri, invalid.username}) {
+  for (auto target : {invalid.uri, invalid.ssid}) {
     assert(invalid.from_args(original));
     target[0] = '\xff';
     memcpy(committed.data() + 8, &invalid, sizeof(invalid));
     assert(load_connectivity(restored) == ConnectivityLoad::Error);
   }
   for (auto content : {std::pair{"mqtt_uri", std::string("mqtts://broker.example")},
-       {"mqtt_username", std::string(65, 'u')}}) {
+       {"ssid", std::string("\xc0\xaf")}}) {
     // Build a correctly sized but semantically corrupt blob, bypassing save validation.
     assert(invalid.from_args(original));
     char *destination = !strcmp(content.first, "mqtt_uri") ? invalid.uri
-        : invalid.username;
+        : invalid.ssid;
     strcpy(destination, content.second.c_str());
     memcpy(committed.data() + 8, &invalid, sizeof(invalid));
     assert(load_connectivity(restored) == ConnectivityLoad::Error);

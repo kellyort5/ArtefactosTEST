@@ -1,5 +1,7 @@
 # Sentinel Node: comparación del alcance con la propuesta original
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Revisión del **2026-11-11**. Fuente: PDF «Propuesta proyecto de Programación de artefactos (1).pdf», 12 páginas, identificado en [arquitectura](architecture.md#estado-y-fuentes). El PDF no se incorpora al repositorio. Referencias vigentes: [decisiones](technical-decisions.md), [roadmap](roadmap.md) y [reparto](encargos/README.md).
 
 El usuario pidió corregir la asignación de alertas recientes en OLED conforme al PDF y conservar el resto del plan, documentando las diferencias. **Esta revisión cambia únicamente ese requisito funcional y su asignación.** Las otras filas describen adaptaciones, ampliaciones o limitaciones existentes; no añaden campos a contratos ni nuevas tareas de implementación.

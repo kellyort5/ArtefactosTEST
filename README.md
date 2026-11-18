@@ -1,5 +1,7 @@
 # Sentinel Node
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](docs/mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Sistema modular de seguridad de redes para **ESP32-S3-DevKitC-1 N16R8**, broker Eclipse Mosquitto en Docker y aplicación React/Capacitor Android. Un supervisor permite ejecutar un único modo a la vez: Escudo Pasivo, Auditor/Sanitizador o Cebo de Red Local. Solo se utiliza en redes propias o autorizadas.
 
 ## Estado actual
@@ -13,11 +15,11 @@ Estado de esta entrega: **2026-11-17**. La base y el Escudo están implementados
 | Sanitizador — Persona 2 | Contratos, API y encargos preparados. | Auditoría, pasarela/NAT, DNS y DoH; su flag permanece deshabilitado hasta integrar la implementación real. |
 | Cebo — Persona 3 | Contratos, API y encargos preparados. | Servicios HTTP/Telnet, detección, historial y alertas; su flag permanece deshabilitado hasta integrar la implementación real. |
 | Aplicación — Persona 4 | Base Android/web v2: conexión BLE/WS, estado, comandos e historial. | Controles específicos y gráficos de los módulos, pantallas completas y notificaciones push. |
-| Broker e integraciones | Mosquitto MQTT/TCP y WS autenticados, ACL v1/v2 para LAN; sin certificados. | Pruebas con ESP32/teléfono; webhooks y push en sus encargos. |
+| Broker e integraciones | Mosquitto MQTT/TCP y WS anónimos, v1/v2 para LAN; sin TLS/cuentas/roles/ACL. | Pruebas con ESP32/teléfono; webhooks y push en sus encargos. |
 
 Subir el firmware y arrancar la app y Docker permite comenzar las pruebas de la base; no completa los módulos ni las pantallas pendientes. **Escudo funciona por BLE y no utiliza MQTT directo ni se asocia a la red observada.** La UI común conserva las pantallas finales de P4 pendientes; para probar Escudo ya se incluye un panel diagnóstico BLE optativo (`VITE_SENTINEL_P1_TOOLS=1`) con scan, catálogo, objetivo, captura e historial. Sin OLED puede usarse la salida serie temporal (`SENTINEL_SERIAL_TEST_DISPLAY=1`) con el mismo botón y pairing protegido, según la guía P1. Ambas opciones están desactivadas por defecto.
 
-La [verificación integrada](openspec/changes/sentinel-mvp-standard-persistence/verification.md) y el [informe del build nativo](openspec/changes/sentinel-mvp-standard-persistence/native-build-verification.md) registran compilación Windows PASS, pruebas host con ASan/UBSan y nueve tareas de software completadas. Esto no acredita pruebas físicas ni cierra el MVP completo. Las evidencias y pendientes históricos se conservan en sus respectivos cierres OpenSpec.
+La [verificación integrada](openspec/changes/sentinel-mvp-sin-cuentas/verification.md) y el [informe del build nativo](openspec/changes/sentinel-mvp-standard-persistence/native-build-verification.md) registran compilación Windows PASS, pruebas host con ASan/UBSan y nueve tareas de software completadas. Esto no acredita pruebas físicas ni cierra el MVP completo. Las evidencias y pendientes históricos se conservan en sus respectivos cierres OpenSpec.
 
 ## Preparar y probar el firmware
 

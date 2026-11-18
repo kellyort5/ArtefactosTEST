@@ -1,5 +1,7 @@
 # Verificación — pruebas P1 sin OLED
 
+> Evidencia de la entrega P1 anterior a la integración MQTT anónima. Conservar resultados/pendientes; para firmware/APK actual consultar [verificación integrada](../sentinel-mvp-sin-cuentas/verification.md).
+
 **Corrección posterior comprobada por software:** ver [fallos físicos de memoria/pila y versión final](ble-stack-verification.md). Los builds iniciales de este documento se conservan como antecedente; la última corrección sigue pendiente de cargar porque el usuario ya no dispone de la placa.
 
 Fecha: 2026-11-17. Rama `feat/sentinel-p1-serial`, base `b1f8729`. Evidencia generada antes de publicar la rama; integración mediante PR y revisión pendiente. Checkout aislado `/home/jefry/orca/workspaces/ArtefactosProyecto/sentinel-p1-serial`; el directorio original sigue reservado al trabajo MQTT LAN concurrente.

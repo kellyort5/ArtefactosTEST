@@ -1,5 +1,7 @@
 # Proposal
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## Why
 
 El usuario autoriza retirar TLS del broker para reducir complejidad del MVP, conservando pruebas desde un teléfono Android real en una red de confianza, propia o autorizada, sin administrar el router ni instalar certificados.
@@ -27,3 +29,5 @@ Ninguna.
 ## Impact
 
 Broker/Compose/scripts, firmware Arduino y su persistencia de configuración, biblioteca MQTT conservada, app/Android, contratos generados, pruebas y documentación. Las instalaciones USB pueden reinicializarse sin migración según la política aprobada; reprovisionar el formato nuevo. Riesgo aceptado: credenciales y mensajes visibles para quien observe el enlace. La red debe permitir comunicación entre clientes; el software no elimina aislamiento Wi-Fi. Sin cambios a router, exposición Internet, servicios cloud, BLE, DoH o funcionalidades de módulos.
+
+Los deltas de requisitos se alinean con la fuente vigente para no restaurar cuentas/TLS ni retirar escenarios P1 en una sincronización futura. Los resultados históricos y las fechas de esta entrega se conservan; el cambio posterior sentinel-mvp-sin-cuentas establece el alcance actual.

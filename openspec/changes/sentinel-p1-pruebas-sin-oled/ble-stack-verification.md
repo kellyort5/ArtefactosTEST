@@ -1,5 +1,7 @@
 # Correcciones de arranque y pila BLE P1
 
+> Evidencia de la entrega P1 anterior a la integración MQTT anónima. Conservar resultados/pendientes; para firmware/APK actual consultar [verificación integrada](../sentinel-mvp-sin-cuentas/verification.md).
+
 Fecha: 2026-11-17. Rama `feat/sentinel-p1-serial`; integración con las ramas compartidas mediante PR y revisión pendiente. Se conserva el trabajo MQTT LAN del checkout original.
 
 ## Evidencia física y causa

@@ -2,31 +2,25 @@
 
 ## Why
 
-El broker vigente ofrece TCP1883/WS9001 autenticados y ACL v1/v2. Quedan pruebas físicas LAN y rol mínimo de notificaciones.
+El equipo necesita comprobar acceso físico en su LAN para ESP32, Android e integración de notificaciones. P1 ya entrega Compose y transportes TCP/WS anónimos; no corresponde reimplementar la base o crear cuentas.
 
 ## What Changes
 
-- Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
-- Entregar broker: lan, v2 y rol de alertas conforme a R-04.
-- Cierre observable: TCP/WS LAN real y ACL v1/v2 por nodo, con rol mínimo de notificaciones.
-- Dependencias de integración: `sentinel-module-contracts`.
-- Esta propuesta solo planifica. No implementa funcionalidades ajenas a la capacidad ni modifica la evidencia de la base.
+- Reutilizar TCP1883/WS9001 por IP y documentar red/firewall/aislamiento reales.
+- Verificar tráfico v1/v2 y suscripción de P3, sin TLS/CA, usuarios, contraseñas MQTT, roles o ACL.
+- Conservar volumen, eventos históricos y límite de no exponer HTTP/Telnet a Internet.
+- Registrar evidencia física y distinguirla del smoke de software. Un responsable: P4.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `broker-module-access`: Broker: LAN, v2 y rol de alertas para completar la entrega integrada de Sentinel Node.
+- `broker-module-access`: integración LAN anónima del equipo con clientes y notificaciones reales.
 
 ### Modified Capabilities
 
-No se modifica una capacidad principal existente. Las siete capacidades canónicas de la base están en openspec/specs/ y su cambio está archivado con comprobaciones pendientes aceptadas. Este cambio añade una capacidad complementaria, sin reducir R-03/R-08/R-10.
+Ninguna.
 
 ## Impact
 
-Archivos de futura implementación bajo propiedad de este autor:
-
-- `broker/ (config, scripts, pruebas y README)`
-- `docs/modules/broker-lan.md`
-
-No editar carpetas de otros integrantes. Riesgos: IP y red host → comprobar teléfono/ESP en LAN; localhost de emulador no lo sustituye. ACL demasiado amplia → test cruzado por nodo y rol.
+P4 modifica broker y documentación de su despliegue cuando sea necesario, sin tocar contratos/firmware de P1 o servidor de P3. La autenticación MQTT fue retirada por el usuario; cualquier cliente con acceso al broker puede leer/publicar. Solo LAN propia/autorizada de confianza, sin exposición Internet. No cerrar con fixtures las pruebas físicas pendientes.

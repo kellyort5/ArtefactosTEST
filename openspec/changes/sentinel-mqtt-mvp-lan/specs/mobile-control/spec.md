@@ -3,13 +3,13 @@
 ## MODIFIED Requirements
 
 ### Requirement: Adaptadores reales separados de la interfaz
-La aplicación SHALL ofrecer adaptadores BLE y MQTT que compartan contratos y normalicen estado, órdenes, confirmaciones y eventos. Las credenciales de operación SHALL suministrarse en ejecución y no quedar incorporadas al paquete o historial.
+La aplicación SHALL reutilizar BLE protegido y MQTT/WS anónimo con contratos compartidos. SHALL conectar indicando endpoint e ID del nodo, sin login, usuarios, contraseña MQTT ni selector/estado de rol. SHALL conservar los secretos Wi-Fi fuera de historial y paquete.
 
 #### Scenario: Configuración de conexión
-- **WHEN** el usuario configura el nodo BLE o endpoint y cuenta MQTT autorizados
-- **THEN** la app establece BLE protegido o MQTT/WS autenticado real o presenta el error verificable sin mostrar secretos
+- **WHEN** se configura nodo BLE o endpoint WS e ID de nodo
+- **THEN** establece el canal real o informa fallo sin pedir cuentas
 
 #### Scenario: Android en red de confianza
-- **WHEN** se instala la app en Android y se configura `ws://IP-DEL-PC:9001/mqtt` con una cuenta autorizada
-- **THEN** puede conectar sin CA, hostname especial ni configuración del router cuando la red permite comunicación entre clientes
-- **AND** la app permite el tráfico WS necesario sin desactivar validación HTTPS
+- **WHEN** se instala Android y configura ws://IP-DEL-PC:9001/mqtt
+- **THEN** conecta sin CA ni credenciales MQTT
+- **AND** conserva permisos Android necesarios, pairing BLE y confianza HTTPS del sistema

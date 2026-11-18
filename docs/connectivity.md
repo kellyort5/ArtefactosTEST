@@ -1,5 +1,7 @@
 # Conectividad de la base
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 El firmware comparte GATT protegido y gestión de radio; STA/MQTT se permiten únicamente en Cebo cuando su módulo esté disponible. Escudo implementa descubrimiento/captura pasivos y detectores, sin asociación, escaneo activo ni MQTT. El firmware completo compiló con core oficial ESP32 3.3.12 y bibliotecas mantenidas; la evidencia del transporte anterior se conserva por separado. Consultar [firmware.md](firmware.md) para cableado, build, puertos y evidencia; [contracts/README.md](../contracts/README.md) define los mensajes exactos; [broker/README.md](../broker/README.md) prepara el laboratorio MQTT.
 
 ## Pairing y control local
@@ -31,11 +33,11 @@ Identidad, bonds, configuración e historial confirmado sobreviven a reinicios/c
 
 ## Broker y acceso LAN
 
-Preparar las cuentas privadas siguiendo [broker/README.md](../broker/README.md). Mosquitto publica TCP1883 y WS9001 en LAN con autenticación y ACL exactas v1/v2 por nodo/rol. No requiere certificados, CA, SAN, DNS especial o cambios de router. El tráfico MQTT no va cifrado; usar red de confianza y cuentas exclusivas del laboratorio.
+Arrancar Compose según [broker/README.md](../broker/README.md). Mosquitto publica TCP1883/WS9001 anónimos: sin usuarios, contraseñas, roles, ACL o certificados. Cualquier cliente que alcance el broker puede leer/publicar. Usar LAN propia/autorizada de confianza, sin exposición Internet.
 
 Teléfono/ESP32 usan la IP LAN del PC, nunca localhost. Ejemplos ficticios: nodo `mqtt://192.168.1.10:1883`, app `ws://192.168.1.10:9001/mqtt`. Permitir Docker/puertos en el firewall del PC solo en la red autorizada. Si hay aislamiento de clientes o no se puede permitir acceso local, usar otra red/punto de acceso disponible; el software no evita esas restricciones.
 
-El transporte usa wolfMQTT2.2.0 y `NetworkClient` TCP oficial. DNS, TCP y ACK se atienden en worker/colas acotados. Fallos de DNS, asociación o autenticación dejan error/desconexión y reintentos1,2,4…30 s sin bloquear botón, OLED o supervisor. El cambio de perfil conserva al propietario hasta confirmar cierre dentro de5000 ms; un fallo no permite arrancar otra red. La configuración nueva sin CA se guarda con versión2; reaprovisionar por BLE si existe formato anterior, sin borrado automático. La [verificación actual](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md) distingue software y radio física.
+El transporte usa wolfMQTT2.2.0 y `NetworkClient` TCP oficial. DNS, TCP y ACK se atienden en worker/colas acotados. Fallos de DNS o asociación dejan error/desconexión y reintentos1,2,4…30 s sin bloquear botón, OLED o supervisor. El cambio de perfil conserva al propietario hasta confirmar cierre dentro de5000 ms; un fallo no permite arrancar otra red. La configuración nueva sin CA ni cuenta MQTT se guarda con versión3; reaprovisionar por BLE si existe formato anterior, sin borrado automático. La [verificación actual](../openspec/changes/sentinel-mvp-sin-cuentas/verification.md) distingue software y radio física.
 
 ## MQTT y recuperación
 

@@ -1,5 +1,7 @@
 # Persistencia operativa y programación USB
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Política aprobada en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/proposal.md), con [diseño](../openspec/changes/sentinel-mvp-standard-persistence/design.md) y tareas bajo control del coordinador. Sustituye la excepción anterior de conectividad solo en RAM y la exigencia de continuidad de datos entre versiones/cargas USB. No reduce Escudo, Sanitizador, Cebo ni sus responsables.
 
 Identidad, bonds BLE, configuración aceptada e historial confirmado deben sobrevivir al uso normal, reinicio y corte de alimentación. Solo se confirma persistencia después de completar escritura y commit; una escritura interrumpida puede perderse. Un error de NVS se informa sin formato automático ni expulsión de vínculos durante el arranque normal. Reconectar BLE/MQTT no es una reinstalación.

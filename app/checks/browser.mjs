@@ -50,13 +50,9 @@ try{
  assert.equal(await page.locator('.profile-option.selected b').innerText(),'Escudo');
  const form=page.locator('form').filter({has:page.getByRole('button',{name:'Conectar WS',exact:true})});
  await form.locator('[name="deviceId"]').fill(v2.device_id);
- await form.locator('[name="username"]').fill('invalid-role-for-test');
- await form.locator('[name="password"]').fill('TEST-ONLY-PRIVATE-MARKER');
- await form.getByRole('button',{name:'Conectar WS',exact:true}).click();
- await page.getByRole('alert').filter({hasText:'La cuenta debe corresponder'}).waitFor();
- assert.equal(await form.locator('[name="password"]').inputValue(),'');
- const leaked=await page.evaluate(async()=>{const {nodeStore}=await import('/src/store.ts');return JSON.stringify(nodeStore.getState()).includes('TEST-ONLY-PRIVATE-MARKER')||JSON.stringify(localStorage).includes('TEST-ONLY-PRIVATE-MARKER');});
- assert.equal(leaked,false);
+ assert.equal(await form.locator('[name="username"]').count(),0);
+ assert.equal(await form.locator('[name="password"]').count(),0);
+ assert.equal(await form.getByText('Permisos de la cuenta').count(),0);
  await page.setViewportSize({width:390,height:844});
  await page.screenshot({path:process.env.SENTINEL_SCREENSHOT??'/tmp/sentinel-app-mobile.png',fullPage:true});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);

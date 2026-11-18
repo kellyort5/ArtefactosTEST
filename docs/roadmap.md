@@ -1,5 +1,7 @@
 # Sentinel Node: roadmap de desarrollo acelerado
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 **Política aprobada vigente:** [persistencia operativa y USB](persistence-policy.md), definida en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/design.md). Conservar identidad, bonds, configuración e historial confirmado en uso normal/reinicio/corte; USB permite reinicialización sin migración. Arduino oficial primero; justificar cada excepción mínima. La tabla nueva/cuatro claves/configuración persistente se verifican en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores son históricos y no cierran pruebas físicas.
 
 ## Estado y objetivo confirmado
@@ -18,9 +20,9 @@ Los incrementos se concretan en propuestas OpenSpec y fichas de trabajo para los
 
 | Categoría | Contenido | Tratamiento |
 | --- | --- | --- |
-| Funcionalidad obligatoria de la entrega | Escudo, Sanitizador y Cebo completos, app Android, comunicaciones seguras, registro, alertas e integración física. | Debe funcionar en el equipo antes de declarar terminada la entrega conjunta. |
-| Decisiones arquitectónicas confirmadas | Arduino IDE Windows + paquete ESP32 Sentinel con C/C++/FreeRTOS y componentes ESP-IDF; supervisor central; exclusión de modos; BLE en Escudo; MQTT en Cebo; contratos y componente de notificaciones de R-10. | Implementarlas directamente, reutilizando componentes oficiales adecuados. |
-| Detalles por concretar | Versiones compatibles, pines efectivos, límites iniciales, esquema concreto, almacenamiento sencillo, proveedor/alojamiento push. | Resolverlos en el cambio que los necesita, con decisiones concretas y revisión solo si son arquitectónicas importantes. |
+| Funcionalidad obligatoria de la entrega | Escudo, Sanitizador y Cebo completos, app Android, BLE protegido/MQTT anónimo en LAN, registro, alertas e integración física. | Debe funcionar en el equipo antes de declarar terminada la entrega conjunta. |
+| Decisiones arquitectónicas confirmadas | Arduino IDE Windows + core oficial ESP32 3.3.12 con C/C++/FreeRTOS y componentes ESP-IDF; supervisor central; exclusión de modos; BLE en Escudo; MQTT en Cebo; contratos y componente de notificaciones de R-10. | Implementarlas directamente, reutilizando componentes oficiales adecuados. |
+| Detalles por concretar | Core3.3.12, wolfMQTT2.2.0, esquema y pines base ya fijados; validar unidad/conexiones reales. Límites ajustables y proveedor/alojamiento push se concretan al implementar. | Resolverlos en el cambio que los necesita, con decisiones concretas y revisión solo si son arquitectónicas importantes. |
 | Validaciones pendientes H-01 a H-08 | Comportamiento real de hardware, captura/BLE, detectores, persistencia y notificaciones. | Comprobaciones breves durante implementación; sin fase de investigación previa. |
 | Mejoras posteriores | Benchmarks, autonomía, carga prolongada, optimización y campañas extensas de estabilidad/compatibilidad. | Después del MVP, salvo problemas que impidan funcionar. No incluyen funcionalidades prioritarias sin terminar. |
 | Sanitizador | Auditoría, STA+AP/NAT, DNS/Sinkhole y DoH. | Línea paralela desde la primera ronda con pruebas breves en cada incremento. |
@@ -57,7 +59,7 @@ La regla temporal anterior de simular antes de integrar hardware queda sustituid
 | 1.1 Arranque S3 | Arduino IDE Windows + core oficial ESP32 3.3.12 y dependencias mantenidas, FreeRTOS y N16R8; build completo oficial PASS y regresiones host conservadas; hardware pendiente. Las cuatro claves mínimas y dos bibliotecas se preparan una vez por equipo, retirando cinco overrides propios antiguos. Consultar el estado del build de tabla nueva en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); primera carga limpia desde IDE, USB sin garantía de conservar datos. | Compilar, grabar, arrancar y comprobar detección de memoria/pines usados. Sin estudio previo de consumo o memoria. |
 | 1.2 Estado y controles | Supervisor central, estados básicos, gestión Wi-Fi/BLE, OLED y botón conectados al estado. | Orden física o de app y cambio de estado confirmado; error básico visible. |
 | 1.3 BLE y Android | React/Vite/Tailwind/Zustand/Capacitor Android, autorización/configuración BLE y contrato versionado inicial. | Teléfono real conecta, intercambia estado/comando y recibe confirmación. |
-| 1.4 MQTT seguro | Mosquitto/Docker, TCP/WS, identidades/ACL, mqtt.js y adaptador del nodo para modos con conexión. | Evento y comando reales con acceso permitido; rechazo de identidad o permisos incorrectos. No activar STA/MQTT en Escudo. |
+| 1.4 MQTT anónimo LAN | Mosquitto/Docker, TCP1883/WS9001 sin TLS/cuentas/roles/ACL, mqtt.js y adaptador del nodo. | Evento/comando real anónimo, reconexión y persistencia; documentar ausencia de aislamiento y comprobar destinos/gates. |
 | 1.5 Registro compartido | Identificadores, marca temporal/calidad, persistencia acotada, pendientes y recuperación/deduplicación. | Registrar tras commit, desconectar, reiniciar/cortar sin upload y recuperar identidad/bonds/configuración/historial sin duplicar; Idle sin conexión ni UTC viejo. Separar USB con pérdida permitida y reconfiguración. |
 | 1.6 Base de alertas | Contratos para eventos/notificaciones, separación del componente de R-10 y configuración propia fuera de repo/logs. | Concretar entrega e infraestructura al abordar 3.4/3.5; no esperar que todo push esté listo para empezar Escudo/Cebo. |
 
@@ -92,7 +94,7 @@ La regla temporal anterior de simular antes de integrar hardware queda sustituid
 | 3.1 Servicios reales simulados | STA en LAN autorizada; panel HTTP ficticio y Telnet simulado puerto 23; conexiones, accesos e intentos de autenticación. | Acceder a ambos desde un cliente de prueba; no hay comandos ejecutables ni administración real. |
 | 3.2 Eventos y clasificación | IP, puerto, protocolo, fecha/hora/calidad, tipo, cantidad y frecuencia; patrones repetitivos y nivel de sospecha. Límites de sockets/tiempos/tamaños y exclusión de datos sensibles. | Interacciones aisladas/repetidas generan clasificación esperada sin guardar contraseñas, tokens ni cuerpos completos. |
 | 3.3 Persistencia y dashboard | Búfer circular persistente limitado, pendientes, MQTT, identificación/deduplicación, métricas, historial e incidentes en tiempo real; alertas visibles. | Caer/restablecer MQTT y reiniciar brevemente; registros persistidos se recuperan y sincronizan sin duplicación. Comprobar el límite con pocos registros. |
-| 3.4 Webhooks | Componente separado de notificaciones, entrega webhook, control de alertas repetitivas y secretos propios de integración fuera de código/logs. | Recibir una alerta real en el webhook y comprobar supresión/agrupación de repeticiones según política inicial. El push obligatorio se integra en 3.5. |
+| 3.4 Webhooks | Componente separado de notificaciones, entrega webhook, contintegración de alertas repetitivas y secretos propios de integración fuera de código/logs. | Recibir una alerta real en el webhook y comprobar supresión/agrupación de repeticiones según política inicial. El push obligatorio se integra en 3.5. |
 | 3.5 Push Android real | Infraestructura necesaria de registro/envío/recepción, integrada con el componente y Capacitor; recepción con la app cerrada. | En teléfono real, cerrar la app y disparar un incidente real del Cebo; comprobar recepción push. Una alerta solo en primer plano no satisface el requisito. |
 | 3.6 Conjunto Cebo | HTTP/Telnet, clasificación, registro, MQTT, historial, webhook y push funcionando juntos; estado y alertas recientes en OLED, control físico y reconexiones. | Recorrido funcional completo y estado de canales visible cuando no haya conectividad. |
 
@@ -109,7 +111,7 @@ La regla temporal anterior de simular antes de integrar hardware queda sustituid
 Trabajo:
 
 - Cambios seguros entre Escudo, Sanitizador, Cebo e Idle mediante el canal disponible, sin modos simultáneos ni servicios residuales; cierre HTTP/Telnet al salir de Cebo, cierre AP/DHCP/NAT/DNS al salir de Sanitizador y ausencia STA/MQTT en Escudo.
-- Reconciliación de comandos/estado si cambia el transporte; autorización, confirmaciones y control de duplicados.
+- Reconciliación de comandos/estado si cambia el transporte; autorización BLE, MQTT anónimo, confirmaciones y control de duplicados.
 - Gestión conjunta Wi-Fi/BLE, memoria y conexiones con límites; corregir bloqueos concretos sin optimización anticipada.
 - OLED y botón físico en los tres modos; disponibilidad, errores, reconexión y resumen de la alerta más reciente visibles, también sin teléfono. Persona 1 lo integra y comprueba en la tarea 1.5 de `sentinel-integracion-tres-modos`. Conservar la prioridad del emparejamiento mediante pulsación larga de la base.
 - Escudo con catálogo/objetivo, todas sus detecciones, gráficas/incidentes, pendientes y sincronización BLE.

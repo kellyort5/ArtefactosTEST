@@ -1,5 +1,7 @@
 # Reparto de Sentinel Node para cuatro integrantes
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
 
 Resumen de la planificación original (2026-11-11): de los **23 encargos originales**, `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Sus seis requisitos están en la [spec principal](../../openspec/specs/module-protocol/spec.md), con [resultados y límites](../../contracts/evidence-v2.md). Los otros **22 cambios** estaban planificados entonces; consultar sus tareas y evidencia actuales antes de empezar. La publicación está separada en [PR #2: contratos](https://github.com/Jefry-P/ArtefactosProyecto/pull/2) y [PR #3: planificación y guías](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), ambos hacia develop. Integrar #2 antes de #3; esta publicación no realizó merges.
@@ -10,6 +12,10 @@ Estado del incremento al 2026-11-12: contratos, API y los cuatro incrementos Esc
 
 
 **Flujo de todos los módulos de firmware:** [Arduino IDE Windows y core oficial ESP32 3.3.12](../firmware.md), sketch único `firmware/SentinelNode/SentinelNode.ino`. Firmware completo con build oficial Windows PASS; el build del SDK propio se conserva como [antecedente](../../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md). Escudo mantiene regresión host y toda su lógica; Sanitizador/Cebo mantienen autores, API/factories y alcance pendientes. Node es mantenimiento opcional, no un requisito del IDE.
+
+## Qué recibe el equipo ahora
+
+P1 entrega contratos/API/Escudo/app común v2, diagnóstico BLE y salida serie sin OLED, más correcciones de memoria/pila BLE y simplificación MQTT anónima. Su tarea física4.3 permanece pendiente; no equivale a software sin implementar. P2/P3/P4 continúan sus módulos completos. P4 reutiliza el panel diagnóstico para validar el firmware y construye la UX final; no reimplementa esa herramienta ni administra cuentas/ACL/TLS MQTT. P3 recibe endpoints/topics sin rol notify. La [tabla vigente por persona](../mvp-policy.md#reparto-actualizado-un-autor-por-spec) y las guías de abajo indican entregas y pendientes.
 
 ## Guías personalizadas: empezar aquí
 
@@ -129,8 +135,8 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | firmware/SentinelNode/src/sanitizador y sus tests/docs                      | P2          | Mismo procedimiento; P1 solo integra el registro en núcleo                         |
 | firmware/SentinelNode/src/cebo y sus tests/docs                             | P3          | Mismo procedimiento; no editar desde laboratorio                                   |
 | notifications/ y su package/lock/Compose propios                      | P3          | P4 consume API HTTPS; entrega casos de error/registro                              |
-| app/, package.json y package-lock.json raíz                           | P4          | P1 entrega app-protocolo-v2; P4 conserva pantallas/dependencias; no editar a la vez         |
-| broker/                                                               | P4          | P3 solicita rol notify; P4 adapta permisos con pruebas negativas                   |
+| app/, package.json y package-lock.json raíz                           | P4          | P1 entrega base v2/diagnóstico; P4 consume y mantiene UX/dependencias, coordinando cambios comunes hasta cerrar4.3; no editar a la vez         |
+| broker/                                                               | P4          | P3 recibe endpoints/topics; P4 verifica TCP/WS anónimo en la LAN del equipo                   |
 | simulator/, docs/lab y consolidación de evidencia                     | P4          | Cada dueño entrega evidencia; el coordinador no se convierte en autor de su módulo |
 | docs/architecture, technical-decisions, roadmap y artefactos OpenSpec | P1          | Cambios aprobados de alcance/interfaz quedan registrados por coordinador           |
 

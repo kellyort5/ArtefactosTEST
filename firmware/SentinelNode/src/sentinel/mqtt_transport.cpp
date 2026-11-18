@@ -152,8 +152,7 @@ struct MqttTransport::Impl {
     c.keep_alive_sec = 15;
     c.clean_session = 1;
     c.client_id = config.client_id;
-    c.username = config.user;
-    c.password = config.password;
+    // Anonymous MQTT CONNECT: zero-initialized username/password pointers.
     c.enable_lwt = 1;
     c.lwt_msg = &will;
     c.props = &expiry;
@@ -259,8 +258,7 @@ bool MqttTransport::init(StateCallback state, MessageCallback message) {
   return true;
 }
 bool MqttTransport::start(const Config &config) {
-  if (!impl || !config.host[0] || !config.port || !config.user[0] ||
-      !config.password[0])
+  if (!impl || !config.host[0] || !config.port)
     return false;
   bool idle = false;
   if (!impl->busy.compare_exchange_strong(idle, true))

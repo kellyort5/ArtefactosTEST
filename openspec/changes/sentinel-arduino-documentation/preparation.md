@@ -1,5 +1,7 @@
 # Preparación independiente de sentinel-arduino-documentation
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 **Aviso posterior de vigencia:** este registro conserva resultados, comandos, hashes y pendientes históricos. [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) sustituye las exigencias anteriores de RAM-only, continuidad USB y tabla inmutable: NVS explícita para configuración autorizada, tabla nueva/cuatro claves y carga/exportación oficial. Primera carga limpia desde IDE; USB permite reinicializar sin migración. Los resultados de este informe no acreditan la nueva tabla ni el build integrado nuevo, pendiente de evidencia del coordinador; los pendientes físicos siguen abiertos.
 
 Fecha: 2026-11-13, America/Guatemala. Fase inicial del cuarto agente, tarea `task_df0a69d45168`, rama compartida `feat/sentinel-arduino-migration`. Esta entrega prepara documentación y auditoría; no cierra el cambio ni la integración oficial de dependencias.

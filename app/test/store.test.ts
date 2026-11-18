@@ -30,7 +30,7 @@ test('reboot leaves old command unresolved and old boot cannot return',()=>{
  s.getState().receive({...fixture,uptime_ms:2000},'mqtt',false,1200);assert.equal(s.getState().snapshot?.boot_id,'new-boot');
 });
 test('store never keeps private command arguments',()=>{
- const s=setup(),c=command();c.payload={command_id:'secret-cmd',target_boot_id:fixture.boot_id,expected_revision:0,expires_at_uptime_ms:31000,operation:'configure_connectivity',args:{ssid:'LAB',wifi_password:'DO-NOT-PERSIST',mqtt_uri:'mqtt://broker.example',mqtt_username:'example',mqtt_password:'DO-NOT-PERSIST'}};
+ const s=setup(),c=command();c.payload={command_id:'secret-cmd',target_boot_id:fixture.boot_id,expected_revision:0,expires_at_uptime_ms:31000,operation:'configure_connectivity',args:{ssid:'LAB',wifi_password:'DO-NOT-PERSIST',mqtt_uri:'mqtt://broker.example'}};
  s.getState().track(c,1);assert.ok(!JSON.stringify(s.getState()).includes('DO-NOT-PERSIST'));assert.ok(!JSON.stringify(s.getState()).includes('EXAMPLE'));
 });
 test('older revision/uptime and other node rejected',()=>{

@@ -1,5 +1,7 @@
 # Verificación MQTT del MVP
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 Fecha: 2026-11-17. Rama `feat/mqtt-mvp-lan`. El usuario autorizó retirar TLS de MQTT, conservando pruebas con Android real en red de confianza propia o autorizada, sin administrar el router ni instalar certificados. No se ejecutaron commits, push, merges ni carga USB.
 
 ## Resultado implementado

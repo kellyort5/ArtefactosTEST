@@ -1,5 +1,7 @@
 # Comprobación de sentinel-core-foundation
 
+> Registro histórico de su entrega. Para instalación y alcance actual consultar [acuerdos vigentes](mvp-policy.md). TLS, cuentas/ACL o dependencias anteriores aquí descritas no se reinstalan para el MVP actual; se conservan las evidencias y pendientes originales.
+
 **Registro histórico de la base:** TLS/WSS, confianza CA y ACL solo v1 de las ejecuciones anteriores fueron sustituidos por MQTT/TCP1883 y WS9001 con ACL v1/v2 el 2026-11-17. Consultar la [verificación vigente](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md) y la [guía de pruebas actual](core-foundation-test-guide.md). No usar estos resultados antiguos como instrucciones de configuración.
 
 

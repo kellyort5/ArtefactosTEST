@@ -2,35 +2,20 @@
 
 ## Context
 
-Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../archive/2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
-
-Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Dependencias para integrar: `sentinel-module-contracts`. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
+P4 consume la base broker TCP1883/WS9001 anónima entregada por P1. El usuario retiró TLS/cuentas/roles/ACL. Ver docs/mvp-policy.md y broker/README.md. No reimplementar preparación de cuentas ni certificados.
 
 ## Goals / Non-Goals
 
-**Goals:** TCP/WS LAN real y ACL v1/v2 por nodo, con rol mínimo de notificaciones.
-
-**Non-Goals:** implementar otros encargos, recortar funcionalidades acordadas o hacer benchmarks/campañas prolongadas. Los archivos ajenos se solicitan a su dueño. Esta planificación no aplica cambios ni autoriza operaciones Git.
+Comprobar despliegue en LAN del equipo, v1/v2 y consumidor real P3. No acreditar radio por mocks ni añadir login, rol notify, ACL o cambios al router.
 
 ## Decisions
 
-Los acuerdos funcionales de R-04 son confirmados. Las elecciones concretas nuevas de este diseño son **propuestas de implementación**, no acuerdos históricos. Los límites iniciales son recomendaciones ajustables ante fallos sin retirar funcionalidad. Revisar con el usuario las elecciones arquitectónicas nuevas antes de aplicar; los detalles no estructurales se resuelven durante implementación.
-
-Conservar Mosquitto2.0.22/digest, Compose, TCP1883/WS9001 y gestión privada .secrets. La decisión del usuario de 2026-11-17 retira TLS/CA de MQTT: usar IP LAN y cuentas/ACL, sin modificar router. TCP/WS y ACL node/operator/viewer v1/v2 se implementan en sentinel-mqtt-mvp-lan; no dar por cerradas aquí pruebas físicas ni el rol notify.
-
-ACL v2: nodo publica state/availability/metrics/events/acks y lee commands solo propio; operator lee propios y publica commands; viewer solo lee propios. Rol notify-<node> solo suscribe events/availability v2 y events históricos v1 si corresponde, sin publicar commands ni otros nodos. Mantener publicación/lectura de v1/events para replay de journal de base. Configurar IP/puertos/firewall del host para LAN autorizada sin abrir Internet; no modificar Compose de notifications ni poner HTTP/Telnet del ESP32 detrás del broker. Pruebas breves positivas/negativas con cuentas temporales propias, secretos por stdin/config local, nunca en ejemplos o logs.
-
-### Interfaces y propiedad
-
-Contrato único: [protocolo funcional](../../../contracts/module-protocol.md) y [spec principal](../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../archive/2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
-
-Archivos de implementación: `broker/ (config, scripts, pruebas y README)`, `docs/modules/broker-lan.md`. Los documentos de cada componente y sus pruebas son del mismo autor. Cualquier cambio en contratos/núcleo/app/broker ajenos se devuelve a su dueño para su propia spec.
+Reutilizar imagen/Compose/volumen y helper Windows/WSL existentes. Usar IP del PC y verificar firewall/aislamiento de clientes. P3 suscribe los topics acordados sin cuenta y valida/deduplica eventos; esa validación no demuestra autenticidad del emisor. P4 documenta resultados reales y endpoints para sus compañeros. Mantener transporte de eventos históricos v1 y no exponer HTTP/Telnet.
 
 ## Risks / Trade-offs
 
-- IP y red host → comprobar teléfono/ESP en LAN; localhost de emulador no lo sustituye.
-- ACL demasiado amplia → test cruzado por nodo y rol.
+Broker sin autenticación/cifrado: cualquier cliente con alcance puede leer/publicar. Uso solo en LAN propia/autorizada de confianza sin exposición Internet. El software no elimina aislamiento de Wi-Fi.
 
 ## Migration Plan
 
-Trabajar en rama `feat/sentinel-broker-lan`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+Partir de develop integrado, configurar endpoint/topología local, repetir smoke y comprobar teléfono/ESP32/P3 cuando existan sus componentes. Conservar volumen y evidencias; no generar ni rotar cuentas. No cerrar pruebas físicas por el smoke del PC.

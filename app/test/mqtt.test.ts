@@ -9,7 +9,7 @@ import {makeNodeCommand,type NodeMessage,type NodeState} from '../src/protocol';
 
 const fixture=(path:string)=>JSON.parse(readFileSync(new URL(`../../contracts/fixtures/${path}`,import.meta.url),'utf8'));
 const state=fixture('v2/states/cebo.valid.json') as NodeState;
-const settings={endpoint:'ws://broker.example:9001/mqtt',deviceId:state.device_id,username:`operator-${state.device_id}`,password:'TEST-ONLY',role:'operator' as const};
+const settings={endpoint:'ws://broker.example:9001/mqtt',deviceId:state.device_id};
 class Client extends EventEmitter {
  connected=true;options:IClientOptions={};topics:string[]=[];published:{topic:string;payload:string;options:unknown}[]=[];
  constructor(private legacyOnly=false,private denied=false){super();}
@@ -40,29 +40,29 @@ test('MQTT subscribes both versions, matches exact topics and rejects retained A
  client.emit('close');assert.equal(client.options.password,undefined);assert.equal(client.options.username,undefined);
  await transport.disconnect();assert.equal(client.options.password,undefined);assert.equal(client.options.username,undefined);
 });
-test('v1-only ACL remains usable while denied connections wipe session credentials',async()=>{
+test('v1-only subscriptions remain usable and denied subscriptions report failure',async()=>{
  const legacy=setup(true);await legacy.transport.connect({...settings});
  assert.ok(legacy.statuses.includes('connected'));await legacy.transport.disconnect();
  const denied=setup(false,true);await assert.rejects(()=>denied.transport.connect({...settings}));
  assert.equal(denied.client.options.password,undefined);assert.equal(denied.client.options.username,undefined);
  assert.equal(denied.statuses.at(-1),'error');
 });
-test('MQTT viewer and private module operations cannot publish',async()=>{
- const {client,transport}=setup();await transport.connect({...settings,username:`viewer-${state.device_id}`,role:'viewer'});
+test('anonymous MQTT controls public operations and keeps private operations BLE-only',async()=>{
+ const {client,transport}=setup();await transport.connect({...settings});
  const meta={version:2 as const,device_id:state.device_id,boot_id:state.boot_id,revision:state.payload.revision,uptime_ms:state.uptime_ms,max_message_bytes:2048 as const};
- await assert.rejects(()=>transport.send(makeNodeCommand(meta,{operation:'get_state',args:{}},'viewer')));
+ await transport.send(makeNodeCommand(meta,{operation:'get_state',args:{}},'anonymous'));
  await transport.connect({...settings});
  await assert.rejects(()=>transport.send(makeNodeCommand(meta,{operation:'sanitizador.configure_upstream',args:{ssid:'LAB',wifi_password:'TEST-ONLY'}},'private')));
- assert.equal(client.published.length,0);await transport.disconnect();
+ assert.equal(client.published.length,1);await transport.disconnect();
 });
 
 
-test('MVP WS accepts a LAN IP without certificates and rejects malformed endpoints or missing accounts',async()=>{
+test('MVP WS accepts a LAN IP without certificates and rejects malformed endpoints ',async()=>{
  const {transport,client}=setup();
  await transport.connect({...settings,endpoint:'ws://192.0.2.10:9001/mqtt'});
  assert.equal(client.options.protocolVersion,5);
  assert.equal(client.options.ca,undefined);
  await transport.disconnect();
  for(const endpoint of ['wss://192.0.2.10:9001/mqtt','mqtt://192.0.2.10','ws://u:p@192.0.2.10','ws://192.0.2.10/mqtt?password=x','ws://192.0.2.10/mqtt#x','ws://192.0.2.10:0/mqtt'])await assert.rejects(()=>transport.connect({...settings,endpoint}));
- await assert.rejects(()=>transport.connect({...settings,password:''}));
+ assert.equal(client.options.username,undefined);assert.equal(client.options.password,undefined);
 });

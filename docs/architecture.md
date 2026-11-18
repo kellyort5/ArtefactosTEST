@@ -1,6 +1,8 @@
 # Sentinel Node: arquitectura propuesta
 
-**MQTT vigente (2026-11-17):** TCP1883/WS9001 autenticados en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
+**MQTT vigente (2026-11-17):** TCP1883/WS9001 anónimos en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
 
 
 **Política aprobada vigente:** [persistencia operativa y USB](persistence-policy.md), definida en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/design.md). Conservar identidad, bonds, configuración e historial confirmado en uso normal/reinicio/corte; USB permite reinicialización sin migración. Arduino oficial primero; justificar cada excepción mínima. La tabla nueva/cuatro claves/configuración persistente se verifican en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores son históricos y no cierran pruebas físicas.
@@ -61,7 +63,7 @@ Las restricciones de memoria y las funciones USB/UART se contrastaron con la [gu
 | Componente | Responsabilidad | Límite |
 | --- | --- | --- |
 | `firmware/` | Modos, radio, periféricos, detección, eventos, registro persistente, comandos y reconexión. | Un modo activo; Cebo sin acceso administrativo real ni exposición pública. |
-| `broker/` | Mosquitto en Docker, autenticación, ACL y distribución MQTT. | No sustituye el registro local ni es por sí mismo una API histórica. |
+| `broker/` | Mosquitto en Docker, TCP/WS anónimo y distribución MQTT. | No sustituye el registro local ni es por sí mismo una API histórica. |
 | `app/` | React/Vite/Tailwind/Zustand con Capacitor Android; BLE, mqtt.js, dashboard, historial y notificaciones. | Solo presenta como aplicado un comando confirmado por el nodo; diferencia datos simulados y reales. |
 | `simulator/` | Apoyo ligero para contratos, fixtures y reproducción de eventos. | No es una etapa previa obligatoria ni acredita una función de hardware. |
 | `contracts/` | Contratos versionados de estados, métricas, incidentes, comandos y confirmaciones. | Schemas/fixtures v1/v2 y codec compartido existentes; cambios de contrato requieren revisión. |
@@ -105,7 +107,7 @@ CEBO DE RED LOCAL
 [Simulador] <-- MQTT --> [Mosquitto]   (apoyo separado)
 ```
 
-**Decisiones confirmadas:** BLE para descubrir redes, seleccionar objetivo, controlar y recibir resultados del Escudo; MQTT para Cebo. MQTT/TCP y WS sin TLS, identidades y ACL según R-04; autorización BLE según R-03/R-07. GATT/framing y MQTT están documentados en [conectividad](connectivity.md) y [contratos](../contracts/module-protocol.md); las credenciales de laboratorio se suministran fuera del repositorio y los logs.
+**Decisiones confirmadas:** BLE para descubrir redes, seleccionar objetivo, controlar y recibir resultados del Escudo; MQTT para Cebo. MQTT/TCP y WS sin TLS/cuentas/roles/ACL según R-04; autorización BLE según R-03/R-07. GATT/framing y MQTT están documentados en [conectividad](connectivity.md) y [contratos](../contracts/module-protocol.md); las credenciales Wi-Fi/proveedores se suministran fuera del repositorio/logs; MQTT no utiliza cuentas.
 
 El control remoto utiliza el canal disponible. En Escudo no se enviarán órdenes al nodo por MQTT ni se lo asociará a una red para recuperar ese canal. Al pasar a Cebo se establece la conexión autorizada y MQTT; al volver a Escudo se detienen servicios y conexión Wi-Fi. La app reconcilia el resultado de una transición si se interrumpe el canal que la inició.
 

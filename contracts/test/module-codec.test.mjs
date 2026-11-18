@@ -15,7 +15,7 @@ const commands = new URL('v2/commands/', base);
 const fixture = async name => JSON.parse(await readFile(new URL(name, commands), 'utf8'));
 const metadata = { version: 2, device_id: 'node-example', boot_id: 'boot-example', revision: 3, uptime_ms: 1000, max_message_bytes: 2048 };
 const context = {
-  channel: 'ble', authenticated: true, authorized: true, encrypted: true, authorizedDeviceId: 'node-example',
+  channel: 'ble', authenticated: true, authorized: true, encrypted: true, deviceId: 'node-example',
   bootId: 'boot-example', revision: 3, uptimeMs: 1000, profile: 'cebo', targetSelected: true,
 };
 const invalid = (fn, secret = 'NEVER-ECHO-THIS') => assert.throws(fn, error =>
@@ -179,7 +179,7 @@ test('channel and identity admission are explicit and never execute a command', 
   assert.equal(checkModuleCommandAdmission(secret, { ...context, authenticated: false }), 'unauthorized');
   assert.equal(checkModuleCommandAdmission(secret, { ...context, authorized: false }), 'unauthorized');
   assert.equal(checkModuleCommandAdmission(secret, { ...context, encrypted: false }), 'unauthorized');
-  assert.equal(checkModuleCommandAdmission(secret, { ...context, authorizedDeviceId: 'other-node' }), 'unauthorized');
+  assert.equal(checkModuleCommandAdmission(secret, { ...context, deviceId: 'other-node' }), 'unauthorized');
   assert.equal(checkModuleCommandAdmission(secret, { ...context, retained: true }), 'invalid_message');
   const capture = await fixture('escudo.capture_start.valid.json');
   assert.equal(checkNewModuleCommandContext(capture, { ...context, profile: 'escudo', targetSelected: true }), null);
@@ -299,15 +299,22 @@ test('history ACK cannot rewind or advance across missing events without a decla
 });
 
 
-test('trusted LAN MQTT admits authenticated commands without encryption, BLE still requires encryption', async () => {
+test('trusted LAN MQTT admits anonymous commands without encryption, BLE still requires encryption', async () => {
   const command = await fixture('get_state.valid.json');
   const mqttContext = {...context, channel:'mqtt', profile:'cebo', encrypted:false};
   assert.equal(checkModuleCommandAdmission(command,mqttContext),null);
-  assert.equal(checkModuleCommandAdmission(command,{...mqttContext,authenticated:false}),'unauthorized');
-  assert.equal(checkModuleCommandAdmission(command,{...mqttContext,authorized:false}),'unauthorized');
+  assert.equal(checkModuleCommandAdmission(command,{...mqttContext,authenticated:false}),null);
+  assert.equal(checkModuleCommandAdmission(command,{...mqttContext,authorized:false}),null);
   assert.equal(checkModuleCommandAdmission(command,{...mqttContext,channel:'ble'}),'unauthorized');
   const config=await fixture('configure_connectivity.valid.json');
   assert.equal(checkModuleCommandAdmission(config,mqttContext),'unauthorized');
   config.payload.args.ca_certificate='obsolete-ca';
   invalid(()=>encodeModuleMessage(config));
 });
+
+ test('MQTT setup rejects retired account fields in both versions',async()=>{
+ const current=await fixture('configure_connectivity.valid.json');
+ for(const key of ['mqtt_username','mqtt_password']){
+  const obsolete=structuredClone(current);obsolete.payload.args[key]='retired-test-only';invalid(()=>encodeModuleMessage(obsolete));
+ }
+ });

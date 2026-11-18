@@ -1,5 +1,7 @@
 # Tasks
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 > **Antecedente sustituido:** este cambio registra el SDK propio que se construyó antes de la simplificación aprobada. El destino vigente es el core oficial 3.3.12, tres teléfonos recordados y configuración mínima de protección de datos de [sentinel-arduino-dependencies](../sentinel-arduino-dependencies/design.md). No reinstalar ni reconstruir este paquete; no sincronizar su capacidad `arduino-sdk` como requisito actual. Las evidencias y casillas anteriores conservan su alcance histórico.
 
 Responsable humano: Persona 1 — Jefry. El usuario autoriza ejecución y coordinación Orca; no autoriza commits/push/merge. El coordinador marca cada casilla con evidencia del autor y la línea exacta del CLI.

@@ -1,5 +1,7 @@
 # Build nativo final — sentinel-mvp-standard-persistence
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## Resultado y entradas actuales
 
 **PASS: compilación completa nativa Windows, exit 0**, el 2026-11-16 entre 16:09:26 y 16:19:18 UTC. Este build integra tabla nueva, cuatro claves locales, configuración Wi-Fi/MQTT persistente y objetivo Escudo persistente; no reutiliza un build histórico. Rama `feat/sentinel-arduino-migration`. No se programó hardware ni se hicieron commits, push, merge o archive.

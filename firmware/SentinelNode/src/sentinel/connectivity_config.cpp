@@ -5,7 +5,7 @@
 namespace sentinel {
 namespace {
 // Fixed size/version: reject incompatible installs, never migrate or format NVS.
-constexpr unsigned char Header[8] = {'S', 'N', 'C', 'F', 2, 0, 0, 0};
+constexpr unsigned char Header[8] = {'S', 'N', 'C', 'F', 3, 0, 0, 0};
 struct Record {
   unsigned char header[sizeof(Header)] = {};
   ConnectivityConfig config;
@@ -64,14 +64,12 @@ bool copy(char (&out)[N], const cJSON *args, const char *key) {
 
 bool ConnectivityConfig::valid() const {
   return text(ssid, 1, 32, true) && text(wifi_password, 0, 63, true) &&
-         text(uri, 1, 256, true) && mqtt_uri_valid(uri) &&
-         text(username, 1, 64) && text(password, 1, 128);
+         text(uri, 1, 256, true) && mqtt_uri_valid(uri);
 }
 bool ConnectivityConfig::from_args(const cJSON *args) {
-  return fields(args, "ssid,wifi_password,mqtt_uri,mqtt_username,mqtt_password") &&
+  return fields(args, "ssid,wifi_password,mqtt_uri") &&
          copy(ssid, args, "ssid") && copy(wifi_password, args, "wifi_password") &&
-         copy(uri, args, "mqtt_uri") && copy(username, args, "mqtt_username") &&
-         copy(password, args, "mqtt_password") &&
+         copy(uri, args, "mqtt_uri") &&
          valid();
 }
 ConnectivityLoad load_connectivity(ConnectivityConfig &out) {

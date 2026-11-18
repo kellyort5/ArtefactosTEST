@@ -1,4 +1,4 @@
-"""Local Docker CLI helpers; never put credential content in subprocess arguments."""
+"""Compose/Docker bridge for Windows and WSL; no account provisioning."""
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -58,30 +58,3 @@ def docker(*args, **kwargs):
 
 def compose(*args, **kwargs):
     return docker('compose', '-f', host_path(BROKER / 'compose.yaml'), *args, **kwargs)
-
-
-def private_write(path, content):
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, 'w') as stream:
-        stream.write(content)
-
-
-def refresh_acl():
-    """Apply source topic permissions to existing lab identities without rotating accounts."""
-    import json
-    import re
-    import tempfile
-    lab = BROKER / '.secrets'
-    clients = json.loads((lab / 'clients.json').read_text())
-    ids = [clients['node_id'], clients['peer_id']]
-    if ids[0] == ids[1] or not all(isinstance(i, str) and re.fullmatch(r'[A-Za-z0-9_-]{1,55}', i) for i in ids):
-        raise RuntimeError('Identidades de laboratorio inválidas; revisar configuración privada.')
-    template = (BROKER / 'config/acl.template').read_text()
-    with tempfile.NamedTemporaryFile(mode='w', dir=lab / 'runtime', delete=False) as output:
-        temporary = Path(output.name)
-        try:
-            output.write('\n'.join(template.replace('@NODE_ID@', i) for i in ids))
-            output.close()
-            os.replace(temporary, lab / 'runtime/acl')
-        finally:
-            temporary.unlink(missing_ok=True)

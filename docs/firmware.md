@@ -1,6 +1,8 @@
 # Firmware Sentinel — Arduino IDE Windows
 
-**MQTT vigente (2026-11-17):** TCP1883/WS9001 autenticados en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
+**MQTT vigente (2026-11-17):** TCP1883/WS9001 anónimos en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
 
 
 **Política vigente:** [persistencia operativa y carga USB](persistence-policy.md). El estado del build con tabla nueva/configuración persistente se registra en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores no acreditan estos cambios. Primera carga limpia desde el IDE; reinicios/cortes posteriores deben conservar datos confirmados.
@@ -168,7 +170,7 @@ Trazabilidad de pendientes físicos:
 | 6.2 | Ventana física, SC-only/MITM/passkey/bonds/CCCD protegidos implementados; falta pairing y nivel negociado con hardware. |
 | 6.3 | GATT y framing conectados al gestor; falta intercambio de metadata/get_state/indications en BLE real. |
 | 6.4 | Antecedente: configuración/UTC protegidos en RAM. Política actual: configuración autorizada en NVS oficial; UTC sigue transitorio. Falta prueba BLE real, restauración validada y reinicio/corte sin upload. |
-| 6.5 | STA/wolfMQTT5/TCP implementados; falta conexión desde placa y comprobar autenticación/ACL en LAN. |
+| 6.5 | STA/wolfMQTT5/TCP implementados; falta conexión desde placa y comprobar conectividad anónima en LAN. |
 | 6.6 | Topics/QoS/LWT/periódico/replay implementados; falta orden real MQTT/duplicado/retained desde placa. |
 | 6.7 | Cierre STA/MQTT y reconciliación implementados; falta recorrido Cebo–Escudo físico sin asociación residual. |
 | 6.8 | Flujo documentado en connectivity.md; falta ejecutar esos pasos en placa. |

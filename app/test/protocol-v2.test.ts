@@ -24,12 +24,12 @@ function setup(s=state()) {
 }
 function controllerSetup(s=state()) {
  const store=setup(s),journal=new EventJournal(`controller-${crypto.randomUUID()}`),sent:NodeCommand[]=[];
- let meta=metadata(s),reject=false;
+ let meta=metadata(s),reject=false,clock=100;
  const controller=new NodeController(store,journal,sink=>({
   ble:{channel:'ble',async connect(){return meta;},async readMetadata(){sink.metadata(meta);return meta;},startPolling(){},async send(m){sent.push(m);if(reject)throw new Error('interrupted');},async disconnect(){sink.status('ble','disconnected');}},
   mqtt:{channel:'mqtt',async connect(){sink.status('mqtt','connected');},async send(m){sent.push(m);},async disconnect(){sink.status('mqtt','disconnected');}},
- }),()=>100);
- return {store,journal,controller,sent,setMetadata:(m:NodeMetadata)=>{meta=m;},fail:()=>{reject=true;}};
+ }),()=>clock);
+ return {store,journal,controller,sent,setNow:(value:number)=>{clock=value;},setMetadata:(m:NodeMetadata)=>{meta=m;},fail:()=>{reject=true;}};
 }
 test('negotiate v1 then v2 from metadata without changing shared wire APIs',()=>{
  const legacy=fixture('state.valid.json') as NodeState;
@@ -89,14 +89,14 @@ test('controller sends negotiated codec and keeps interrupted command pending',a
  fail();await assert.rejects(()=>controller.send({operation:'set_mode',args:{mode:'idle'}}));
  assert.equal(store.getState().commands.at(-1)?.status,'pending');
 });
-test('controller requires live Cebo for MQTT, role and BLE-only module commands',async()=>{
- const {controller,store}=controllerSetup(state('cebo'));
+test('controller requires live Cebo for anonymous MQTT and BLE-only module commands',async()=>{
+ const {controller,store,setNow}=controllerSetup(state('cebo'));
  store.getState().setLink('ble','disconnected');store.getState().setLink('mqtt','connected');
  store.getState().receive(state('cebo'),'mqtt',true,102);
  store.getState().tick(20000);await assert.rejects(()=>controller.send({operation:'get_state',args:{}},'mqtt'));
- store.getState().receive({...state('cebo'),uptime_ms:2000},'mqtt',false,20001);
- store.getState().setRole('viewer');await assert.rejects(()=>controller.send({operation:'get_state',args:{}},'mqtt'));
- store.getState().setRole('operator');await assert.rejects(()=>controller.send({operation:'escudo.scan',args:{}},'mqtt'));
+ setNow(20001);store.getState().receive({...state('cebo'),uptime_ms:2000},'mqtt',false,20001);
+ await controller.send({operation:'get_state',args:{}},'mqtt');
+ await assert.rejects(()=>controller.send({operation:'escudo.scan',args:{}},'mqtt'));
 });
 test('incomplete or incorrectly correlated page does not advance the durable cursor',async()=>{
  const {controller,sent,store,journal}=controllerSetup();

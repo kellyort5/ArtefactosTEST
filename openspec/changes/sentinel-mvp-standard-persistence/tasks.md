@@ -1,5 +1,7 @@
 # Tasks
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## 1. Arduino estándar y distribución de flash
 
 - [x] 1.1 Aplicar tabla compatible con boot_app0 conservando capacidades; mantener solo cuatro claves justificadas y retirar las cinco obsoletas en el instalador. Verificar tabla, guardas y regresiones del instalador con preservación de claves ajenas e idempotencia.

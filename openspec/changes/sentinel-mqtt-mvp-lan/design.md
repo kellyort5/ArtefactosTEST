@@ -1,5 +1,7 @@
 # Design
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## Context
 
 Ver proposal.md. Mosquitto publica actualmente solo en loopback y exige TLS; app, schemas y firmware también lo imponen. El usuario autoriza sustituir esta arquitectura para el MVP. No se presupone administración de la Wi-Fi.
@@ -27,3 +29,5 @@ Ver proposal.md. Mosquitto publica actualmente solo en loopback y exige TLS; app
 ## Migration Plan
 
 Revisar specs, cambiar contratos y firmware/app/broker juntos, conservar cuentas/volumen, recrear servicio con configuración nueva y reprovisionar nodo. Registrar pruebas y pendientes físicos. Revertir fuentes coordinadamente si se decide volver a TLS; la configuración anterior no se migra automáticamente.
+
+Los deltas de requisitos se alinean con la fuente vigente para no restaurar cuentas/TLS ni retirar escenarios P1 en una sincronización futura. Los resultados históricos y las fechas de esta entrega se conservan; el cambio posterior sentinel-mvp-sin-cuentas establece el alcance actual.

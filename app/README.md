@@ -29,7 +29,7 @@ En Windows usar variables/rutas de su instalación y `app\android\gradlew.bat as
 
 ## Conexión LAN sin certificados
 
-Instalar el APK en el teléfono real. Preparar el [broker](../broker/README.md) con cuentas por nodo y usar la IP LAN del PC: `ws://192.168.1.10:9001/mqtt` (ejemplo). No usar localhost desde teléfono; no instalar CA ni configurar SAN/DNS/router. PC, teléfono y ESP32 deben poder comunicarse en la red de confianza autorizada. El firewall local debe permitir Docker/puertos1883 y9001. Una Wi-Fi con aislamiento de clientes requiere otra red o un punto de acceso disponible.
+Instalar el APK en el teléfono real. Preparar el [broker](../broker/README.md) sin cuentas y usar la IP LAN del PC: `ws://192.168.1.10:9001/mqtt` (ejemplo). No usar localhost desde teléfono; no instalar CA ni configurar SAN/DNS/router. PC, teléfono y ESP32 deben poder comunicarse en la red de confianza autorizada. El firewall local debe permitir Docker/puertos1883 y9001. Una Wi-Fi con aislamiento de clientes requiere otra red o un punto de acceso disponible.
 
 Capacitor sirve los assets empaquetados desde `http://localhost`; no carga un sitio remoto. Android permite tráfico sin cifrar para el broker configurado y mantiene CA del sistema para HTTPS. `allowMixedContent` permanece deshabilitado: el origen local HTTP evita contenido mixto para WS. Los controles BLE nativos siguen protegidos. Web de desarrollo: abrir Vite por HTTP; una página alojada por HTTPS puede bloquear WS y no es el despliegue de este MVP.
 
@@ -44,9 +44,9 @@ Capacitor sirve los assets empaquetados desde `http://localhost`; no carga un si
 
 ## Flujo WS
 
-Introducir endpoint `ws://IP-DEL-PC:9001/mqtt`, ID de nodo, rol y su cuenta `operator-<id>` o `viewer-<id>`. La cuenta debe estar autorizada por ACL del broker; el ID de cliente no concede permisos. Credenciales quedan solo en RAM mientras dure la sesión y se eliminan al desconectar/cerrar. La app no usa localStorage, variables VITE ni IndexedDB para credenciales.
+Introducir únicamente endpoint `ws://IP-DEL-PC:9001/mqtt` e ID del nodo. No hay login, usuario, contraseña MQTT o rol. Cualquier cliente con acceso al broker puede leer/publicar; el ID sirve para enrutar, no autoriza.
 
-Un estado retenido aislado se muestra antiguo. Esperar el state vivo periódico del nodo (5 s) antes de ordenar; 15 s sin actualización o sin canal marca estado antiguo. Observador es solo lectura. Para configurar/red/hora se exige BLE. Al reconectar se obtiene snapshot y se puede **Recuperar por cursor**; el observador recibe eventos publicados pero no solicita páginas porque carece de permiso commands. Tras una desconexión WS, volver a conectar suministrando la cuenta; no hay cola offline de órdenes.
+Un estado retenido aislado se muestra antiguo. Esperar el state vivo periódico del nodo (5 s) antes de ordenar; 15 s sin actualización o sin canal marca estado antiguo. No existen roles operador/observador. Para configurar/red/hora se exige BLE. Al reconectar se obtiene snapshot y se puede **Recuperar por cursor**; el observador recibe eventos publicados pero no solicita páginas porque carece de permiso commands. Tras una desconexión WS, volver a conectar suministrando la cuenta; no hay cola offline de órdenes.
 
 No confirmar aplicación por PUBACK o por resolución de publishAsync. El store conserva resultados sanitizados de32 órdenes y reconcilia por ack o state/last_command_id/revisión, incluso si el canal cambia. Un comando de boot anterior permanece sin confirmar tras reboot. Configurar un perfil preparado no implica detector/honeypot disponible.
 
@@ -54,7 +54,7 @@ No confirmar aplicación por PUBACK o por resolución de publishAsync. El store 
 
 `protocol.ts` reutiliza `decodeAnyMetadata`/`decodeAnyMessage`, `makeCommand` (v1), `makeModuleCommand` (v2) y `checkModuleAckForCommand`. BLE mantiene UUID y framing compartidos. La versión de salida procede de Metadata protegida o state vivo; un retained nunca negocia versión ni confirma un comando. Se rechazan versiones desconocidas, topics/envelopes incoherentes y respuestas de otro nodo/arranque. No se cambia un ID histórico ni se convierte un evento v1 a v2.
 
-MQTT suscribe `sentinel/v{1,2}/nodes/<id>/{state,availability,metrics,events,acks}` y publica commands en la versión negociada. Conserva compatibilidad si una ACL solo permite v1, siempre que permita su state. **Dependencia de integración:** la plantilla actual del broker solo concede v1; Persona 4 debe completar ACL v2/roles en `sentinel-broker-lan`. Suscribirse a v2 no demuestra autorización ni entrega real. Escudo sigue solo por BLE; MQTT de control requiere estado vivo de Cebo y rol operador. No hay asociación Wi-Fi adicional desde el Escudo.
+MQTT suscribe `sentinel/v{1,2}/nodes/<id>/{state,availability,metrics,events,acks}` y publica commands en la versión negociada. Conserva negociación y mensajes históricos v1 sin ACL. **Integración:** broker anónimo TCP1883/WS9001 y topics v1/v2 ya entregados. P4 comprueba LAN física/notificaciones; no implementa cuentas/ACL. MQTT de control requiere estado vivo de Cebo y operaciones públicas; Escudo conserva BLE exclusivo.
 
 La navegación General/Escudo/Sanitizador/Cebo usa `modeAvailable`; cada módulo muestra el estado confirmado del mismo arranque y sus capacidades. Un nodo v1 conserva los controles de recursos de base, sin presentar módulos v2 como funcionales. Un módulo ausente queda no disponible. La sección común no implementa catálogo Escudo, reglas DNS, gráficos ni controles específicos: corresponden a `sentinel-app-escudo`, `sentinel-app-sanitizador` y `sentinel-app-cebo` de P4.
 
@@ -75,7 +75,7 @@ npm run check:mqtt -w app
 npm run check:browser:mqtt -w app
 ```
 
-Los tests focalizados comprueban negociación, retención/boot/revisión, ACK rechazados o de tipo incorrecto, pérdida de transporte, páginas incompletas, historial v1/v2 de tres módulos y limpieza de credenciales de sesión. Chromium comprueba UI inicial, diagnóstico BLE web, navegación v2 y rechazo sin cambio optimista con fixtures de prueba, responsive e IndexedDB real tras recarga. WS comprueba adaptador, operador/observador y rechazo de contraseña contra Mosquitto real; usa un comando de prueba sin ESP32 y no acredita aplicación en placa. [evidence.md](evidence.md) conserva la evidencia de la base; la [verificación de app v2](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) registra este incremento y sus pruebas físicas pendientes. API de transporte/formatos exactos en [contracts/README.md](../contracts/README.md). Los fixtures solo existen en tests; nunca alimentan la UI de producto.
+Los tests focalizados comprueban negociación, retención/boot/revisión, ACK rechazados o de tipo incorrecto, pérdida de transporte, páginas incompletas, historial v1/v2 de tres módulos y limpieza de credenciales de sesión. Chromium comprueba UI inicial, diagnóstico BLE web, navegación v2 y rechazo sin cambio optimista con fixtures de prueba, responsive e IndexedDB real tras recarga. WS comprueba el adaptador anónimo y la entrega de comandos contra Mosquitto real; usa un comando de prueba sin ESP32 y no acredita aplicación en placa. [evidence.md](evidence.md) conserva la evidencia de la base; la [verificación de app v2](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) registra este incremento y sus pruebas físicas pendientes. API de transporte/formatos exactos en [contracts/README.md](../contracts/README.md). Los fixtures solo existen en tests; nunca alimentan la UI de producto.
 
 ## Diagnóstico optativo de Persona 1
 

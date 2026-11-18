@@ -1,5 +1,7 @@
 # Evidencia de firmware: sentinel-core-foundation
 
+> Registro histórico de su entrega. Para instalación y alcance actual consultar [acuerdos vigentes](../docs/mvp-policy.md). TLS, cuentas/ACL o dependencias anteriores aquí descritas no se reinstalan para el MVP actual; se conservan las evidencias y pendientes originales.
+
 **Evidencia histórica:** las pruebas TLS/WSS de este documento corresponden a la configuración anterior. El MVP actual usa MQTT/TCP1883 y WS9001 sin certificados; ver [verificación vigente](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md).
 
 

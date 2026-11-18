@@ -38,8 +38,6 @@ void wait_for(const std::function<bool()> &fn) {
 MqttTransport::Config config(const char *host = "sentinel.test") {
   MqttTransport::Config c;
   snprintf(c.host, sizeof(c.host), "%s", host);
-  strcpy(c.user, "synthetic-user");
-  strcpy(c.password, "synthetic-password");
   strcpy(c.client_id, "node-probe");
   strcpy(c.commands, "sentinel/v2/nodes/probe/commands");
   strcpy(c.availability, "sentinel/v2/nodes/probe/availability");
@@ -87,7 +85,7 @@ void success(const char *name, const MqttTransport::Config &c) {
   join_workers();
   assert(errors == 0);
   save_frames(name);
-  printf("%s: TCP authenticated session, MQTT5/QoS1/retained input/stop PASS\n",
+  printf("%s: TCP anonymous session, MQTT5/QoS1/retained input/stop PASS\n",
          name);
 }
 int main(int argc, char **argv) {
@@ -104,19 +102,17 @@ int main(int argc, char **argv) {
   success("valid-IPv4", config("192.0.2.1"));
   success("valid-IPv6", config("2001:db8::1"));
   prepare();
-  auto invalid = tcp; invalid.user[0] = 0;
-  assert(!transport.start(invalid));
-  invalid = tcp; invalid.password[0] = 0;
+  auto invalid = tcp; invalid.host[0] = 0;
   assert(!transport.start(invalid));
   invalid = tcp; invalid.port = 0;
   assert(!transport.start(invalid));
   assert(!server.entered && server.sent.empty());
-  puts("missing authentication/port refused before TCP PASS");
+  puts("missing host/port refused before TCP PASS");
   prepare(); server.fail_connect = true;
   assert(transport.start(tcp));
   wait_for([] { return transport.stopped(); }); join_workers();
   assert(errors == 1 && server.sent.empty());
-  puts("TCP failure: no MQTT/auth bytes sent PASS");
+  puts("TCP failure: no MQTT bytes sent PASS");
   prepare();
   server.gate = true;
   assert(transport.start(tcp));
@@ -128,7 +124,7 @@ int main(int argc, char **argv) {
   join_workers();
   assert(server.sent.empty());
   puts("cancel during I/O: supervisor calls return, pending until worker ACK, "
-       "ZERO auth PASS");
+       "no CONNECT after cancel PASS");
   prepare();
   server.no_puback = true;
   assert(transport.start(tcp));

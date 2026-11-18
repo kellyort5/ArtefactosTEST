@@ -2,34 +2,29 @@
 
 ## Purpose
 
-Acceso MQTT autenticado por IP en LAN de confianza para teléfono, ESP32 e integraciones, con permisos exactos v1/v2.
+Integrar MQTT anónimo por IP en la LAN de confianza del equipo, con v1/v2 y notificaciones sin cuentas ni ACL.
 
 ## ADDED Requirements
 
-### Requirement: Acceso MQTT LAN autenticado
-
-El broker SHALL aceptar clientes MQTT5/TCP y WS por IP en redes de confianza autorizadas sin certificados ni configuración del router, conservando autenticación y ACL.
+### Requirement: Acceso MQTT LAN anónimo
+El broker SHALL permitir TCP1883/WS9001 por IP sin TLS ni cuentas y conservar volumen. El despliegue SHALL documentar firewall/aislamiento y ausencia de autenticación/ACL, sin prometer comunicación en cualquier Wi-Fi.
 
 #### Scenario: Acceso LAN verificable
+- **WHEN** teléfono y ESP32 conectan por IP en la red del equipo sin cuenta
+- **THEN** intercambian mensajes v1/v2 por TCP/WS sin CA
+- **AND** el informe distingue prueba física de smoke local
 
-- **WHEN** teléfono y ESP32 conectan por IP con sus cuentas autorizadas
-- **THEN** intercambian mensajes de sus topics sin CA
-- **AND** el diagnóstico distingue aislamiento de red y firewall local de errores de cuenta
+### Requirement: Integración de alertas sin rol MQTT
+P3 SHALL poder suscribir eventos contratados sin rol notify ni ACL. El consumidor SHALL validar contrato, nodo esperado e identidad de evento sin afirmar autenticidad del emisor anónimo.
 
-### Requirement: Permisos mínimos v2
-
-El broker SHALL limitar publicación/suscripción por nodo y rol, incluyendo un rol de notificaciones de solo lectura.
-
-#### Scenario: Permisos mínimos v2 verificable
-
-- **WHEN** notify intenta publicar comandos o leer otro nodo
-- **THEN** se rechazan ambas acciones y se permiten sus eventos autorizados
+#### Scenario: Suscripción de notificaciones
+- **WHEN** el componente de P3 recibe eventos reales o simulados declarados
+- **THEN** valida, deduplica y conserva su identidad/origen sin cuenta MQTT
+- **AND** documenta que el broker no restringe lectura o publicación por identidad
 
 ### Requirement: Continuidad de base
+El broker SHALL conservar eventos históricos v1 y no exponer servicios Cebo a Internet.
 
-El broker SHALL conservar transporte de eventos históricos v1 y no exponer los servicios Cebo a Internet.
-
-#### Scenario: Continuidad de base verificable
-
-- **WHEN** se reenvía un evento v1 después de actualizar el nodo
-- **THEN** se entrega por su topic original y no se habilita publicación pública de HTTP/Telnet
+#### Scenario: Continuidad verificable
+- **WHEN** se reenvía un evento v1
+- **THEN** conserva topic/identidad y no se publica HTTP/Telnet a Internet
