@@ -11,7 +11,7 @@ Responsable único de todas las casillas: **Persona 2**. Estado inicial: todo pe
 
 ## 2. Comprobación del incremento
 
-- [ ] 2.1 Compilar `firmware/SentinelNode` desde Arduino IDE Windows con la placa `Sentinel ESP32-S3 N16R8 (secure SDK)` y ejecutar auditoría real de red/endpoints controlados con un resultado HTTPS válido y uno inválido.
+- [ ] 2.1 Compilar `firmware/SentinelNode` desde Arduino IDE Windows con core oficial ESP32 3.3.12 y placa `ESP32S3 Dev Module` N16R8 y ejecutar auditoría real de red/endpoints controlados con un resultado HTTPS válido y uno inválido.
 - [ ] 2.2 Salir del modo durante auditoría; comprobar cancelación y liberación STA sin arrancar AP ni dejar tareas activas.
 
 ## Workflow follow-up

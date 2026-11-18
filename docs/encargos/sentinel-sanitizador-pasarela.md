@@ -1,13 +1,13 @@
 # Encargo: Sanitizador: STA+AP, DHCP y NAT
 
-Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md).
 
 P2 extenderá la persistencia oficial a configuración upstream/AP/DNS/DoH/reglas aceptadas cuando implemente cada encargo. Validar límites, guardar/commit antes de confirmar, conservar anterior ante fallo y restaurar en Idle sin activar STA/AP/NAT/DoH ni confiar en UTC viejo. Sustituye RAM-only para configuración; caché DNS y clientes observados siguen siendo datos transitorios. NVS estándar no promete cifrado físico. No crear otro gestor/journal ni dar módulos futuros por implementados.
 
 **Responsable único:** Persona 2 — firmware Auditor/Sanitizador. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-sanitizador-pasarela`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 
-**Flujo vigente de firmware (2026-11-13):** [Arduino IDE Windows con core oficial ESP32 3.3.12](../firmware.md), sketch único `firmware/SentinelNode/SentinelNode.ino`. El firmware completo tiene build oficial Windows PASS con las dos bibliotecas y configuración local documentadas; el SDK propio queda como antecedente. Las fuentes de módulos están bajo `SentinelNode/src/`; la [API/factories y propiedad de recursos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) se conservan. Los artefactos archivados documentan el entorno anterior; sus resultados físicos pendientes no se completan con el port. Sanitizador/Cebo continúan sin servicios implementados y sus flags permanecen en 0 hasta sus entregas reales.
+**Flujo vigente de firmware (2026-11-17):** [Arduino IDE Windows con core oficial ESP32 3.3.12](../firmware.md), sketch único `firmware/SentinelNode/SentinelNode.ino`. El firmware completo tiene build oficial Windows PASS con las dos bibliotecas y configuración local documentadas; el SDK propio queda como antecedente. Las fuentes de módulos están bajo `SentinelNode/src/`; la [API/factories y propiedad de recursos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) se conservan. Los artefactos archivados documentan el entorno anterior; sus resultados físicos pendientes no se completan con el port. Sanitizador/Cebo continúan sin servicios implementados y sus flags permanecen en 0 hasta sus entregas reales.
 
 ## Qué debes entregar
 
@@ -35,8 +35,8 @@ Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por ram
 
 ### Pasarela y métricas
 
-1. **1.1** Declarar requisitos de configuración de la integración Arduino a P1 y configurar netifs mediante sentinel_api; verificar build con forwarding/NAPT y sin drivers duplicados.
-2. **1.2** Implementar AP autenticado, DHCP y detección de solapamiento; probar validaciones de clave/subred y documentar configuración en docs/modules/sanitizador-gateway.md.
+1. **1.1** Comprobar forwarding/NAPT en el core oficial fijado con Persona 1 y configurar netifs mediante sentinel_api; verificar build con forwarding/NAPT y sin drivers duplicados.
+2. **1.2** Implementar AP autenticado, DHCP y detección de solapamiento; probar clave/subred, persistencia oficial con commit antes de confirmar y recuperación en Idle tras reinicio/corte sin USB; documentar en docs/modules/sanitizador-gateway.md.
 3. **1.3** Integrar NAPT y parada/reconexión; comprobar que no hay port forwarding ni protección IPv6 anunciada.
 4. **1.4** Implementar lista de clientes, RSSI y contadores IPv4 por dirección; probar cálculo/delta y páginas v2 con casos focalizados.
 ### Comprobación del incremento

@@ -2,7 +2,7 @@
 
 **Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
 
-Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md).
 
 P1 mantiene núcleo, integración Arduino/Escudo y API central: cuatro claves mínimas, retirada de cinco overrides propios antiguos, wrapper anti-autoerase durante arranque normal y tabla nueva. Probar en placa identidad/bonds/configuración/historial tras reinicio y corte sin upload; restaurar en Idle y renovar UTC. Primera carga limpia y posteriores USB no prueban conservación; nunca grabar desde setup scripts.
 
@@ -101,7 +101,7 @@ SENTINEL_SANITIZE=1 npm run test:escudo
 node firmware/test/arduino_build_test.mjs
 ```
 
-La integración oficial todavía debe entregar sus bibliotecas/configuración y build completo; después compilar el sketch real con Arduino IDE Windows conforme a [firmware](../firmware.md). Node es mantenimiento opcional; los comandos anteriores son comprobaciones host/contratos. Ejecutar las comprobaciones que corresponden al cambio y añadir tests focalizados de exclusión, admisión/duplicados, parsers, detectores o límites. Compilar no demuestra BLE/captura/NVS físicos. Para grabar y observar la placa, seguir la [guía física](../core-foundation-test-guide.md) y acordar el turno de hardware.
+La integración oficial y su build completo ya tienen evidencia; compilar el sketch real con Arduino IDE Windows conforme a [firmware](../firmware.md). Node es mantenimiento opcional; los comandos anteriores son comprobaciones host/contratos. Ejecutar las comprobaciones que corresponden al cambio y añadir tests focalizados de exclusión, admisión/duplicados, parsers, detectores o límites. Compilar no demuestra BLE/captura/NVS físicos. Para grabar y observar la placa, seguir la [guía física](../core-foundation-test-guide.md) y acordar el turno de hardware.
 
 | Con quién | Lo que tú entregas | Lo que necesitas recibir |
 | --- | --- | --- |

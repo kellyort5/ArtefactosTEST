@@ -1,21 +1,21 @@
-# Reparto de Sentinel Node para cuatro integrantes
+# Reparto vigente de Sentinel Node para cuatro integrantes
 
-**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+**Referencia de trabajo: `develop`.** Este índice y las fichas reflejan el alcance aprobado al **17 de noviembre de 2026**. Cada encargo tiene un único autor, una rama y sus documentos OpenSpec enlazados. Los compañeros pueden seguir los Markdown sin instalar OpenSpec; Jefry mantiene el seguimiento oficial.
 
-Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+Antes de comenzar, leer [acuerdos vigentes del MVP](../mvp-policy.md), [guía común](guia-equipo.md) y la guía personal de abajo. MQTT usa TCP1883/WS9001 anónimos por IP en la LAN del equipo. No hay gestión de cuentas, roles, ACL ni certificados MQTT. Se conservan BLE protegido, permisos Android y HTTPS/DoH; las claves propias de integraciones se configuran fuera de Git.
 
-Resumen de la planificación original (2026-11-11): de los **23 encargos originales**, `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Sus seis requisitos están en la [spec principal](../../openspec/specs/module-protocol/spec.md), con [resultados y límites](../../contracts/evidence-v2.md). Los otros **22 cambios** estaban planificados entonces; consultar sus tareas y evidencia actuales antes de empezar. La publicación está separada en [PR #2: contratos](https://github.com/Jefry-P/ArtefactosProyecto/pull/2) y [PR #3: planificación y guías](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), ambos hacia develop. Integrar #2 antes de #3; esta publicación no realizó merges.
+## Estado real de la entrega compartida
 
-Verificación de la planificación original: `openspec validate --all --strict --json` aprobó los 24 cambios que estaban presentes (23 nuevos y la base), sin incidencias. Se comprobaron enlaces locales, ausencia de ciclos entre encargos y asignación de un único autor. Es evidencia de aquella planificación, no una afirmación de que todos los módulos estén implementados o físicamente verificados.
+P1 ya entregó **contratos v2, API/núcleo, los cuatro incrementos de Escudo, app común v2, diagnóstico BLE y salida serie sin OLED**, además de las correcciones de memoria/pila BLE y del broker anónimo. No rehacer esas entregas como requisito previo de P2/P3/P4. Consultar [verificación integrada vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md).
 
-Estado del incremento al 2026-11-12: contratos, API y los cuatro incrementos Escudo están archivados; conservan las pruebas físicas pendientes indicadas en sus cierres. `sentinel-app-protocolo-v2` también está [archivado](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/closure.md) por P1 con 5/6 tareas y control físico pendiente aceptado; el [seguimiento actual](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/tasks.md) y su [verificación](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) distinguen software comprobado de integración física pendiente. No se asumen merges por archivar.
+| Entrega compartida adicional | Responsable | Seguimiento |
+| --- | --- | --- |
+| [Diagnóstico P1 sin OLED](../../openspec/changes/sentinel-p1-pruebas-sin-oled/tasks.md) | P1 | 8/9 tareas; **4.3 física pendiente** sobre la imagen final. [Guía de pruebas](../guia-pruebas-persona-1.md). |
+| [MVP con MQTT anónimo](../../openspec/changes/sentinel-mvp-sin-cuentas/tasks.md) | P1 | 5/5 tareas de software; no acredita los pendientes físicos de otros cambios. |
 
+**Pendiente de implementar:** Sanitizador, Cebo/servidor de alertas, pantallas finales/push y la integración completa de tres modos, según sus fichas. El panel diagnóstico no completa las pantallas de P4. OLED y sus alertas recientes siguen siendo obligatorias en la integración P1, tarea **1.5**; la salida serie permite adelantar pruebas, no acredita la OLED física.
 
-**Flujo de todos los módulos de firmware:** [Arduino IDE Windows y core oficial ESP32 3.3.12](../firmware.md), sketch único `firmware/SentinelNode/SentinelNode.ino`. Firmware completo con build oficial Windows PASS; el build del SDK propio se conserva como [antecedente](../../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md). Escudo mantiene regresión host y toda su lógica; Sanitizador/Cebo mantienen autores, API/factories y alcance pendientes. Node es mantenimiento opcional, no un requisito del IDE.
-
-## Qué recibe el equipo ahora
-
-P1 entrega contratos/API/Escudo/app común v2, diagnóstico BLE y salida serie sin OLED, más correcciones de memoria/pila BLE y simplificación MQTT anónima. Su tarea física4.3 permanece pendiente; no equivale a software sin implementar. P2/P3/P4 continúan sus módulos completos. P4 reutiliza el panel diagnóstico para validar el firmware y construye la UX final; no reimplementa esa herramienta ni administra cuentas/ACL/TLS MQTT. P3 recibe endpoints/topics sin rol notify. La [tabla vigente por persona](../mvp-policy.md#reparto-actualizado-un-autor-por-spec) y las guías de abajo indican entregas y pendientes.
+La persistencia de identidad, bonds, configuración aceptada e historial confirmado durante uso/reinicio/corte se conserva; USB puede reinicializar datos sin migración. Ver [política](../persistence-policy.md). Firmware: **Arduino IDE Windows, core oficial ESP32 3.3.12, ESP32S3 Dev Module N16R8**, sketch único `firmware/SentinelNode/SentinelNode.ino`; seguir [preparación](../firmware.md). El SDK propio/PlatformIO de algunos archivos archivados es histórico.
 
 ## Guías personalizadas: empezar aquí
 
@@ -41,7 +41,7 @@ Las guías explican el reparto aprobado; las fichas y sus specs conservan el det
 El usuario coordina OpenSpec y desarrolla Escudo. El Sanitizador comienza desde la primera ronda, por instrucción del 2026-11-10; los tres módulos conservan todo su alcance funcional. Solo un modo usa la radio a la vez en cada ESP32.
 
 
-| Integrante        | Trabajo propio                                                                   | Cambios nuevos |
+| Integrante        | Trabajo propio                                                                   | Encargos originales |
 | ----------------- | -------------------------------------------------------------------------------- | -------------- |
 | Persona 1 — Jefry | Contratos, API/supervisor, Escudo, app común v2, integración y seguimiento OpenSpec | 8              |
 | Persona 2         | Auditor/Sanitizador completo                                                     | 4              |
@@ -53,24 +53,22 @@ Los números no representan esfuerzo equivalente. Persona 4 tiene la mayor varie
 
 **Un cambio = un autor.** No hay una spec compartida entre firmware y UI, ni entre envío y recepción push. El revisor es otro integrante y no toma tareas de implementación dentro del mismo cambio. Si alguien necesita ayuda, se transfiere el encargo completo de forma explícita o se crea otro cambio acotado; no asignar simultáneamente sus casillas a dos personas.
 
-## Antes de implementar: revisión concreta, sin otra investigación extensa
+## Contratos y decisiones antes de programar
 
-Alcance, stack, transporte por modo, exclusión de modos y contrato v2 ya están aprobados. El contrato del punto 1 está completado; las elecciones de implementación nuevas de los consumidores de los puntos 2 y 3 conservan su condición de **propuestas para revisión**, según AGENTS.md:
+El alcance de los tres módulos, el transporte por modo, la exclusión de modos, la API y el contrato v2 ya están aprobados. Consumir [protocolo](../../contracts/module-protocol.md), [API de firmware](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3), schemas y fixtures existentes; no crear formatos paralelos.
 
-1. [Protocolo v2 compatible con la base e historial v1](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/design.md): biblioteca implementada, probada y aprobada por el usuario; consultar [contrato para consumidores](../../contracts/module-protocol.md) y [evidencia de aprobación](../../contracts/evidence-v2.md). La base conserva v1 hasta que sus consumidores se adapten; no admite campos funcionales por simple adición. `origin` en eventos v2 es obligatorio y conserva el formato histórico v1.
-2. [API de módulos y único propietario de radio/journal](../../openspec/changes/archive/2026-11-11-sentinel-firmware-module-api/design.md): concreta las interfaces para que los tres autores integren sin editar el mismo núcleo.
-3. [Componente mínimo Node y API de notificaciones](../../openspec/changes/sentinel-alertas-webhook/design.md), [FCM servidor](../../openspec/changes/sentinel-alertas-push-servidor/design.md) y [plugin Android](../../openspec/changes/sentinel-app-push/design.md): proveedores/credenciales locales se aprovisionan al implementarlos. No se ha creado un proyecto Firebase ni acreditado entrega real.
+El firmware actual anuncia v2; la app común negocia v1/v2 y conserva el historial v1. Todo evento v2 incluye `origin: real | simulated`. Un fixture no prueba integración física. MQTT es anónimo: `device_id`, schema y deduplicación no autentican al emisor.
 
-Los límites de conexiones, umbrales, cachés y tiempos son recomendaciones iniciales documentadas en cada diseño. Ajustarlos ante fallos no reduce funciones. H-01 a H-08 siguen siendo validaciones durante implementación; NAT, DoH, concurrencia y push no están demostrados por estos archivos. No hacen falta benchmarks previos.
+Las elecciones aún propuestas de implementación (por ejemplo proveedor FCM/plugin Android), límites y umbrales se identifican en los diseños. Revisar decisiones arquitectónicas nuevas con Jefry sin reabrir acuerdos existentes ni exigir investigación extensa previa. Las claves propias del webhook/proveedor/API HTTPS del contrato no son cuentas de usuario MQTT; no añadir registro de usuarios, roles o paneles de permisos. P3 entrega esa integración a P4.
 
-## Orden de trabajo
+## Orden de trabajo desde develop
 
-1. La [base archivada](../../openspec/changes/archive/2026-11-10-sentinel-core-foundation/closure.md) conserva **26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario** bajo la suposición de que el hardware funciona. Esta aceptación permite continuar sin marcar esas pruebas como realizadas. Cuando se ejecuten, registrar evidencia con la [guía de prueba](../core-foundation-test-guide.md).
-2. Continuar con la API de módulos, consumiendo el contrato aprobado y archivado. Son dos encargos separados: el contrato está terminado y la API sigue pendiente. Los compañeros leen sus interfaces para preparar su carpeta; no se exige terminar todas las comprobaciones de base para empezar lógica/UI. Confirmar que la referencia compartida contiene ambos PR y las dependencias necesarias: publicar no equivale a integrar en develop.
-3. Primera ronda en paralelo: tú descubrimiento Escudo; P2 auditoría; P3 HTTP; P4 broker y preparación de pantallas; P1 entrega la adaptación app común en una spec separada. Cada uno necesita contrato/API que consuma.
-4. Seguir la cadena interna de cada módulo y las pantallas independientes. La UI puede prepararse con fixtures revisados; sus dependencias de la tabla son de **integración/cierre**, no una prohibición de preparar vistas antes. Un fixture nunca cuenta como funcionalidad integrada.
-5. P3 entrega webhook y servidor push; P4 integra recepción Android y prueba con app cerrada. P4 prepara laboratorio desde temprano y consolida evidencia durante todas las rondas.
-6. Tú integras registros/recursos físicos del núcleo; cada fallo de un módulo o de la app vuelve a su autor. P4 consolida laboratorio. El cierre requiere Escudo, Sanitizador y Cebo completos en ESP32/app.
+1. **P1:** ejecutar las pruebas físicas pendientes de API/Escudo/app y de la imagen final BLE con la [guía P1](../guia-pruebas-persona-1.md). Mantener la integración completa preparada para las entregas de los demás.
+2. **P2:** empezar `sentinel-sanitizador-auditoria`, después pasarela → DNS → DoH. La API ya está disponible; validar NAT/DoH durante sus incrementos, con los componentes oficiales primero.
+3. **P3:** empezar `sentinel-cebo-http`, después Telnet → eventos/historial → webhook → push servidor. Reutilizar broker anónimo y journal del núcleo.
+4. **P4:** verificar broker en la LAN del equipo y preparar laboratorio; desarrollar pantallas Escudo → Sanitizador → Cebo y recepción push. Escudo y app común ya permiten empezar su integración. Las otras pantallas pueden prepararse con fixtures mientras llega el módulo correspondiente; cerrar requiere datos reales.
+5. Cada autor integra por PR revisado. Las dependencias de abajo son necesarias para el cierre, no una prohibición de preparar lógica o vistas. No mantener ramas simultáneas que editen el mismo archivo.
+6. P1 completa `sentinel-integracion-tres-modos` con recursos, transiciones, OLED/botón y alertas recientes. P4 consolida evidencia; cada dueño corrige su módulo. El cierre exige Escudo, Sanitizador y Cebo completos, webhook y push con app cerrada.
 
 ```mermaid
 flowchart TD
@@ -94,34 +92,34 @@ flowchart TD
 
 ## Encargos y dependencias de integración
 
-Las dependencias son entregas revisadas; no se asume ningún merge realizado. Dentro de una carpeta todos los cambios son del mismo autor. No trabajar simultáneamente en dos ramas propias que modifiquen el mismo archivo.
+Las dependencias comunes de P1 ya están integradas en develop. La tabla distingue los siete encargos originales archivados de los dieciséis aún activos; las casillas reflejan evidencia, no estimaciones de avance. Un archivo histórico conserva su resultado y sus pendientes físicos. [Resultado de la revisión de coherencia](revision-alcance.md).
 
 
-| Cambio y ficha                                                            | Autor | Depende de                                                                                                                    |
-| ------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------- |
-| [sentinel-module-contracts](sentinel-module-contracts.md)                 | P1    | Base existente                                                                                                                |
-| [sentinel-firmware-module-api](sentinel-firmware-module-api.md)           | P1    | `module-contracts`                                                                                                            |
-| [sentinel-escudo-descubrimiento](sentinel-escudo-descubrimiento.md)       | P1    | `firmware-module-api`                                                                                                         |
-| [sentinel-escudo-captura](sentinel-escudo-captura.md)                     | P1    | `escudo-descubrimiento`                                                                                                       |
-| [sentinel-escudo-detectores](sentinel-escudo-detectores.md)               | P1    | `escudo-captura`                                                                                                              |
-| [sentinel-escudo-recuperacion](sentinel-escudo-recuperacion.md)           | P1    | `escudo-detectores`                                                                                                           |
-| [sentinel-sanitizador-auditoria](sentinel-sanitizador-auditoria.md)       | P2    | `firmware-module-api`                                                                                                         |
-| [sentinel-sanitizador-pasarela](sentinel-sanitizador-pasarela.md)         | P2    | `sanitizador-auditoria`                                                                                                       |
-| [sentinel-sanitizador-dns](sentinel-sanitizador-dns.md)                   | P2    | `sanitizador-pasarela`                                                                                                        |
-| [sentinel-sanitizador-doh](sentinel-sanitizador-doh.md)                   | P2    | `sanitizador-dns`                                                                                                             |
-| [sentinel-cebo-http](sentinel-cebo-http.md)                               | P3    | `firmware-module-api`                                                                                                         |
-| [sentinel-cebo-telnet](sentinel-cebo-telnet.md)                           | P3    | `cebo-http`                                                                                                                   |
-| [sentinel-cebo-eventos-historial](sentinel-cebo-eventos-historial.md)     | P3    | `cebo-telnet`                                                                                                                 |
-| [sentinel-alertas-webhook](sentinel-alertas-webhook.md) | P3    | `module-contracts`, `broker-lan`, `cebo-eventos-historial`                                                                    |
-| [sentinel-alertas-push-servidor](sentinel-alertas-push-servidor.md)       | P3    | `alertas-webhook`                                                                                                    |
-| [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md)                 | P1    | `module-contracts`                                                                                                            |
-| [sentinel-app-escudo](sentinel-app-escudo.md)                             | P4    | `app-protocolo-v2`, `escudo-descubrimiento`, `escudo-detectores`, `escudo-recuperacion`                                       |
-| [sentinel-app-sanitizador](sentinel-app-sanitizador.md)                   | P4    | `app-protocolo-v2`, `sanitizador-auditoria`, `sanitizador-doh`                                                                |
-| [sentinel-app-cebo](sentinel-app-cebo.md)                                 | P4    | `app-protocolo-v2`, `cebo-eventos-historial`, `alertas-webhook`                                                      |
-| [sentinel-app-push](sentinel-app-push.md)                                 | P4    | `app-protocolo-v2`, `app-cebo`, `alertas-push-servidor`                                                                       |
-| [sentinel-broker-lan](sentinel-broker-lan.md)                             | P4    | `module-contracts`                                                                                                            |
-| [sentinel-laboratorio-pruebas](sentinel-laboratorio-pruebas.md)           | P4    | `module-contracts`                                                                                                            |
-| [sentinel-integracion-tres-modos](sentinel-integracion-tres-modos.md)     | P1    | `escudo-recuperacion`, `sanitizador-doh`, `cebo-eventos-historial`, `app-escudo`, `app-sanitizador`, `app-push`, `broker-lan` |
+| Cambio y ficha                                                            | Autor | Tareas y estado | Depende de                                                                                                                    |
+| --- | --- | --- | --- |
+| [sentinel-module-contracts](sentinel-module-contracts.md) | P1 | 7/7 · archivado | Base existente                                                                                                                |
+| [sentinel-firmware-module-api](sentinel-firmware-module-api.md) | P1 | 6/7 · archivado | `module-contracts`                                                                                                            |
+| [sentinel-escudo-descubrimiento](sentinel-escudo-descubrimiento.md) | P1 | 4/6 · archivado | `firmware-module-api`                                                                                                         |
+| [sentinel-escudo-captura](sentinel-escudo-captura.md) | P1 | 4/6 · archivado | `escudo-descubrimiento`                                                                                                       |
+| [sentinel-escudo-detectores](sentinel-escudo-detectores.md) | P1 | 5/6 · archivado | `escudo-captura`                                                                                                              |
+| [sentinel-escudo-recuperacion](sentinel-escudo-recuperacion.md) | P1 | 3/6 · archivado | `escudo-detectores`                                                                                                           |
+| [sentinel-sanitizador-auditoria](sentinel-sanitizador-auditoria.md) | P2 | 0/6 · activo | `firmware-module-api`                                                                                                         |
+| [sentinel-sanitizador-pasarela](sentinel-sanitizador-pasarela.md) | P2 | 0/6 · activo | `sanitizador-auditoria`                                                                                                       |
+| [sentinel-sanitizador-dns](sentinel-sanitizador-dns.md) | P2 | 0/6 · activo | `sanitizador-pasarela`                                                                                                        |
+| [sentinel-sanitizador-doh](sentinel-sanitizador-doh.md) | P2 | 0/6 · activo | `sanitizador-dns`                                                                                                             |
+| [sentinel-cebo-http](sentinel-cebo-http.md) | P3 | 0/6 · activo | `firmware-module-api`                                                                                                         |
+| [sentinel-cebo-telnet](sentinel-cebo-telnet.md) | P3 | 0/6 · activo | `cebo-http`                                                                                                                   |
+| [sentinel-cebo-eventos-historial](sentinel-cebo-eventos-historial.md) | P3 | 0/6 · activo | `cebo-telnet`                                                                                                                 |
+| [sentinel-alertas-webhook](sentinel-alertas-webhook.md) | P3 | 0/7 · activo | `module-contracts`, `broker-lan`, `cebo-eventos-historial`                                                                    |
+| [sentinel-alertas-push-servidor](sentinel-alertas-push-servidor.md) | P3 | 0/6 · activo | `alertas-webhook`                                                                                                    |
+| [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md) | P1 | 5/6 · archivado | `module-contracts`                                                                                                            |
+| [sentinel-app-escudo](sentinel-app-escudo.md) | P4 | 0/6 · activo | `app-protocolo-v2`, `escudo-descubrimiento`, `escudo-detectores`, `escudo-recuperacion`                                       |
+| [sentinel-app-sanitizador](sentinel-app-sanitizador.md) | P4 | 0/6 · activo | `app-protocolo-v2`, `sanitizador-auditoria`, `sanitizador-doh`                                                                |
+| [sentinel-app-cebo](sentinel-app-cebo.md) | P4 | 0/6 · activo | `app-protocolo-v2`, `cebo-eventos-historial`, `alertas-webhook`                                                      |
+| [sentinel-app-push](sentinel-app-push.md) | P4 | 0/6 · activo | `app-protocolo-v2`, `app-cebo`, `alertas-push-servidor`                                                                       |
+| [sentinel-broker-lan](sentinel-broker-lan.md) | P4 | 0/6 · activo | `module-contracts`                                                                                                            |
+| [sentinel-laboratorio-pruebas](sentinel-laboratorio-pruebas.md) | P4 | 0/6 · activo | `module-contracts`                                                                                                            |
+| [sentinel-integracion-tres-modos](sentinel-integracion-tres-modos.md) | P1 | 0/7 · activo | `escudo-recuperacion`, `sanitizador-doh`, `cebo-eventos-historial`, `app-escudo`, `app-sanitizador`, `app-push`, `broker-lan` |
 
 
 ## Propiedad de archivos y solicitudes entre compañeros
@@ -175,11 +173,11 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 2. Implementa una tarea, compila, realiza una comprobación breve y registra resultados. Mantiene pruebas focalizadas de parsers, reglas, límites, privacidad o dedup cuando sea lógica crítica.
 3. Abre PR conforme a CONTRIBUTING con descripción, resultados y ficha/spec enlazadas. Al menos otro integrante revisa. No integrar cambios de contratos improvisados ni código ajeno sin acordarlo con su dueño.
 4. Tú revisas coherencia con OpenSpec y actualizas casillas según evidencia. Los compañeros no necesitan CLI ni redactar propuestas. Si usas Codex para implementar, solicita explícitamente aplicar un cambio concreto; no aplicar los 23 juntos.
-5. Después de integrar y comprobar cada cambio, tú gestionas sincronización/archivo por el flujo OpenSpec autorizado. No copiar deltas pendientes al inventario principal como si estuvieran terminados ni archivar la base con tareas pendientes.
+5. Después de integrar y comprobar cada cambio, tú gestionas sincronización/archivo por el flujo OpenSpec autorizado. No copiar deltas pendientes al inventario principal como si estuvieran terminados ni tratar un archivo con pendientes aceptados como validación física completa.
 
 ## Qué queda pendiente y qué se difiere
 
-**Pendiente durante implementación:** verificación física de la base; revisión/implementación de API de módulos y sus consumidores; captura/BLE, NAT+DoH conjunto, detectores y persistencia; cuentas propias de integraciones; IP LAN y permisos y recepción push cerrada. El contrato está aprobado, pero los diseños no acreditan hardware ni sustituyen pruebas reales.
+**Pendiente durante implementación:** pruebas físicas conservadas en los cierres de base/API/Escudo/app y tarea4.3 de diagnóstico; todos los incrementos activos P2/P3/P4 e integración P1. Configurar endpoints y claves propias de integraciones durante sus encargos, y probar BLE, NAT+DoH, persistencia normal, red LAN y recepción push cerrada con evidencia real. No hay una API compartida pendiente de desarrollar antes de empezar.
 
 **Después de la entrega funcional completa:** benchmarks, autonomía, carga prolongada, resistencia flash y campañas extensas de compatibilidad/estabilidad. Ningún detector, servicio, canal de alerta o función del Sanitizador se mueve aquí para declarar éxito antes.
 

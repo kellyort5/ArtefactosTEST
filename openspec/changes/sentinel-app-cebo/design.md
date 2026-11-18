@@ -1,10 +1,10 @@
 # Design
 
-**Política posterior aplicable:** [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) reemplaza RAM-only, continuidad USB y tabla inmutable si aparecen en el plan previo. Identidad/bonds/configuración/historial confirmado persisten en uso normal/reinicio/corte; USB permite reinicialización sin migración. Primera carga de tabla nueva limpia desde IDE; cuatro claves mínimas y recetas oficiales. Conservar responsables, alcance completo y pendientes físicos. Las evidencias previas son históricas; el build integrado nuevo requiere evidencia nueva.
+**Acuerdos vigentes:** [alcance y reparto](../../../docs/mvp-policy.md) y [persistencia](../../../docs/persistence-policy.md). MQTT anónimo TCP/WS; BLE protegido y HTTPS/DoH conservan sus requisitos. Identidad, bonds, configuración aceptada e historial confirmado sobreviven a reinicio/corte normal; USB puede reinicializarlos. Los pendientes físicos requieren evidencia propia.
 
 ## Context
 
-Ver [motivación](proposal.md). Base disponible: `sentinel-core-foundation` se archivó el 2026-11-10 con 26/45 tareas verificadas y 19 comprobaciones pendientes aceptadas por el usuario. Ver [cierre](../archive/2026-11-10-sentinel-core-foundation/closure.md). La aceptación no acredita pruebas físicas ni completa este cambio funcional. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
+Ver [motivación](proposal.md). La referencia de integración es `develop`: contratos v2, API de módulos, Escudo y app común/diagnóstico P1 ya están entregados por software. Consultar [estado y límites vigentes](../../../docs/mvp-policy.md) y [verificación integrada](../sentinel-mvp-sin-cuentas/verification.md). La base y los incrementos archivados conservan sus comprobaciones físicas pendientes; este cambio no las acredita. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
 
 Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Dependencias para integrar: `sentinel-app-protocolo-v2`, `sentinel-cebo-eventos-historial`, `sentinel-alertas-webhook`. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
 
@@ -20,6 +20,8 @@ Los acuerdos funcionales de R-04, R-06, R-10 y H-08 son confirmados. Las eleccio
 
 Usar transporte WS anónimo sin CA, cuentas o ACL, UI de servicios HTTP/Telnet, start/stop con ACK y métricas de cantidades/frecuencias/sospecha. Tabla de incidentes con IP/puertos/protocolo/tipo/tiempo-calidad, gráficos e historial IndexedDB común. Sin campos para ver contraseñas capturadas. Recuperación por cursor del nodo y filtros locales, dedup por ID y gap de retención visibles. Alertas dentro de app para nuevos incidentes. Configuración local autorizada de URL HTTPS/token de componente de notificaciones, no claves privadas de Firebase en frontend; consulta de status protegido muestra webhook/push configurado/última entrega/error, sin afirmar lectura. La recepción push móvil se entrega en cambio separado del mismo autor.
 
+La clave técnica de acceso HTTPS se conserva conforme al contrato de notificaciones; no crear usuarios, roles ni permisos de aplicación. P3 proporciona el endpoint/configuración privada a P4; MQTT permanece anónimo y no requiere certificados del broker.
+
 ### Interfaces y propiedad
 
 Contrato único: [protocolo funcional](../../../contracts/module-protocol.md) y [spec principal](../../specs/module-protocol/spec.md). API de firmware: [hooks y recursos](../archive/2026-11-11-sentinel-firmware-module-api/design.md). No inventar formatos locales, UUID distintos ni otro supervisor. La especificación del cambio define comportamiento; este diseño concreta su implementación.
@@ -33,7 +35,7 @@ Archivos de implementación: `app/src/features/cebo/`, `app/src/ (registro de ru
 
 ## Migration Plan
 
-Trabajar en rama `feat/sentinel-app-cebo`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. No se asume ningún merge ya realizado.
+Trabajar en rama `feat/sentinel-app-cebo`, incorporar dependencias revisadas mediante el flujo PR del equipo y conservar la base ejecutable. Compilar y comprobar brevemente cada incremento, manteniendo tests focalizados de lógica crítica. Si falla, corregir o mantener tarea pendiente; no activar capacidades inexistentes. Para retirar un incremento defectuoso, preparar corrección o reversión revisada, sin reset destructivo ni operaciones Git no autorizadas. Las dependencias comunes de P1 ya están integradas en develop; comprobar la entrega de cada dependencia funcional aún pendiente antes del cierre.
 
 ## Persistencia al implementar este encargo
 

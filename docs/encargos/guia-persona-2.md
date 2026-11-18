@@ -2,7 +2,7 @@
 
 **Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
 
-Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md).
 
 P2 extenderá la persistencia oficial a configuración upstream/AP/DNS/DoH/reglas aceptadas cuando implemente cada encargo. Validar límites, guardar/commit antes de confirmar, conservar anterior ante fallo y restaurar en Idle sin activar STA/AP/NAT/DoH ni confiar en UTC viejo. Sustituye RAM-only para configuración; caché DNS y clientes observados siguen siendo datos transitorios. NVS estándar no promete cifrado físico. No crear otro gestor/journal ni dar módulos futuros por implementados.
 
@@ -46,7 +46,7 @@ Las ramas son `feat/<nombre completo del cambio>`. Dentro de cada encargo, segui
 
 [Ficha, diseño, spec y tareas](sentinel-sanitizador-pasarela.md). Continúa desde auditoría revisada.
 
-1. Pedir al núcleo los flags forwarding/NAPT y acceso a netifs; verificar que el build dispone de ellos. P1 mantiene la configuración global.
+1. Comprobar forwarding/NAPT del core oficial 3.3.12 con P1 y pedir acceso a netifs por sentinel_api; verificar build y cliente real antes de declarar NAT funcional. P1 mantiene la configuración global; no reconstruir un SDK por defecto.
 2. Configurar AP autenticado, DHCP y subred separada; detectar solapamiento con upstream y rechazar configuraciones inválidas.
 3. Integrar NAT IPv4, desconexión/reconexión y parada. No añadir port forwarding ni anunciar protección IPv6.
 4. Exponer clientes, RSSI y subida/bajada con contadores y paginación reales. Documentar significado y límites en `docs/modules/sanitizador-gateway.md`.
@@ -59,7 +59,7 @@ Las ramas son `feat/<nombre completo del cambio>`. Dentro de cada encargo, segui
 [Ficha, diseño, spec y tareas](sentinel-sanitizador-dns.md). Depende de la pasarela.
 
 1. Implementar servidor/parser DNS UDP y TCP acotado; probar truncamiento, compresión malformada y límites con tests breves.
-2. Implementar alta, baja y listado de reglas con normalización, frontera de subdominio y excepciones allow.
+2. Implementar alta, baja y listado de reglas con normalización, frontera de subdominio y excepciones allow; persistir configuración/reglas con commit antes de confirmar y comprobar recuperación en Idle tras reinicio/corte sin USB.
 3. Añadir caché TTL e interfaz del resolvedor asíncrono. Mientras DoH no exista o falle, responder conforme a la spec, sin fallback a DNS plano.
 4. Publicar eventos/métricas y documentar cobertura en `docs/modules/sanitizador-dns.md`.
 5. Consultar desde cliente real del AP, comprobar bloqueo/NXDOMAIN, SERVFAIL y reglas por BLE. Verificar que no atiende clientes externos al AP y que al salir libera sockets.

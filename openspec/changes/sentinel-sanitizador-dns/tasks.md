@@ -5,7 +5,7 @@ Responsable único de todas las casillas: **Persona 2**. Estado inicial: todo pe
 ## 1. DNS y reglas
 
 - [ ] 1.1 Implementar parser/servidor UDP y TCP acotado; probar truncamiento, ciclos de compresión y saturación.
-- [ ] 1.2 Implementar put/remove/list de reglas y matching normalizado; probar límite, excepción allow y frontera de subdominio.
+- [ ] 1.2 Implementar put/remove/list de reglas y matching normalizado con persistencia oficial; probar límite, excepción allow, frontera de subdominio, commit antes de confirmar y recuperación en Idle tras reinicio/corte sin USB.
 - [ ] 1.3 Implementar caché TTL e interfaz del resolvedor asíncrono; verificar expiración y SERVFAIL sin resolver cifrado.
 - [ ] 1.4 Publicar eventos/métricas y documentar cobertura/límites en docs/modules/sanitizador-dns.md; validar mensajes v2.
 

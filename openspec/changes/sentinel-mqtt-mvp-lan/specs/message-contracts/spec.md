@@ -11,5 +11,5 @@ Los participantes SHALL intercambiar mensajes validados de la versión soportada
 
 #### Scenario: Configurar MQTT del MVP
 - **WHEN** se envía configure_connectivity v1 o v2 mediante BLE protegido
-- **THEN** el contrato exige SSID, contraseña Wi-Fi, URI mqtt:// sin credenciales/ruta/query, usuario y contraseña MQTT, sin ca_certificate
+- **THEN** el contrato exige SSID, contraseña Wi-Fi, URI mqtt:// sin credenciales/ruta/query, sin usuario ni contraseña MQTT, sin ca_certificate
 - **AND** rechaza el formato MQTT/TLS anterior sin aplicarlo y conserva los límites de tamaño

@@ -11,7 +11,7 @@ Responsable único de todas las casillas: **Persona 3**. Estado inicial: todo pe
 
 ## 2. Comprobación del incremento
 
-- [ ] 2.1 Compilar y generar interacción HTTP/Telnet real con datos ficticios; verificar evento y métricas MQTT con identidad autorizada.
+- [ ] 2.1 Compilar y generar interacción HTTP/Telnet real con datos ficticios; verificar evento y métricas MQTT con device_id/topic esperados sobre el broker anónimo; esa coincidencia no autentica al emisor.
 - [ ] 2.2 Cortar/restaurar broker y reiniciar brevemente; registrar recuperación con mismo ID, sin secretos y con límites visibles.
 
 ## Workflow follow-up

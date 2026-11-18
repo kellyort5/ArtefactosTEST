@@ -10,6 +10,8 @@ Tu entrega es la aplicación de los tres módulos, su integración Android/BLE/W
 
 P1 entrega la app común v2 y el diagnóstico sin OLED, incluidas las correcciones BLE; su prueba física4.3 sigue pendiente. Tú consumes esa entrega y el panel diagnóstico P1, y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
 
+La clave técnica de la API HTTPS sigue el [contrato de notificaciones](../../contracts/notifications.md); no implica crear usuarios, roles o permisos de aplicación. P3 entrega URL y configuración privada a P4. No reutilizar esa clave como credencial MQTT ni gestionar una CA del broker. Los permisos Android son del sistema operativo.
+
 ## 1. Qué leer antes de programar
 
 1. [Guía del equipo](guia-equipo.md) y [reparto](README.md): propiedad de archivos, ramas, dependencias y evidencias.
