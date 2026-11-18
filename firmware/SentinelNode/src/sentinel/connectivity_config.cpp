@@ -1,12 +1,11 @@
 #include "include/connectivity_config.h"
-#include "mbedtls/x509_crt.h"
 #include "nvs.h"
 #include <cstring>
 
 namespace sentinel {
 namespace {
 // Fixed size/version: reject incompatible installs, never migrate or format NVS.
-constexpr unsigned char Header[8] = {'S', 'N', 'C', 'F', 1, 0, 0, 0};
+constexpr unsigned char Header[8] = {'S', 'N', 'C', 'F', 3, 0, 0, 0};
 struct Record {
   unsigned char header[sizeof(Header)] = {};
   ConnectivityConfig config;
@@ -15,7 +14,7 @@ static_assert(sizeof(Record) == sizeof(Header) + sizeof(ConnectivityConfig));
 constexpr const char *Namespace = "connectivity", *Key = "config";
 
 // Count Unicode scalar values, as the runtime schemas do, but also reject broken
-// UTF-8 from storage. Bound every read before calling any C string/CA parser.
+// UTF-8 from storage. Bound every read before calling any C string parser.
 template <size_t N>
 bool text(const char (&s)[N], size_t min, size_t max, bool bytes = false) {
   size_t length = strnlen(s, N), count = 0;
@@ -64,24 +63,13 @@ bool copy(char (&out)[N], const cJSON *args, const char *key) {
 } // namespace
 
 bool ConnectivityConfig::valid() const {
-  if (!text(ssid, 1, 32, true) || !text(wifi_password, 0, 63, true) ||
-      !text(uri, 1, 256, true) || !mqtt_uri_valid(uri) ||
-      !text(username, 1, 64) || !text(password, 1, 128) || !text(ca, 1, 1536))
-    return false;
-  mbedtls_x509_crt cert;
-  mbedtls_x509_crt_init(&cert);
-  int rc = mbedtls_x509_crt_parse(
-      &cert, reinterpret_cast<const unsigned char *>(ca), strlen(ca) + 1);
-  bool ok = rc == 0 && cert.MBEDTLS_PRIVATE(ca_istrue);
-  mbedtls_x509_crt_free(&cert);
-  return ok;
+  return text(ssid, 1, 32, true) && text(wifi_password, 0, 63, true) &&
+         text(uri, 1, 256, true) && mqtt_uri_valid(uri);
 }
 bool ConnectivityConfig::from_args(const cJSON *args) {
-  return fields(args, "ssid,wifi_password,mqtt_uri,mqtt_username,mqtt_password,"
-                      "ca_certificate") &&
+  return fields(args, "ssid,wifi_password,mqtt_uri") &&
          copy(ssid, args, "ssid") && copy(wifi_password, args, "wifi_password") &&
-         copy(uri, args, "mqtt_uri") && copy(username, args, "mqtt_username") &&
-         copy(password, args, "mqtt_password") && copy(ca, args, "ca_certificate") &&
+         copy(uri, args, "mqtt_uri") &&
          valid();
 }
 ConnectivityLoad load_connectivity(ConnectivityConfig &out) {

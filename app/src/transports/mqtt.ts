@@ -2,7 +2,7 @@ import mqtt,{type MqttClient,type IClientOptions} from 'mqtt';
 import {decodeAnyMessage,encodeAnyMessage,mqttTopic,type TopicKind} from '@sentinel/contracts';
 import {bleOnly,type NodeCommand,type NodeMessage} from '../protocol';
 import type {Transport,TransportSink} from './types';
-export type MqttSettings={endpoint:string;deviceId:string;username:string;password:string;role:'operator'|'viewer'};
+export type MqttSettings={endpoint:string;deviceId:string};
 type Connect=(endpoint:string,options:IClientOptions)=>MqttClient;
 export function decodeTopicMessage(topic:string,bytes:Uint8Array,device:string):NodeMessage {
  const message=decodeAnyMessage(bytes);
@@ -13,17 +13,16 @@ export function decodeTopicMessage(topic:string,bytes:Uint8Array,device:string):
 }
 export class MqttTransport implements Transport {
  readonly channel='mqtt' as const;
- private client?:MqttClient;private deviceId?:string;private role?:'operator'|'viewer';
+ private client?:MqttClient;private deviceId?:string;
  constructor(private sink:TransportSink,private connectClient:Connect=(url,options)=>mqtt.connect(url,options)){}
  async connect(settings:MqttSettings){
   await this.disconnect();
   const deviceId=settings.deviceId;
   const url=new URL(settings.endpoint);
-  if(url.protocol!=='wss:'||url.username||url.password)throw new Error('Usa wss:// con CA y nombre de servidor confiables, sin credenciales en URL.');
+  if(url.protocol!=='ws:'||url.username||url.password||url.search||url.hash||!url.hostname||url.port==='0')throw new Error('Usa ws://IP-DEL-PC:9001/mqtt, sin credenciales, query ni fragmento en URL.');
   if(!/^[A-Za-z0-9._:-]{1,64}$/.test(deviceId))throw new Error('ID de nodo inválido.');
-  if(settings.username!==`${settings.role}-${deviceId}`)throw new Error('La cuenta debe corresponder al rol y nodo autorizado.');
-  this.sink.status('mqtt','connecting');this.deviceId=deviceId;this.role=settings.role;
-  const client=this.connectClient(settings.endpoint,{protocolVersion:5,clientId:`app-${crypto.randomUUID()}`,username:settings.username,password:settings.password,clean:true,properties:{sessionExpiryInterval:0},reconnectPeriod:0,connectTimeout:10000,queueQoSZero:false,resubscribe:false});
+  this.sink.status('mqtt','connecting');this.deviceId=deviceId;
+  const client=this.connectClient(settings.endpoint,{protocolVersion:5,clientId:`app-${crypto.randomUUID()}`,clean:true,properties:{sessionExpiryInterval:0},reconnectPeriod:0,connectTimeout:10000,queueQoSZero:false,resubscribe:false});
   this.client=client;
   client.on('message',(topic,payload,packet)=>{
    if(this.client!==client)return;
@@ -36,17 +35,16 @@ export class MqttTransport implements Transport {
    }catch{this.sink.error('MQTT: mensaje, versión o topic incorrectos; se descartó la entrada.');}
   });
   client.on('close',()=>{
-   client.options.password=undefined;client.options.username=undefined;
    if(this.client===client)this.sink.status('mqtt','disconnected');
   });
-  client.on('error',()=>{if(this.client===client)this.sink.error('MQTT: verifica credenciales, ACL, CA, SAN y fecha del sistema.');});
+  client.on('error',()=>{if(this.client===client)this.sink.error('MQTT: verifica IP del PC, red, puerto y firewall local.');});
   await new Promise<void>((resolve,reject)=>{
    let finished=false;
    const fail=()=>{
     if(finished)return;finished=true;clearTimeout(timeout);
-    client.options.password=undefined;client.options.username=undefined;client.end(true);
-    if(this.client===client){this.client=undefined;this.deviceId=undefined;this.role=undefined;this.sink.status('mqtt','error');}
-    reject(new Error('WSS: conexión o suscripción rechazada; revisa cuenta, ACL y CA/SAN.'));
+    client.end(true);
+    if(this.client===client){this.client=undefined;this.deviceId=undefined;this.sink.status('mqtt','error');}
+    reject(new Error('MQTT/WS: no se pudo conectar o suscribir. Revisa IP del PC, red y firewall local.'));
    };
    const timeout=setTimeout(fail,12000);
    client.once('error',fail);client.once('close',fail);
@@ -62,13 +60,12 @@ export class MqttTransport implements Transport {
  }
  async send(message:NodeCommand){
   if(!this.client?.connected)throw new Error('MQTT desconectado.');
-  if(this.role!=='operator')throw new Error('Observador: solo lectura.');
   if(message.device_id!==this.deviceId||bleOnly(message.payload.operation))throw new Error('Esta operación requiere BLE protegido.');
   await this.client.publishAsync(mqttTopic(message.version,message.device_id,'commands'),new TextDecoder().decode(encodeAnyMessage(message)),{qos:1,retain:false,properties:{messageExpiryInterval:30}});
  }
  async disconnect(){
-  const client=this.client;this.client=undefined;this.deviceId=undefined;this.role=undefined;
-  if(client){client.options.password=undefined;client.options.username=undefined;client.end(true);}
+  const client=this.client;this.client=undefined;this.deviceId=undefined;
+  if(client){client.end(true);}
   this.sink.status('mqtt','disconnected');
  }
 }

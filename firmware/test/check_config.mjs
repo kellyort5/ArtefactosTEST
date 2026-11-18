@@ -11,7 +11,7 @@ const required = {CONFIG_IDF_TARGET_ESP32S3:'1',CONFIG_ESPTOOLPY_FLASHSIZE_16MB:
   CONFIG_SPIRAM:'1',CONFIG_SPIRAM_MODE_OCT:'1',CONFIG_SPIRAM_SPEED_80M:'1',
   CONFIG_BT_ENABLED:'1',CONFIG_BT_NIMBLE_ENABLED:'1',CONFIG_BT_NIMBLE_SM_SC:'1',
   CONFIG_BT_NIMBLE_MAX_BONDS:'3',CONFIG_BT_NIMBLE_NVS_PERSIST:'1',
-  CONFIG_MBEDTLS_HAVE_TIME:'1',CONFIG_MBEDTLS_SSL_KEEP_PEER_CERTIFICATE:'1',CONFIG_MBEDTLS_SSL_PROTO_TLS1_2:'1',
+  CONFIG_MBEDTLS_SSL_PROTO_TLS1_2:'1',
   CONFIG_LWIP_IP_FORWARD:'1',CONFIG_LWIP_IPV4_NAPT:'1'};
 for (const [key,value] of Object.entries(required)) assert(config.includes(`#define ${key} ${value}\n`),key);
 for (const key of ['CONFIG_ESP_PHY_INIT_DATA_IN_PARTITION','CONFIG_BT_NIMBLE_SM_SC_DEBUG_KEYS',
@@ -47,7 +47,7 @@ assert.deepEqual(settings,[
   prefix+'.compiler.c.elf.extra_flags=-Wl,--wrap=nvs_flash_init',
 ],'Exactly four approved keys; upload/export use official recipes');
 console.log('Official SDK config, four local keys and standard USB 16 MiB partition layout: PASS (not physical memory detection)');
-console.log('SDK legacy/SC0 defaults do not authorize legacy links; runtime BLE/TLS enforcement is separate.');
+console.log('SDK legacy/SC0 defaults do not authorize legacy links; runtime BLE and HTTPS enforcement is separate.');
 
 // Optional verification with the already installed official core tool; never download tools.
 const toolIndex = process.argv.indexOf('--partition-tool');

@@ -2,36 +2,22 @@
 
 ## Purpose
 
-Proporcionar un intermediario MQTT reproducible para dispositivo y aplicación, con cifrado, autenticación y aislamiento de permisos sin exponer credenciales administrativas.
+Proporcionar un intermediario MQTT reproducible para dispositivo y aplicación, con acceso anónimo en LAN de confianza sin TLS, cuentas ni ACL.
 
 ## Requirements
 
-### Requirement: Listeners cifrados sin acceso anónimo
-El broker SHALL ofrecer MQTT/TLS y MQTT sobre WSS con TLS 1.2 o superior, autenticación obligatoria y certificados verificables. No SHALL habilitar listeners de acceso sin cifrar o anónimo como alternativa de desarrollo.
+### Requirement: MQTT anónimo en LAN de confianza
+El broker SHALL permitir MQTT5/TCP1883 y WS9001 sin TLS, usuarios, contraseñas ni ACL. SHALL conservar datos persistentes y no exigir preparación de secretos. La documentación SHALL indicar que cualquier cliente con acceso puede leer/publicar y que device_id no autentica.
 
-#### Scenario: Arranque con configuración privada
-- **WHEN** se inicia el broker con certificados y credenciales locales válidos
-- **THEN** el nodo y la app pueden conectar mediante sus listeners cifrados
-- **AND** una conexión anónima o con contraseña incorrecta se rechaza
+#### Scenario: Arranque sin cuentas
+- **WHEN** se inicia Compose sin material privado previo
+- **THEN** dos clientes conectan y publican/suscriben por TCP/WS sin credenciales
+- **AND** el reinicio conserva el volumen sin instalar certificados o generar cuentas
 
-#### Scenario: Material privado ausente
-- **WHEN** faltan certificados, claves o archivo de usuarios
-- **THEN** el arranque falla con instrucciones de configuración sin generar credenciales públicas ni habilitar acceso inseguro
-
-### Requirement: Permisos separados por identidad y nodo
-El broker SHALL restringir cada nodo a publicar su estado, métricas, eventos y confirmaciones y a recibir sus órdenes. Los observadores SHALL ser de solo lectura y los operadores solo SHALL ordenar sobre nodos autorizados.
-
-#### Scenario: Publicación fuera de alcance
-- **WHEN** un nodo publica con la identidad de otro nodo o un observador publica un comando
-- **THEN** el broker deniega la operación y no entrega el mensaje a otros clientes
-
-### Requirement: Configuración y datos privados fuera del repositorio
-El despliegue SHALL separar configuración fuente, datos persistentes y secretos locales; generar usuarios y certificados de laboratorio sin guardar contraseñas, claves privadas o contenido sensible en Git o logs.
-
-#### Scenario: Preparación de un entorno
-- **WHEN** el equipo sigue las instrucciones de configuración
-- **THEN** crea su propio material privado fuera del seguimiento de Git y conserva configuraciones y ACL revisables
-- **AND** no recibe una cuenta administrativa incorporada al frontend
+#### Scenario: Sin aislamiento por identidad
+- **WHEN** un cliente alcanza el broker y usa un topic de otro nodo
+- **THEN** no se presupone filtrado de autorización por rol o identidad
+- **AND** se documenta uso en LAN propia/autorizada de confianza sin exposición Internet
 
 ### Requirement: Persistencia MQTT con alcance explícito
 El broker SHALL conservar su estado MQTT configurado en almacenamiento persistente entre reinicios y documentar que no reemplaza el registro local del dispositivo ni un archivo histórico de incidentes.

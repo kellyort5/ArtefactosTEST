@@ -20,18 +20,18 @@ function confirms(command:PendingCommand,state:NodeState) {
 }
 export type NodeStore={
  deviceId:string|null;snapshot:NodeState|null;metadata:NodeMetadata|null;metadataAt:number;metadataSource:'ble'|'state'|null;seenBoots:string[];lastLiveAt:number|null;stale:boolean;
- links:Record<Channel,TransportStatus>;role:'operator'|'viewer';commands:PendingCommand[];events:NodeEvent[];metrics:Record<string,NodeMetrics>;cursor:number;gap:PageResult|null;error:string|null;
- select:(id:string)=>void;setLink:(c:Channel,s:TransportStatus)=>void;setRole:(r:'operator'|'viewer')=>void;setError:(e:string|null)=>void;
+ links:Record<Channel,TransportStatus>;commands:PendingCommand[];events:NodeEvent[];metrics:Record<string,NodeMetrics>;cursor:number;gap:PageResult|null;error:string|null;
+ select:(id:string)=>void;setLink:(c:Channel,s:TransportStatus)=>void;setError:(e:string|null)=>void;
  noteMetadata:(m:NodeMetadata,now:number)=>void;receive:(m:NodeMessage,c:Channel,retained:boolean,now:number)=>void;tick:(now:number)=>void;
  track:(m:NodeCommand,now:number)=>void;sent:(id:string)=>void;uncertain:(id:string)=>void;
  setHistory:(id:string,events:NodeEvent[],cursor:number,gap:PageResult|null)=>void;
 };
 export function createNodeStore(){return createStore<NodeStore>((set,get)=>({
  deviceId:null,snapshot:null,metadata:null,metadataAt:0,metadataSource:null,seenBoots:[],lastLiveAt:null,stale:true,
- links:{ble:'disconnected',mqtt:'disconnected'},role:'operator',commands:[],events:[],metrics:{},cursor:0,gap:null,error:null,
+ links:{ble:'disconnected',mqtt:'disconnected'},commands:[],events:[],metrics:{},cursor:0,gap:null,error:null,
  select:id=>{if(get().deviceId===id)return;set({deviceId:id,snapshot:null,metadata:null,metadataAt:0,metadataSource:null,seenBoots:[],lastLiveAt:null,stale:true,commands:[],events:[],metrics:{},cursor:0,gap:null,error:null});},
  setLink:(channel,status)=>set(s=>({links:{...s.links,[channel]:status},...(status!=='connected'&&!Object.entries(s.links).some(([c,v])=>c!==channel&&v==='connected')?{stale:true}: {})})),
- setRole:role=>set({role}),setError:error=>set({error}),
+ setError:error=>set({error}),
  noteMetadata:(metadata,now)=>{
   const s=get();if(metadata.device_id!==s.deviceId)return;
   const changed=s.metadata&&(s.metadata.boot_id!==metadata.boot_id||s.metadata.version!==metadata.version);

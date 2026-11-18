@@ -13,7 +13,7 @@ export class BleTransport implements Transport {
  private pollTimer?:ReturnType<typeof setInterval>;
  constructor(private sink:TransportSink){}
  async connect():Promise<AnyMetadata>{
-  if(Capacitor.getPlatform()!=='android')throw new Error('BLE requiere la app Android; usa WSS en este navegador.');
+  if(Capacitor.getPlatform()!=='android')throw new Error('BLE requiere la app Android; usa WS en este navegador.');
   await this.disconnect();this.sink.status('ble','connecting');
   try {
    await BleClient.initialize({androidNeverForLocation:true});
@@ -31,7 +31,7 @@ export class BleTransport implements Transport {
     }catch{clearTimeout(this.assemblyTimer);this.assemblyTimer=undefined;this.assembler.reset();this.sink.error('BLE: mensaje inválido descartado; consulta estado o repite recuperación.');}
    });
    this.sink.status('ble','connected');return metadata;
-  }catch{await this.disconnect();this.sink.status('ble','error');throw new Error('BLE: revisa permisos de dispositivos cercanos, Bluetooth, ventana física y código OLED.');}
+  }catch{await this.disconnect();this.sink.status('ble','error');throw new Error('BLE: revisa permisos de dispositivos cercanos, Bluetooth, ventana física y código de la pantalla local (OLED o serie de pruebas habilitada).');}
  }
  startPolling(refresh:()=>Promise<void>){clearInterval(this.pollTimer);this.pollTimer=setInterval(()=>{void refresh().catch(()=>this.sink.error('BLE: no se pudo refrescar el estado.'));},5000);}
  async readMetadata(){

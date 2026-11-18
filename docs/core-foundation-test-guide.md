@@ -1,5 +1,7 @@
 # Prueba de sentinel-core-foundation
 
+> Guía de referencia de la fundación; para la entrega actual seguir [pruebas P1](guia-pruebas-persona-1.md). Cebo/servicios y recorrido de tres módulos requieren sus implementaciones reales; no activarlos como si estuvieran entregados.
+
 Guía para comprobar la base con ESP32-S3 N16R8, OLED SSD1306, botón y aplicación Android. El usuario autorizó utilizar el teléfono y la placa. También está disponible el SDK Android de Windows en `C:\Users\Jefry\AppData\Local\Android\Sdk` para las comprobaciones del emulador.
 
 Los resultados y tareas verificadas se registran en [core-foundation-check.md](core-foundation-check.md). Consultar [firmware.md](firmware.md), [connectivity.md](connectivity.md) y [app/README.md](../app/README.md) para los detalles de cada componente.
@@ -86,24 +88,24 @@ Ejecutar cada acción después de recibir la confirmación de la anterior.
 
 Obtener el `device_id` de la placa y la IPv4 de la computadora en la red autorizada. En Windows, `ipconfig` permite identificar la dirección del adaptador correspondiente.
 
-El laboratorio de la implementación inicial utiliza `lab-node` y SAN `localhost`/`127.0.0.1`. La conexión desde la placa requiere cuentas para su ID real, certificado con la IP o DNS de la computadora en SAN, enlace LAN explícito y firewall para los clientes autorizados. Conservar el material privado existente mientras se prepara ese entorno siguiendo [broker/README.md](../broker/README.md).
+Usar broker anónimo TCP1883/WS9001 con la IP LAN del PC, sin preparar cuentas/CA. Conservar volumen y permitir acceso local si hace falta; ver [broker](../broker/README.md). La base fundación es antecedente y no completa Cebo/Sanitizador.
 
-Suministrar las cuentas mediante el archivo privado de laboratorio y los formularios de la app. Guardar contraseñas y claves en las rutas privadas ignoradas, y compartir únicamente la CA pública cuando se configure confianza Android.
+La app usa endpoint WS e ID del nodo; la provisión BLE del ESP32 solo usa SSID/contraseña Wi-Fi y URI MQTT. No hay roles o cuentas MQTT.
 
 ## 10. Aprovisionar y comprobar Cebo
 
 Este recorrido espera el módulo real de P3; actualmente su flag vale 0 y no anuncia servicios. No se puede acreditar con la base/port por sí solos.
 
 1. Sincronizar la hora mediante BLE y esperar el resultado aplicado.
-2. En Conectividad del dispositivo, introducir SSID de 2.4 GHz, contraseña, URI `mqtts://HOST_REAL:8883`, cuenta de nodo y CA pública PEM.
+2. En Conectividad del dispositivo, introducir SSID de 2.4 GHz, contraseña, URI `mqtt://HOST_REAL:1883`, sin cuenta ni CA.
 3. Enviar configuración protegida y esperar `applied`.
 4. Seleccionar Cebo. Esperar Wi-Fi y MQTT conectados.
-5. Configurar en la app `wss://HOST_REAL:9001/mqtt`, el mismo ID de nodo y su cuenta operator o viewer. Android debe confiar en la CA pública del laboratorio.
+5. Configurar en la app `ws://HOST_REAL:9001/mqtt`, el mismo ID de nodo sin usuario/contraseña o rol. Android ya permite WS con la configuración del APK.
 6. Esperar un estado vivo y comprobar eventos y revisión.
-7. Para probar órdenes MQTT, desconectar BLE en la app, usar la cuenta operator y consultar estado. Comprobar el ack aplicado.
+7. Para probar órdenes MQTT, desconectar BLE en la app, consultar estado sin cuenta MQTT. Comprobar el ack aplicado.
 8. Reconectar BLE autorizado antes de pedir Escudo. Al aplicar Escudo, STA/MQTT deben detenerse y el estado debe poder reconciliarse por BLE.
 
-`HOST_REAL` es el hostname o la IP incluido en el certificado del laboratorio. En una placa o teléfono, `localhost` designa ese dispositivo.
+`HOST_REAL` es la IP LAN del PC. En una placa o teléfono, `localhost` designa ese dispositivo.
 
 ## 11. Recuperar eventos después de desconexión y reinicio
 
@@ -112,7 +114,7 @@ Este recorrido espera el módulo real de P3; actualmente su flag vale 0 y no anu
 3. Comprobar que el evento aparece una vez.
 4. Reiniciar la placa y reconectar BLE. Comprobar identidad estable, boot ID nuevo y recuperación de los eventos persistidos con sus IDs originales.
 5. Repetir una recuperación y comprobar deduplicación.
-6. Comprobar configuración validada restaurada en Idle sin asociación; renovar la hora UTC antes de MQTT. La configuración autorizada persiste en NVS y solo se reprovisiona si fue reinicializada por USB o si falta/es inválida. Probar también corte de alimentación tras commit sin subir firmware y comprobar identidad/bonds/historial retenidos.
+6. Comprobar configuración validada restaurada en Idle sin asociación; UTC no bloquea MQTT; sincronizarla si se requiere una fecha real o HTTPS/DoH. La configuración autorizada persiste en NVS y solo se reprovisiona si fue reinicializada por USB o si falta/es inválida. Probar también corte de alimentación tras commit sin subir firmware y comprobar identidad/bonds/historial retenidos.
 
 ## 12. Registrar resultados
 
@@ -140,10 +142,10 @@ $SentinelAdb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
 
 El indicador de arranque debe ser `1` antes de instalar. Comprobar el dashboard inicial y pulsar Buscar y conectar BLE. Denegar Dispositivos cercanos debe producir un mensaje de permisos accionable. Usar teléfono y placa para el código OLED, bonding y tráfico GATT real. [Limitaciones de hardware del emulador](https://developer.android.com/studio/run/advanced-emulator-usage)
 
-Para WSS local, iniciar el broker con sus certificados vigentes y reenviar el puerto de la máquina Windows hacia este dispositivo virtual.
+Para WS local, iniciar el broker anónimo y reenviar el puerto de la máquina Windows hacia este dispositivo virtual.
 
 ```powershell
 & $SentinelAdb -s emulator-5554 reverse tcp:9001 tcp:9001
 ```
 
-Instalar solo la CA pública del laboratorio en los ajustes del dispositivo virtual y utilizar `wss://localhost:9001/mqtt`, ID `lab-node` y una cuenta autorizada. Abrir el archivo privado de cuentas únicamente en un editor local e introducir la contraseña en la app. Una conexión WSS al broker muestra Canal conectado. El estado del ESP32 aparece cuando se publica telemetría real del nodo correspondiente. El reenvío ADB comprueba el acceso local de Android, y la conexión desde la LAN se verifica por separado.
+Sin certificados/cuentas: utilizar ws://localhost:9001/mqtt con reenvío ADB y el ID del nodo; comprobar Canal conectado. El reenvío no prueba acceso LAN físico, que se verifica por separado. El estado debe venir del dispositivo real disponible, no de un fixture.

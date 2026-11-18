@@ -1,5 +1,10 @@
 # Migración y simplificación del firmware para Arduino IDE Windows
 
+> Registro histórico de su entrega. Para instalación y alcance actual consultar [acuerdos vigentes](mvp-policy.md). TLS, cuentas/ACL o dependencias anteriores aquí descritas no se reinstalan para el MVP actual; se conservan las evidencias y pendientes originales.
+
+**MQTT vigente (2026-11-17):** TCP1883/WS9001 anónimos en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
+
+
 **Política actual:** [persistencia operativa y carga USB](persistence-policy.md). Sustituye la conservación entre versiones y las recetas especiales anteriores. El [build final de tabla nueva/cuatro claves/configuración persistente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md) terminó PASS en Windows; los hashes citados como antecedentes abajo pertenecen al build anterior.
 
 Fecha de preparación: **2026-11-13**. Responsable humano: **Persona 1 — Jefry**. Rama compartida: `feat/sentinel-arduino-migration`, baseline `af7200a` más trabajo local preservado.
@@ -14,7 +19,7 @@ Abrir `firmware/SentinelNode/SentinelNode.ino` directamente desde el checkout co
 
 | Elemento de la ruta oficial | Estado y evidencia |
 | --- | --- |
-| Bibliotecas y versiones definitivas | wolfMQTT2.2.0 y ESP_SSLClient3.1.3, versiones/hashes fijados y distribución Arduino del proveedor; procedimiento en firmware.md. |
+| Bibliotecas y versiones definitivas | wolfMQTT2.2.0 con versión/hash fijados y NetworkClient del core oficial para TCP; sin ESP_SSLClient. Procedimiento en firmware.md. |
 | Placa/opciones N16R8 y seguridad | Opciones N16R8/guardas comprobadas por el build previo oficial Windows PASS; nueva tabla y configuración persistente requieren build integrado nuevo. |
 | NVS y subida | Wrapper NVS de protección de arranque normal, cuatro claves y recetas oficiales. Primera carga limpia; build integrado y persistencia física pendientes de evidencia nueva. |
 | Instrucciones de uso | Pasos IDE/CLI publicados; build previo oficial PASS como antecedente. Build integrado nuevo y hardware pendientes de evidencia. |
@@ -47,7 +52,7 @@ Invariantes de compatibilidad:
 - Misma API pública de módulos y mismos hooks `init/start/request_stop/stopped/handle/tick/snapshot`.
 - Mismos UUID GATT, framing, límite lógico de 2048 bytes y seguridad de lectura/escritura/indicaciones.
 - Mismos contratos v2, operaciones, resultados, códigos y confirmaciones; eventos históricos v1 intactos. La versión de mensajes Sentinel y la versión del protocolo MQTT son conceptos distintos.
-- MQTT 5 con TLS, identidad/ACL, QoS y retained conforme al contrato; PUBACK no equivale a comando aplicado ni a consumo por la app.
+- MQTT 5/TCP sin TLS, identidad/ACL, QoS y retained conforme al contrato; PUBACK no equivale a comando aplicado ni a consumo por la app.
 - Configuración Wi-Fi/MQTT por BLE autorizado persistente en NVS oficial: validación/commit antes de confirmar, restauración en Idle sin conexión ni reloj UTC antiguo. No se promete cifrado físico; no guardar secretos en Git/logs/eventos/estado ni credenciales de terceros.
 - No modificar `app/`, `broker/`, `notifications/`, `simulator/` ni `contracts/` para ocultar una incompatibilidad del port. Una incompatibilidad real se corrige en firmware o se presenta para revisar la interfaz antes de cambiarla.
 
@@ -129,7 +134,7 @@ event_log, data, nvs, 0x416000, 0x40000,
 
 Mantener journal de **64 registros de hasta 2048 bytes**, namespaces/slots, cursores, IDs y bytes históricos v1/v2. La imagen factory de 4 MiB no representa los 16 MiB físicos. El arranque debe informar errores de almacenamiento sin borrar/formatear NVS. La región `otadata` permite `boot_app0` estándar; no añade OTA funcional. No hay PHY separada (initdata en app, calibración en NVS). Primera carga de esta tabla con Erase All Flash Enabled desde el IDE; USB normal y merged de inicialización sin garantía de preservar datos. Las pruebas de reinicio/corte se hacen después sin upload ni borrado.
 
-Conservar MQTT5, TLS1.2/CA/nombre/fechas, BLE autenticado SC/nivel4 con bonds, mismos UUID/framing, autorización y colas acotadas. Forwarding/NAPT se concede solo al Sanitizador; su compilación no acredita la pasarela real. Escudo continúa sin asociación, probes activos o MQTT. OLED SSD1306 128×32/0x3C y GPIO4 mantienen estado, pulsación larga y prioridad del passkey; el resumen de alerta reciente conserva su tarea de integración pendiente.
+Conservar MQTT5/TCP sin TLS ni CA, BLE autenticado SC/nivel4 con bonds, mismos UUID/framing, autorización y colas acotadas. Forwarding/NAPT se concede solo al Sanitizador; su compilación no acredita la pasarela real. Escudo continúa sin asociación, probes activos o MQTT. OLED SSD1306 128×32/0x3C y GPIO4 mantienen estado, pulsación larga y prioridad del passkey; el resumen de alerta reciente conserva su tarea de integración pendiente.
 
 ## 7. Criterios de aceptación conservados
 
@@ -143,7 +148,7 @@ El build oficial completo debe identificar versiones/opciones/bibliotecas efecti
 | BLE | Metadata v2, UUID/framing originales, permisos protegidos, pairing SC/MITM y rechazo de enlaces no autorizados. Confirmación de estado/modo desde la app ya existente. |
 | Escudo | Scan pasivo y selección real, captura/métricas/cobertura, control de canales y start/stop; sin asociación/MQTT. Heurísticas positivas/negativas en host y observaciones reales según la guía existente. |
 | Offline | Evento persistido y recuperado tras desconexión/reinicio, mismos bytes/ID/tiempo, cursor/dedup/gap y capacidad de seguir operando. No borrar para hacer pasar la prueba. |
-| MQTT/TLS | Conexión MQTT5 al broker autorizado, QoS/retained y propiedades según contrato; rechazo de CA, nombre y fechas incorrectos, con reloj válido. Repetición conserva identidad y resultado de comando. |
+| MQTT/TCP | Conexión MQTT5/TCP al broker autorizado, QoS/retained y propiedades según contrato; rechazar credenciales y permisos incorrectos, conectar incluso sin UTC. Repetición conserva identidad y resultado de comando. |
 | Sanitizador, al estar entregado | Cliente real STA+AP/DHCP/NAT, subredes, métricas, reglas DNS, DoH TLS y fallo/recuperación sin DNS plano; parada sin servicios residuales. |
 | Cebo, al estar entregado | HTTP/Telnet ficticios, interacciones/eventos reales sin secretos ni ejecución, MQTT y recuperación offline; cierre al salir de modo. |
 | Integración final | Un modo activo, cambios seguros, recursos liberados, OLED con alertas recientes y control físico; los demás componentes del sistema siguen sus specs propias. |

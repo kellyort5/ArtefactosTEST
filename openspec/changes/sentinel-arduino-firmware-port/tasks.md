@@ -1,5 +1,7 @@
 # Tasks
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 Responsable humano: Persona 1 — Jefry. El usuario autoriza ejecución y coordinación Orca; no autoriza commits/push/merge. El coordinador marca cada casilla con evidencia del autor y la línea exacta del CLI.
 
 ## 1. Implementación

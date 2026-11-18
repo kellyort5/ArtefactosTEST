@@ -30,7 +30,7 @@ Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por ram
 
 ### Componente y canales
 
-1. **1.1** Crear paquete/lockfile y Compose propios de notifications con MQTT TLS/ACL de lectura; verificar conexión autorizada y rechazo cross-node.
+1. **1.1** Crear paquete/lockfile y Compose propios de notifications con MQTT TCP anónimo y topics de eventos; verificar entrega v1/v2, validación/dedup y documentar ausencia de aislamiento por ACL.
 2. **1.2** Implementar enrutado, dedup, outbox y límites persistentes; probar repetición, fallo, vencimiento y recuperación con fixtures.
 3. **1.3** Implementar webhook HTTPS; comprobar entrega en destinos de prueba propios y redacción de errores.
 4. **1.4** Implementar API HTTPS de estado con autenticación por nodo/CORS; probar rechazo de otro nodo y ausencia de secretos.

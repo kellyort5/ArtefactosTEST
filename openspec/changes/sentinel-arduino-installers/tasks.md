@@ -1,5 +1,7 @@
 # Tasks
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## 1. Instaladores y comprobaciones
 
 - [x] 1.1 Implementar instalación wolfMQTT y helpers mínimos con versión/hash fijados, descarga o ZIP local, staging, respaldo e idempotencia; comprobar instalación, reparación y hash incorrecto en Windows PowerShell.

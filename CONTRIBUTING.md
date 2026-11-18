@@ -11,8 +11,8 @@ Mantener separados firmware, broker, app y simulador. Cada cambio debe resolver 
 - `main` representa la versión estable e integrada del proyecto.
 - Las funcionalidades se desarrollan en ramas `feat/<descripcion-breve>`; por ejemplo, `feat/escudo-descubrimiento`.
 - Las correcciones se desarrollan en ramas `fix/<descripcion-breve>`; por ejemplo, `fix/duplicados-historial`.
-- Crear la rama desde la base estable adecuada, normalmente `main` actualizado. Revisar antes el estado de Git y conservar cualquier trabajo pendiente.
-- No desarrollar directamente en `main`; integrar mediante Pull Requests.
+- Crear la rama desde `develop` actualizado para integrar el trabajo del equipo; `main` conserva la entrega estable. Revisar antes el estado de Git y conservar cualquier trabajo pendiente.
+- No desarrollar directamente en `main` ni `develop`; integrar mediante Pull Requests hacia la base correspondiente.
 
 Una funcionalidad amplia puede dividirse en varias ramas y PR pequeños con dependencias explícitas. Esa división organiza la implementación y no elimina requisitos del alcance final.
 

@@ -10,8 +10,9 @@
   "android:sync": "cap sync android",
   "android:assemble": "cd android && ./gradlew assembleDebug",
   "test": "node --import tsx --test test/*.test.ts",
-  "check:wss": "node --import tsx --test checks/wss.ts",
-  "check:browser": "node checks/browser.mjs"
+  "check:mqtt": "node --import tsx --test checks/mqtt.ts",
+  "check:browser": "node checks/browser.mjs",
+  "check:browser:mqtt": "node checks/browser-broker.mjs"
  },
  "dependencies": {
   "@capacitor-community/bluetooth-le": "8.3.0",

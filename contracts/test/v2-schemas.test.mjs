@@ -40,7 +40,7 @@ const metricValues={
  cebo:{http:protocolMetrics,telnet:protocolMetrics,rejected_connections:0,alerts:0}
 };
 const commandArgs={
- get_state:{},set_mode:{mode:'sanitizador'},configure_connectivity:{ssid:'Lab ficticio',wifi_password:'fiction-only',mqtt_uri:'mqtts://broker.example.invalid:8883',mqtt_username:'node-test',mqtt_password:'fiction-only',ca_certificate:'fixture-public-ca'},set_time:{timestamp:'2026-11-10T12:00:00Z'},read_events:{after_cursor:0,limit:8},
+ get_state:{},set_mode:{mode:'sanitizador'},configure_connectivity:{ssid:'Lab ficticio',wifi_password:'fiction-only',mqtt_uri:'mqtt://broker.example.invalid:1883'},set_time:{timestamp:'2026-11-10T12:00:00Z'},read_events:{after_cursor:0,limit:8},
  'escudo.scan':{},'escudo.networks':page,'escudo.select_target':target,'escudo.capture_start':{},'escudo.capture_stop':{},
  'sanitizador.configure_upstream':{ssid:'Lab ficticio',wifi_password:''},'sanitizador.configure_ap':{ssid:'Lab AP',wifi_password:'fiction-only',ipv4:'192.0.2.1',netmask:'255.255.255.0'},'sanitizador.configure_doh':{endpoint:'https://dns.example.invalid/dns-query',ca_certificate:'fixture-public-ca'},'sanitizador.audit':{dns_name:'example.invalid',https_url:'https://example.invalid/',portal_url:'http://example.invalid/'},'sanitizador.audit_result':{job_id:'cmd-test'},'sanitizador.gateway_start':{},'sanitizador.gateway_stop':{},'sanitizador.clients':page,'sanitizador.rules.put':rule,'sanitizador.rules.remove':{rule_id:'rule-test'},'sanitizador.rules.list':page,
  'cebo.start':{},'cebo.stop':{},'cebo.configure':{http_enabled:true,telnet_enabled:true,max_connections:6,idle_timeout_ms:1000},'cebo.stats':{}
@@ -150,7 +150,7 @@ test('UTF-8 byte ceilings and context are explicitly reserved for semantic codec
  // codec must reject the 64-byte SSID and the >2048-byte serialized command.
  const unicode=command('sanitizador.configure_upstream',{ssid:'é'.repeat(32),wifi_password:''});
  check('command',unicode);assert.equal(Buffer.byteLength(unicode.payload.args.ssid),64);
- const large=command('configure_connectivity');
+ const large=command('sanitizador.configure_doh');
  large.payload.args.ca_certificate='é'.repeat(1536);
  check('command',large);assert.ok(Buffer.byteLength(JSON.stringify(large))>2048);
  // Identity correlation, authorized transport/destinations, target observation,
@@ -169,7 +169,7 @@ test('identifiers, domains, catalog cursors, MACs and UTC reject final line term
   check('command',mutate(command('escudo.select_target'),['payload','args','bssid'],`${target.bssid}${suffix}`),false);
   check('command',mutate(command('escudo.select_target'),['payload','args','ssid'],{encoding:'hex',value:`ff${suffix}`}),false);
   check('command',mutate(command('set_time'),['payload','args','timestamp'],`2026-11-10T12:00:00Z${suffix}`),false);
-  check('command',mutate(command('configure_connectivity'),['payload','args','mqtt_uri'],`mqtts://broker.example.invalid:8883${suffix}`),false);
+  check('command',mutate(command('configure_connectivity'),['payload','args','mqtt_uri'],`mqtt://broker.example.invalid:1883${suffix}`),false);
  }
 });
 test('all fixture objects are closed recursively including nested results and details',()=>{

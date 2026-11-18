@@ -5,12 +5,41 @@ extern void run_module_tests();
 extern void module_wire_fixtures();
 #include <cassert>
 #include <cstring>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 using namespace sentinel;
+static bool reject_digest_buffer = false;
+static size_t live_digest_allocations = 0;
+static void *digest_buffer = nullptr;
+static void *digest_test_malloc(size_t n) {
+  if (reject_digest_buffer && n == MaxMessage + 1)
+    return nullptr;
+  void *p = std::malloc(n);
+  if (p) {
+    ++live_digest_allocations;
+    if (n == MaxMessage + 1) {
+      assert(!digest_buffer);
+      digest_buffer = p;
+    }
+  }
+  return p;
+}
+static void digest_test_free(void *p) {
+  if (p) {
+    if (p == digest_buffer) {
+      const auto *bytes = static_cast<const unsigned char *>(p);
+      for (size_t n = 0; n < MaxMessage + 1; ++n) assert(bytes[n] == 0);
+      digest_buffer = nullptr;
+    }
+    assert(live_digest_allocations > 0);
+    --live_digest_allocations;
+    std::free(p);
+  }
+}
 static std::string fixture(const char *name) {
   std::ifstream f(std::string("contracts/fixtures/") + name + ".json");
   std::stringstream s;
@@ -200,6 +229,24 @@ int main(int argc, char **argv) {
     uint8_t left[32], right[32];
     assert(digest_command(a, left) && digest_command(b, right) &&
            !memcmp(left, right, 32));
+    char *before = cJSON_PrintUnformatted(a.root);
+    const std::string original(before);
+    cJSON_free(before);
+    cJSON_Hooks hooks{digest_test_malloc, digest_test_free};
+    cJSON_InitHooks(&hooks);
+    reject_digest_buffer = true;
+    uint8_t rejected[32];
+    memset(rejected, 0xa5, sizeof(rejected));
+    assert(!digest_command(a, rejected));
+    assert(live_digest_allocations == 0);
+    for (auto byte : rejected) assert(byte == 0xa5);
+    reject_digest_buffer = false;
+    assert(digest_command(a, right) && !memcmp(left, right, sizeof(left)));
+    assert(live_digest_allocations == 0);
+    cJSON_InitHooks(nullptr);
+    char *after = cJSON_PrintUnformatted(a.root);
+    assert(original == after);
+    cJSON_free(after);
   }
   {
     Command c;
@@ -267,9 +314,9 @@ int main(int argc, char **argv) {
   assert(utc_valid("2024-02-29T12:00:00.123456Z"));
   assert(!utc_valid("2023-02-29T12:00:00Z"));
   assert(!utc_valid("2024-01-01T24:00:00Z"));
-  assert(mqtt_uri_valid("mqtts://[::1]:8883"));
-  assert(!mqtt_uri_valid("mqtts://host:65536"));
-  assert(!mqtt_uri_valid("mqtts://user:password@host"));
+  assert(mqtt_uri_valid("mqtt://[::1]:1883"));
+  assert(!mqtt_uri_valid("mqtt://host:65536"));
+  assert(!mqtt_uri_valid("mqtt://user:password@host"));
   {
     Frame f;
     std::string body(2048, 'x');

@@ -102,9 +102,9 @@ bool utc_valid(const char *s) {
   return d >= 1 && d <= days[m - 1];
 }
 bool mqtt_uri_valid(const char *s) {
-  if (!s || strlen(s) > 256 || strncmp(s, "mqtts://", 8))
+  if (!s || strlen(s) > 256 || strncmp(s, "mqtt://", 7))
     return false;
-  const char *p = s + 8;
+  const char *p = s + 7;
   if (!*p)
     return false;
   if (*p == '[') {
@@ -145,16 +145,6 @@ bool mqtt_uri_valid(const char *s) {
 static bool text(const cJSON *o, const char *k, size_t min, size_t max) {
   auto s = str(o, k);
   return s && strlen(s) >= min && strlen(s) <= max;
-}
-static bool characters(const cJSON *o, const char *k, size_t min, size_t max) {
-  const char *s = str(o, k);
-  if (!s)
-    return false;
-  size_t n = 0;
-  for (; *s; ++s)
-    if ((static_cast<unsigned char>(*s) & 0xc0) != 0x80)
-      ++n;
-  return n >= min && n <= max;
 }
 bool json_text_valid(const char *bytes, size_t n, bool extended) {
   if (!bytes || !n || n > MaxMessage)
@@ -358,12 +348,8 @@ const char *Command::parse(const char *bytes, size_t n) {
          strcmp(str(args, "mode"), "sanitizador")))
       return "invalid_message";
   } else if (!strcmp(operation, "configure_connectivity")) {
-    if (!fields(args, "ssid,wifi_password,mqtt_uri,mqtt_username,mqtt_password,"
-                      "ca_certificate") ||
+    if (!fields(args, "ssid,wifi_password,mqtt_uri") ||
         !text(args, "ssid", 1, 32) || !text(args, "wifi_password", 0, 63) ||
-        !characters(args, "mqtt_username", 1, 64) ||
-        !characters(args, "mqtt_password", 1, 128) ||
-        !characters(args, "ca_certificate", 1, 1536) ||
         !mqtt_uri_valid(str(args, "mqtt_uri")))
       return "invalid_message";
   } else if (!strcmp(operation, "set_time")) {

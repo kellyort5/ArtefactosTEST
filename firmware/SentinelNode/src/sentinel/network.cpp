@@ -125,7 +125,7 @@ const char *Network::configure(const cJSON *args) {
   if (owner != Profile::Idle && owner != Profile::Cebo)
     return "invalid_state";
   // A provision command is synchronous. Reject it without side effects while
-  // the worker owns TLS; an explicit transition to Idle releases that session.
+  // the worker owns the MQTT socket; an explicit transition to Idle releases that session.
   // Never begin an asynchronous stop and then report an unrelated apply error.
   if (!transport.stopped())
     return "busy";
@@ -258,7 +258,7 @@ void Network::mqtt_down(bool error) {
   next_mqtt = monotonic_ms() + mqtt_backoff * 1000;
   mqtt_backoff = mqtt_backoff < 16 ? mqtt_backoff * 2 : 30;
 }
-void Network::tick(uint64_t now, bool time_valid) {
+void Network::tick(uint64_t now, bool /*time_valid*/) {
   if (!associating)
     return;
   if (reported_online && !online)
@@ -282,10 +282,6 @@ void Network::tick(uint64_t now, bool time_valid) {
   }
   if (!ip || online || owner != Profile::Cebo || !configured)
     return;
-  if (!time_valid) {
-    mqtt_state = "error";
-    return;
-  }
   if (now < next_mqtt)
     return;
   if (!transport.stopped())
@@ -300,11 +296,7 @@ void Network::tick(uint64_t now, bool time_valid) {
   }
   memcpy(cfg.host, config.uri + parsed.field_data[UF_HOST].off,
          parsed.field_data[UF_HOST].len);
-  cfg.port = parsed.field_set & (1 << UF_PORT) ? parsed.port : 8883;
-  cfg.time_valid = time_valid;
-  snprintf(cfg.ca, sizeof(cfg.ca), "%s", config.ca);
-  snprintf(cfg.user, sizeof(cfg.user), "%s", config.username);
-  snprintf(cfg.password, sizeof(cfg.password), "%s", config.password);
+  cfg.port = parsed.field_set & (1 << UF_PORT) ? parsed.port : 1883;
   snprintf(cfg.client_id, sizeof(cfg.client_id), "%s", client_id);
   snprintf(cfg.commands, sizeof(cfg.commands), "%s", command_topic);
   snprintf(cfg.availability, sizeof(cfg.availability), "%s", will_topic);

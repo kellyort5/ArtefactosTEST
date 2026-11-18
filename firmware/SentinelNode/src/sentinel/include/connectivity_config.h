@@ -2,10 +2,9 @@
 #include "core.h"
 
 namespace sentinel {
-// Only operator-provisioned Wi-Fi/MQTT material. Never mode, UTC or honeypot input.
+// Only locally provisioned Wi-Fi and broker URI. Never mode, UTC or honeypot input.
 struct ConnectivityConfig {
-  char ssid[33] = {}, wifi_password[64] = {}, uri[257] = {}, username[257] = {},
-       password[513] = {}, ca[2049] = {};
+  char ssid[33] = {}, wifi_password[64] = {}, uri[257] = {};
   ~ConnectivityConfig() { wipe(this, sizeof(*this)); }
   bool from_args(const cJSON *);
   bool valid() const;

@@ -1,5 +1,10 @@
 # Evidencia de firmware: sentinel-core-foundation
 
+> Registro histórico de su entrega. Para instalación y alcance actual consultar [acuerdos vigentes](../docs/mvp-policy.md). TLS, cuentas/ACL o dependencias anteriores aquí descritas no se reinstalan para el MVP actual; se conservan las evidencias y pendientes originales.
+
+**Evidencia histórica:** las pruebas TLS/WSS de este documento corresponden a la configuración anterior. El MVP actual usa MQTT/TCP1883 y WS9001 sin certificados; ver [verificación vigente](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md).
+
+
 Ámbito exclusivo: `firmware/`, `docs/firmware.md`, `docs/connectivity.md`, grupos3/4/6. Rama `feat/sentinel-core-foundation`; sin commits, push, merge, cambio de rama ni edición de contracts/specs. El wire se alineó con contracts/README.md y schemas v1 finales.
 
 ## Implementación

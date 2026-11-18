@@ -1,12 +1,12 @@
-# Encargo: Broker: LAN, v2 y rol de alertas
+# Encargo: Broker: LAN, v2 y integración de alertas
 
 **Responsable único:** Persona 4 — app, Android, broker y coordinación del laboratorio. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-broker-lan`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
 ## Qué debes entregar
 
-El broker base usa certificados localhost y ACL v1; ESP32/teléfono y notificaciones necesitan nombres LAN y permisos concretos.
+El software base ya ofrece TCP1883/WS9001 anónimos. P4 verifica LAN del equipo y suscripción de P3; no reimplementa cuentas/ACL ni preparación de CA.
 
-TLS/WSS LAN real y ACL v1/v2 por nodo, con rol mínimo de notificaciones.
+TCP/WS LAN anónimo, tráfico v1/v2 e integración de notificaciones, sin cuentas/roles/ACL.
 
 Lee primero esta ficha, el [diseño concreto](../../openspec/changes/sentinel-broker-lan/design.md) y los [casos de aceptación](../../openspec/changes/sentinel-broker-lan/specs/broker-module-access/spec.md). No necesitas aprender OpenSpec ni generar propuestas. Las [tareas oficiales](../../openspec/changes/sentinel-broker-lan/tasks.md) son el seguimiento del coordinador; informa tus resultados por los mismos números.
 
@@ -25,16 +25,16 @@ Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por ram
 
 ## Pasos pequeños y comprobación
 
-### LAN y ACL
+### LAN e integración anónima
 
-1. **1.1** Extender generación de certificados con SAN LAN; comprobar certificado con host correcto/incorrecto y documentar CA sin claves versionadas.
-2. **1.2** Añadir ACL v2 y rol notify preservando replay v1/events; probar cada permiso y rechazo cross-node con cuentas temporales.
-3. **1.3** Documentar Compose, host/firewall y cuentas en broker/README.md y docs/modules/broker-lan.md; verificar comandos sin secretos reales.
-4. **1.4** Ejecutar comprobación de configuración y smoke TLS/WSS; registrar resultados con broker real.
+1. **1.1** Reutilizar Compose anónimo entregado y comprobar acceso LAN por IP TCP1883/WS9001; documentar firewall local y aislamiento de clientes en la red del equipo.
+2. **1.2** Verificar intercambio v1/v2 y suscripción de notificaciones de P3 sin cuentas ni ACL; documentar que no hay aislamiento entre nodos.
+3. **1.3** Documentar IP/topología, puertos y volumen en broker/README.md y docs/modules/broker-lan.md; comprobar comandos sin preparación de cuentas/CA.
+4. **1.4** Repetir configuración y smoke TCP/WS sobre la referencia integrada y registrar resultados con broker real.
 ### Comprobación del incremento
 
-1. **2.1** Conectar teléfono y ESP32 por LAN autorizada con CA/SAN válidos; registrar identidad/topic permitido sin credenciales.
-2. **2.2** Comprobar que el broker no publica HTTP/Telnet y entregar a P3 la configuración local de rol por canal privado fuera de Git.
+1. **2.1** Conectar teléfono y ESP32 por LAN autorizada sin TLS ni cuentas; registrar nodo/topic y resultado físico sin confundirlo con fixtures.
+2. **2.2** Comprobar que no se publican HTTP/Telnet y entregar a P3 endpoints/topics de MQTT anónimo para sus alertas; sin rol notify.
 
 ## Cómo entregar a tu compañero
 
@@ -42,6 +42,6 @@ Antes de editar, revisa `git branch --show-current` y `git status --short`; usa 
 
 El PR debe enlazar esta ficha y la propuesta, describir el cambio e incluir comandos/resultados, hardware/red autorizada cuando aplique, IDs de eventos sin secretos y pruebas pendientes explícitas. Otro integrante revisa. Los commits usan Conventional Commits. No incluir `.env`, claves, tokens, dependencias o compilaciones; conservar código/configuración fuente y lockfiles. El coordinador no ejecuta commits, push, merges ni borra ramas sin autorización explícita.
 
-**Criterio de terminación:** TLS/WSS LAN real y ACL v1/v2 por nodo, con rol mínimo de notificaciones. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
+**Criterio de terminación:** TCP/WS LAN anónimo, tráfico v1/v2 e integración de notificaciones, sin cuentas/roles/ACL. Una pantalla, fixture o mock aislado no acredita integración real. No marcar hardware o recepción push como comprobados si no se ejecutaron.
 
 [Volver al reparto](README.md) · [Propuesta](../../openspec/changes/sentinel-broker-lan/proposal.md) · [Tareas](../../openspec/changes/sentinel-broker-lan/tasks.md)

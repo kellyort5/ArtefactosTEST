@@ -33,13 +33,13 @@ function parseModuleJson(input: Uint8Array | string, limit: number): unknown {
   return parseJsonBounded(input, limit);
 }
 
-function urlAllowed(text: string, protocol: 'https:' | 'http:' | 'mqtts:', endpoint = false): void {
+function urlAllowed(text: string, protocol: 'https:' | 'http:' | 'mqtt:', endpoint = false): void {
   try {
     const url = new URL(text);
     if (url.protocol !== protocol || !url.hostname || url.username || url.password || url.hash) invalid();
     if (url.port && (Number(url.port) < 1 || Number(url.port) > 65535)) invalid();
     if (endpoint && url.search) invalid();
-    if (protocol === 'mqtts:' && (url.search || (url.pathname !== '' && url.pathname !== '/'))) invalid();
+    if (protocol === 'mqtt:' && (url.search || (url.pathname !== '' && url.pathname !== '/'))) invalid();
   } catch {
     invalid();
   }
@@ -77,7 +77,7 @@ export function decodeModuleMessage(input: Uint8Array | string): V2Message {
   const message = data as unknown as V2Message;
   if (message.type === 'command') {
     const { operation, args } = message.payload;
-    if (operation === 'configure_connectivity') urlAllowed(args.mqtt_uri, 'mqtts:');
+    if (operation === 'configure_connectivity') urlAllowed(args.mqtt_uri, 'mqtt:');
     if (operation === 'sanitizador.configure_doh') urlAllowed(args.endpoint, 'https:', true);
     if (operation === 'sanitizador.audit') {
       urlAllowed(args.https_url, 'https:');
@@ -131,7 +131,7 @@ export type ModuleCommandContext = {
   authenticated: boolean;
   authorized: boolean;
   encrypted: boolean;
-  authorizedDeviceId: string;
+  deviceId: string;
   bootId: string;
   revision: number;
   uptimeMs: number;
@@ -155,7 +155,7 @@ function validatedCommand(message: V2CommandMessage): V2CommandMessage {
 }
 
 function admission(message: V2CommandMessage, context: ModuleCommandContext): ModuleCommandRejection | null {
-  if (!context.authenticated || !context.authorized || !context.encrypted || message.device_id !== context.authorizedDeviceId) return 'unauthorized';
+  if (message.device_id !== context.deviceId || (context.channel === 'ble' && (!context.authenticated || !context.authorized || !context.encrypted))) return 'unauthorized';
   if (context.channel !== 'ble' && context.channel !== 'mqtt') return 'unauthorized';
   if (context.retained) return 'invalid_message';
   if (message.boot_id !== context.bootId || message.payload.target_boot_id !== context.bootId) return 'wrong_boot';

@@ -1,5 +1,9 @@
 #include "../../SentinelConfig.h"
+#include "driver/uart.h"
+#include "include/test_display.h"
+#include "include/test_diagnostics.h"
 #include "esp_flash.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_psram.h"
@@ -23,6 +27,8 @@
 #include <atomic>
 #include <cstdio>
 #include <cstring>
+#include <new>
+#include <memory>
 #include <ctime>
 #include <sys/time.h>
 namespace sentinel {
@@ -34,7 +40,9 @@ static Runtime runtime;
 static Profile previous_profile = Profile::Idle;
 static bool button_transition_pending = false;
 static Network network;
-static CommandGate gate;
+// The 32-entry command cache needs about 58 KiB. Keep application data in
+// PSRAM so the official BLE controller and task stacks retain internal RAM.
+static CommandGate *gate = nullptr;
 static std::atomic<uint64_t> dropped_messages{0};
 static ModuleSupervisor modules(runtime, network);
 static ModuleOutputQueue module_outputs;
@@ -97,6 +105,18 @@ static std::atomic<bool> has_time{false};
 static std::atomic<uint64_t> message_seq{0};
 static uint64_t passkey_until = 0;
 static char shown_passkey[16] = {};
+static bool serial_display_write(const char *line, size_t n) {
+#if SENTINEL_SERIAL_TEST_DISPLAY
+  // Require initialized UART0 and driver acceptance. UART cannot acknowledge
+  // that a person has opened/read the monitor; keep it open before pairing.
+  return uart_is_driver_installed(UART_NUM_0) &&
+         uart_write_bytes(UART_NUM_0, line, n) == static_cast<int>(n);
+#else
+  (void)line; (void)n; return false;
+#endif
+}
+static TestDisplay test_display(SENTINEL_SERIAL_TEST_DISPLAY, serial_display_write);
+
 static SemaphoreHandle_t snapshot_lock;
 static char snapshot[257] = {};
 static NvsStore store;
@@ -219,18 +239,21 @@ static void busy(Channel ch, const char *data, size_t n, bool authorized,
       strcmp(str(p, "target_boot_id"), boot_id) || c.expiry <= now ||
       c.expiry - now > 30000)
     return;
-  Result r;
-  strcpy(r.id, c.id);
-  r.error = "busy";
-  r.revision = rev;
-  // La respuesta pasa por el supervisor; los callbacks MQTT no manipulan radio
-  // ni gate. BLE entrega mediante su propia cola TX acotada.
-  BusyResult report{r, ch, session};
-  report.expiry = c.expiry;
-  strcpy(report.operation, c.operation);
-  report.cache = digest_command(c, report.digest);
+  // This callback can run on NimBLE's host stack. Only the queue copy
+  // retains the bounded result; no large reply lives on the callback stack.
+  std::unique_ptr<BusyResult> report(new (std::nothrow) BusyResult);
+  if (!report)
+    return;
+  strcpy(report->result.id, c.id);
+  report->result.error = "busy";
+  report->result.revision = rev;
+  report->channel = ch;
+  report->session = session;
+  report->expiry = c.expiry;
+  strcpy(report->operation, c.operation);
+  report->cache = digest_command(c, report->digest);
   if (busy_results)
-    xQueueSend(busy_results, &report, 0);
+    xQueueSend(busy_results, report.get(), 0);
 }
 bool submit(Channel ch, const char *json, size_t n, bool auth, bool retained,
             uint32_t session) {
@@ -254,17 +277,22 @@ bool submit(Channel ch, const char *json, size_t n, bool auth, bool retained,
                        ble_session());
   portEXIT_CRITICAL(&pool_lock);
   if (slot == -2 || slot == -3) {
-    BusyResult report;
-    strcpy(report.result.id, c.id);
-    report.channel = ch;
-    report.session = session;
-    report.expiry = c.expiry;
-    strcpy(report.operation, c.operation);
-    report.lookup_only = slot == -2;
-    memcpy(report.digest, hash, 32);
-    report.status = slot == -2 ? "accepted" : "rejected";
-    report.result.error = slot == -3 ? "id_conflict" : nullptr;
-    xQueueSend(busy_results, &report, 0);
+    std::unique_ptr<BusyResult> report(new (std::nothrow) BusyResult);
+    if (!report) {
+      wipe(hash, sizeof(hash));
+      ++dropped_messages;
+      return false;
+    }
+    strcpy(report->result.id, c.id);
+    report->channel = ch;
+    report->session = session;
+    report->expiry = c.expiry;
+    strcpy(report->operation, c.operation);
+    report->lookup_only = slot == -2;
+    memcpy(report->digest, hash, 32);
+    report->status = slot == -2 ? "accepted" : "rejected";
+    report->result.error = slot == -3 ? "id_conflict" : nullptr;
+    xQueueSend(busy_results, report.get(), 0);
     wipe(hash, sizeof(hash));
     return true;
   }
@@ -380,7 +408,7 @@ static void handle(Request &r) {
   const Result *cached = nullptr;
   const char *channel_error =
       v2::admission(c, r.channel, runtime.profile, true, false);
-  error = gate.check(c, device_id, boot_id, runtime.revision, monotonic_ms(),
+  error = gate->check(c, device_id, boot_id, runtime.revision, monotonic_ms(),
                      r.authorized, r.retained, hash, &cached, channel_error);
   if (!error &&
       (!strcmp(c.operation, "configure_connectivity") ||
@@ -390,7 +418,7 @@ static void handle(Request &r) {
   if (error) {
     result.error = error;
     if (!strcmp(error, "revision_conflict"))
-      gate.remember(c, hash, result);
+      gate->remember(c, hash, result);
     send_payload(r.channel, "ack", module_ack_payload(result, "rejected"),
                  r.session);
     return;
@@ -420,7 +448,7 @@ static void handle(Request &r) {
   error = modules.transitioning() ? "busy" : nullptr;
   if (error) {
     result.error = error;
-    gate.remember(c, hash, result);
+    gate->remember(c, hash, result);
     send_payload(r.channel, "ack", module_ack_payload(result, "rejected"),
                  r.session);
     return;
@@ -511,7 +539,7 @@ static void handle(Request &r) {
   }
   result.error = error;
   result.revision = runtime.revision;
-  gate.remember(c, hash, result);
+  gate->remember(c, hash, result);
   wipe(hash, sizeof(hash));
   update_snapshot();
   send_payload(r.channel, "ack",
@@ -575,11 +603,11 @@ static bool process_busy_result() {
     }
     if (rejected.cache || rejected.lookup_only) {
       const char *conflict =
-          gate.lookup(rejected.result.id, rejected.digest, &known);
+          gate->lookup(rejected.result.id, rejected.digest, &known);
       if (conflict)
         rejected.result.error = conflict;
       else if (!known && rejected.cache)
-        gate.remember_id(rejected.result.id, rejected.digest, rejected.result);
+        gate->remember_id(rejected.result.id, rejected.digest, rejected.result);
     }
     if (known) {
       bool sent =
@@ -615,20 +643,29 @@ static void handle_signal(const Signal &signal) {
     break;
   }
   case Kind::PairWindow:
-    if (has_oled) {
+    if (has_oled || test_display.active()) {
       ble_window(monotonic_ms() + 120000);
       passkey_until = 0;
+      if (test_display.active())
+        test_display.status("BLE PAIR WINDOW", "OPEN FOR 120S", "CONNECT FROM ANDROID", "CODE ON CONNECT");
     }
     break;
   case Kind::Passkey: {
-    snprintf(shown_passkey, sizeof(shown_passkey), "%06lu",
-             static_cast<unsigned long>(signal.value));
-    has_oled =
-        oled_show("PAIR CODE", shown_passkey, "ANDROID PASSKEY", "120S WINDOW");
-    passkey_until = ble_deadline();
-    ble_passkey(signal.connection, signal.value, has_oled);
-    if (!has_oled)
-      ble_window(0);
+    const bool window_open = monotonic_ms() < ble_deadline();
+    bool displayed = false;
+    if (window_open) {
+      snprintf(shown_passkey, sizeof(shown_passkey), "%06lu",
+               static_cast<unsigned long>(signal.value));
+      if (has_oled) {
+        has_oled = oled_show("PAIR CODE", shown_passkey, "ANDROID PASSKEY", "120S WINDOW");
+        displayed = has_oled;
+      }
+      displayed = test_display.passkey(signal.value, window_open) || displayed;
+    }
+    passkey_until = displayed ? ble_deadline() : 0;
+    ble_passkey(signal.connection, signal.value, displayed);
+    if (!displayed) ble_window(0);
+    wipe(shown_passkey, sizeof(shown_passkey));
     break;
   }
   case Kind::BleDown:
@@ -690,7 +727,7 @@ static void complete_transitions(uint64_t now) {
       strcpy(runtime.last_command, t.result.id);
     event(runtime.error ? "system.error" : "system.profile_changed",
           runtime.error);
-    gate.remember_id(t.result.id, t.digest, t.result);
+    gate->remember_id(t.result.id, t.digest, t.result);
     send_payload(
         t.channel, "ack",
         module_ack_payload(t.result, t.result.error ? "rejected" : "applied"),
@@ -778,7 +815,11 @@ static void publish_system_metrics(uint64_t now, bool online,
   }
 }
 static void refresh_screen(uint64_t now, uint64_t &last_screen) {
-  if (has_oled && now - last_screen >= 500 && now >= passkey_until) {
+  if (passkey_until && now >= passkey_until) {
+    passkey_until = 0;
+    wipe(shown_passkey, sizeof(shown_passkey));
+  }
+  if ((has_oled || test_display.active()) && now - last_screen >= 500 && now >= passkey_until) {
     char connectivity[48];
     auto short_status = [](const char *s) {
       return !strcmp(s, "connected")    ? "UP"
@@ -789,12 +830,13 @@ static void refresh_screen(uint64_t now, uint64_t &last_screen) {
     snprintf(connectivity, sizeof(connectivity), "W:%s M:%s",
              short_status(network.wifi_state),
              short_status(network.mqtt_state));
-    has_oled = oled_show(
-        profile_name(runtime.profile), runtime.phase, connectivity,
-        network.configuration_error() ? "resource_error"
+    const char *detail = network.configuration_error() ? "resource_error"
         : runtime.error ? runtime.error
-                        : (now < ble_deadline() ? "PAIR WINDOW" : "BLE CONTROL"));
-    if (!has_oled) {
+                        : (now < ble_deadline() ? "PAIR WINDOW" : "BLE CONTROL");
+    if (has_oled)
+      has_oled = oled_show(profile_name(runtime.profile), runtime.phase, connectivity, detail);
+    bool serial_ok = test_display.status(profile_name(runtime.profile), runtime.phase, connectivity, detail);
+    if (!has_oled && !serial_ok) {
       ble_window(0);
       runtime.error = "resource_error";
     }
@@ -822,12 +864,35 @@ static void supervisor(void *) {
     bool online = synchronize_network(now, was_online, replay, last_state);
     publish_system_metrics(now, online, last_metrics);
     refresh_screen(now, last_screen);
+#if SENTINEL_SERIAL_TEST_DISPLAY
+    static uint64_t last_diagnostics = 0;
+    if (now - last_diagnostics >= 5000) {
+      char line[96];
+      int n = snprintf(line, sizeof(line), "[P1 CAPTURE] detector_input_total=%lu\n",
+                       static_cast<unsigned long>(detector_inputs()));
+      if (n > 0 && size_t(n) < sizeof(line)) serial_display_write(line, size_t(n));
+      last_diagnostics = now;
+    }
+#endif
   }
+}
+static void report_memory(const char *stage) {
+  constexpr uint32_t caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
+  printf("Sentinel memory stage=%s internal_free=%u internal_largest=%u psram_free=%u\n",
+         stage, static_cast<unsigned>(heap_caps_get_free_size(caps)),
+         static_cast<unsigned>(heap_caps_get_largest_free_block(caps)),
+         static_cast<unsigned>(heap_caps_get_free_size(MALLOC_CAP_SPIRAM)));
 }
 void start() {
   static std::atomic<bool> started{false};
   if (started.exchange(true))
     return;
+  void *cache = heap_caps_malloc(sizeof(CommandGate), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!cache) {
+    ESP_LOGE("sentinel", "resource_error: command cache PSRAM allocation");
+    return;
+  }
+  gate = new (cache) CommandGate();
   requests = xQueueCreate(QueueSize, sizeof(Request));
   busy_results = xQueueCreate(QueueSize, sizeof(BusyResult));
   snapshot_lock = xSemaphoreCreateMutex();
@@ -866,15 +931,19 @@ void start() {
   has_oled = oled_init();
   has_button = button_init();
   if (!has_oled) {
-    runtime.error = "resource_error";
-    ESP_LOGE("sentinel",
-             "resource_error: OLED unavailable; new pairing disabled");
+    if (test_display.active())
+      test_display.status("OLED ABSENT", "SERIAL TEST DISPLAY", "115200 baud", "PHYSICAL BUTTON REQUIRED");
+    else {
+      runtime.error = "resource_error";
+      ESP_LOGE("sentinel", "resource_error: OLED unavailable; new pairing disabled");
+    }
   }
   if (!store.init()) {
     journal.degraded = true;
     runtime.error = "resource_error";
   } else
     journal.recover();
+  report_memory("before_network");
   if (!network.init(device_id)) {
     runtime.healthy = false;
     runtime.phase = "error";
@@ -886,8 +955,22 @@ void start() {
   register_optional_modules();
   registration_open = false;
   update_snapshot();
-  ble_init();
+  report_memory("before_ble");
+  if (!ble_init()) {
+    runtime.healthy = false;
+    runtime.phase = "error";
+    runtime.error = "resource_error";
+    ESP_LOGE("sentinel", "resource_error: BLE initialization failed");
+  }
+  report_memory("after_ble");
   event("system.booted");
-  xTaskCreate(supervisor, "supervisor", 24576, nullptr, 5, nullptr);
+  if (xTaskCreate(supervisor, "supervisor", 24576, nullptr, 5, nullptr) != pdPASS) {
+    runtime.healthy = false;
+    runtime.phase = "error";
+    runtime.error = "resource_error";
+    update_snapshot();
+    ESP_LOGE("sentinel", "resource_error: supervisor task allocation; button unavailable");
+  }
+  report_memory("after_supervisor");
 }
 } // namespace sentinel

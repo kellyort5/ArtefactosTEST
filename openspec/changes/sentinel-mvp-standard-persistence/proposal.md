@@ -1,5 +1,7 @@
 # Proposal
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## Why
 
 El usuario redefine el MVP: identidad, vinculos BLE, configuracion e historial persisten durante operacion, reinicios y cortes de alimentacion, pero pueden reinicializarse al programar por USB. Ya no hace falta preservar datos entre versiones ni mantener recetas especiales para esa compatibilidad.

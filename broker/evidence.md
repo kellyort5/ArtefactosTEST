@@ -1,5 +1,10 @@
 # Evidencia del grupo 5 — sentinel-core-foundation
 
+> Registro histórico de su entrega. Para instalación y alcance actual consultar [acuerdos vigentes](../docs/mvp-policy.md). TLS, cuentas/ACL o dependencias anteriores aquí descritas no se reinstalan para el MVP actual; se conservan las evidencias y pendientes originales.
+
+**Evidencia histórica:** las pruebas TLS/WSS de este documento corresponden a la configuración anterior. El MVP actual usa MQTT/TCP1883 y WS9001 sin certificados; ver [verificación vigente](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md).
+
+
 Fecha local: 2026-11-08 (America/El_Salvador). Ámbito exclusivo: `broker/` y casillas 5.x de tasks.md. Rama existente `feat/sentinel-core-foundation`; sin commits, push, merge, cambios de rama o borrado de fuentes/volúmenes. No se modificaron proposal/design/specs ni package/lockfile del trabajo compartido.
 
 ## Entorno real

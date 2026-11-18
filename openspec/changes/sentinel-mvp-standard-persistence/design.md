@@ -1,5 +1,7 @@
 # Design
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 ## Context
 
 Ver propuesta para motivación. El core oficial ESP32 3.3.12 escribe boot_app0.bin en 0xe000 durante carga y exportación normales. La tabla anterior coloca allí el final de NVS y phy_init; nueve claves locales evitan esa escritura y la imagen merged. La configuración de conectividad permanece solo en RAM. El journal, la identidad y los bonds ya usan NVS.

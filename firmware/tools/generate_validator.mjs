@@ -59,7 +59,7 @@ export function generateValidator(schemas = resolve(repo, 'contracts/schemas/v2'
       const tag = p.startsWith('^(?!0000-') ? 'utc' : p.startsWith('^[A-Za-z0-9._:-]') ? 'id'
         : p.startsWith('^[A-Za-z0-9._:~-]') ? 'cursor' : p.startsWith('^(?:[0-9a-f]{2}:)') ? 'mac'
           : p.startsWith('^(?:[0-9a-f]{2})') ? 'hex' : p.startsWith('^(?:[a-z0-9]') ? 'domain'
-            : p.startsWith('^mqtts://') ? 'mqtt' : p.startsWith('^https://') ? 'https'
+            : p.startsWith('^mqtt://') ? 'mqtt' : p.startsWith('^https://') ? 'https'
               : p.startsWith('^https?://') ? 'http' : p.includes('\x00') ? 'text' : null;
       if (!tag) throw new Error('Unsupported schema pattern: ' + p);
       checks.push('(!cJSON_IsString(j) || pattern(j->valuestring,' + quote(tag) + '))');

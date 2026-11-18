@@ -1,5 +1,7 @@
 # Verificación de sentinel-firmware-cleanup
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 **Aviso posterior de vigencia:** este registro conserva resultados, comandos, hashes y pendientes históricos. [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) sustituye las exigencias anteriores de RAM-only, continuidad USB y tabla inmutable: NVS explícita para configuración autorizada, tabla nueva/cuatro claves y carga/exportación oficial. Primera carga limpia desde IDE; USB permite reinicializar sin migración. Los resultados de este informe no acreditan la nueva tabla ni el build integrado nuevo, pendiente de evidencia del coordinador; los pendientes físicos siguen abiertos.
 
 Fecha de ejecución: 2026-11-13, Linux/WSL, Node 24.13.1 ya instalado. Rama compartida `feat/sentinel-arduino-migration`; sin commits, push, merge ni archivo de cambios. Este informe acredita herramientas/pruebas host y recoge la evidencia del build oficial entregada por dependencias; no acredita radio, BLE, memorias físicas ni subida de firmware. Estado: limpieza, pruebas y relevo de dependencias completados; comprobaciones físicas pendientes explícitas.

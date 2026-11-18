@@ -4,7 +4,7 @@
 
 ## Qué debes entregar
 
-Las alertas internas y WSS no cumplen recepción con la aplicación cerrada.
+Las alertas internas y WS no cumplen recepción con la aplicación cerrada.
 
 Push real recibido con app cerrada y tap al incidente, con registro/baja seguros.
 

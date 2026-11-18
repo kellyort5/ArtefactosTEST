@@ -4,7 +4,7 @@
 
 ## Why
 
-Las alertas internas y WSS no cumplen recepción con la aplicación cerrada.
+Las alertas internas y WS no cumplen recepción con la aplicación cerrada.
 
 ## What Changes
 

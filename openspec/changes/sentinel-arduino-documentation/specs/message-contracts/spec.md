@@ -9,6 +9,11 @@ Los participantes SHALL intercambiar mensajes validados de la versión soportada
 - **WHEN** llega un mensaje de versión desconocida, identidad incorrecta o tamaño superior al límite documentado
 - **THEN** se descarta o rechaza con diagnóstico acotado sin ejecutar órdenes ni registrar su contenido sensible
 
+#### Scenario: Configurar MQTT del MVP
+- **WHEN** se envía configure_connectivity v1 o v2 mediante BLE protegido
+- **THEN** el contrato exige SSID, contraseña Wi-Fi, URI mqtt:// sin credenciales/ruta/query, usuario y contraseña MQTT, sin ca_certificate
+- **AND** rechaza el formato MQTT/TLS anterior sin aplicarlo y conserva los límites de tamaño
+
 ### Requirement: Estado y extensiones sin capacidades ficticias
 El estado SHALL exponer revisión, perfil, fase, conectividad y capacidades reales. Las operaciones de detección, honeypot, alertas externas y Sanitizador que todavía no estén implementadas SHALL aparecer no disponibles.
 

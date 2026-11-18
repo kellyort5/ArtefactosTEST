@@ -47,9 +47,17 @@ bool digest_command(const Command &c, uint8_t out[32]) {
     return false;
   bool ok = sort_object_keys(cJSON_GetObjectItemCaseSensitive(canonical, "args")) &&
             sort_object_keys(canonical);
-  char json[MaxMessage + 1] = {};
+  // BLE invokes this from NimBLE's 5 KiB host stack. Keep the bounded
+  // canonical buffer off that stack; allocator failure rejects the command.
+  char *json = static_cast<char *>(cJSON_malloc(MaxMessage + 1));
+  if (!json) {
+    wipe_strings(canonical);
+    cJSON_Delete(canonical);
+    return false;
+  }
+  memset(json, 0, MaxMessage + 1);
   if (ok)
-    ok = cJSON_PrintPreallocated(canonical, json, sizeof(json), false);
+    ok = cJSON_PrintPreallocated(canonical, json, MaxMessage + 1, false);
   wipe_strings(canonical);
   cJSON_Delete(canonical);
   if (ok) {
@@ -61,7 +69,8 @@ bool digest_command(const Command &c, uint8_t out[32]) {
                 out) != nullptr;
 #endif
   }
-  wipe(json, sizeof(json));
+  wipe(json, MaxMessage + 1);
+  cJSON_free(json);
   return ok;
 }
 } // namespace sentinel

@@ -15,11 +15,16 @@ La aplicación SHALL compilar para web y empaquetarse para Android, conservando 
 - **AND** si BLE no está disponible en el entorno informa esa limitación en lugar de simular conexión
 
 ### Requirement: Adaptadores reales separados de la interfaz
-La aplicación SHALL ofrecer adaptadores BLE y MQTT que compartan contratos y normalicen estado, órdenes, confirmaciones y eventos. Las credenciales de operación SHALL suministrarse en ejecución y no quedar incorporadas al paquete o historial.
+La aplicación SHALL reutilizar BLE protegido y MQTT/WS anónimo con contratos compartidos. SHALL conectar indicando endpoint e ID del nodo, sin login, usuarios, contraseña MQTT ni selector/estado de rol. SHALL conservar los secretos Wi-Fi fuera de historial y paquete.
 
 #### Scenario: Configuración de conexión
-- **WHEN** el usuario configura el nodo BLE o endpoint y cuenta MQTT autorizados
-- **THEN** la app establece el canal protegido real o presenta el error verificable sin mostrar secretos
+- **WHEN** se configura nodo BLE o endpoint WS e ID de nodo
+- **THEN** establece el canal real o informa fallo sin pedir cuentas
+
+#### Scenario: Android en red de confianza
+- **WHEN** se instala Android y configura ws://IP-DEL-PC:9001/mqtt
+- **THEN** conecta sin CA ni credenciales MQTT
+- **AND** conserva permisos Android necesarios, pairing BLE y confianza HTTPS del sistema
 
 ### Requirement: Estado y control coherentes con el canal
 La interfaz SHALL mostrar nodo, arranque, perfil, fase, revisión, conectividad y capacidades reales, y solicitar cambios mediante el canal disponible. No SHALL confirmar éxito hasta conocer el resultado aplicado.
@@ -43,3 +48,33 @@ La app SHALL mantener puntos de extensión para las capacidades de Escudo, Cebo 
 - **WHEN** se abre la aplicación y falta la implementación del módulo o de su pantalla
 - **THEN** permite las funciones de diagnóstico, configuración y control disponibles
 - **AND** muestra la capacidad pendiente sin datos ficticios ni éxito no confirmado
+
+### Requirement: Diagnóstico P1 optativo sobre BLE real
+La app SHALL ofrecer, solo al activar su opción de pruebas, un panel para operaciones públicas P1 mediante el transporte BLE existente y contrato v2. SHALL mostrar resultados reales correlacionados sin simular éxito, conservar secretos o habilitar servicios ausentes. La app de producto SHALL mantener el panel desactivado por defecto.
+
+#### Scenario: Descubrir y controlar Escudo sin pantalla específica
+- **WHEN** se conecta un nodo autorizado y se envían scan, catálogo, selección o captura desde el panel
+- **THEN** genera sobre vigente con metadatos reales y framing compartido y muestra ACK, resultados paginados, estado y métricas recibidos
+- **AND** solo un ACK aplicado o reconciliación válida acredita aplicación
+
+#### Scenario: Rechazos controlados y reentrega explícita
+- **WHEN** el usuario solicita una prueba pública de boot/revisión/caducidad incorrectos o reenvío exacto
+- **THEN** envía únicamente por BLE protegido y muestra la respuesta real del nodo
+- **AND** no repite automáticamente modificaciones ni afirma que un rechazo o un envío pendiente sea éxito
+
+#### Scenario: Sin canal o sin opción de pruebas
+- **WHEN** BLE está desconectado o la opción de diagnóstico está deshabilitada
+- **THEN** impide ejecutar el panel y no utiliza MQTT como sustituto del Escudo
+
+#### Scenario: Privacidad de diagnóstico
+- **WHEN** se intenta usar el panel para aprovisionamiento o se suministra JSON inválido
+- **THEN** rechaza con error sanitizado sin divulgar contenido privado
+- **AND** los resultados de diagnóstico son acotados y efímeros; la recuperación de eventos usa el historial real existente
+
+### Requirement: Control sin roles MQTT
+La aplicación SHALL admitir órdenes públicas por MQTT conectado con estado vivo de Cebo, sin perfiles operador/observador. SHALL mantener comprobación de nodo, topic, boot/revisión/TTL, ACK y BLE exclusivo para operaciones privadas. Estas comprobaciones no SHALL presentarse como autenticación MQTT.
+
+#### Scenario: Sesión anónima
+- **WHEN** el canal MQTT está conectado y Cebo informa estado vivo
+- **THEN** puede enviar una orden pública sin rol
+- **AND** una operación BLE exclusiva no se publica en MQTT

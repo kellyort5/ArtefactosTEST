@@ -99,6 +99,9 @@ export async function buildHost(suite) {
     else run(binary);
   }
   if (suite === 'core') {
+    const displayBinary = join(cache,'test_display_test');
+    run('c++', [...flags, join(firmware,'test/test_display_test.cpp'), '-o', displayBinary]);
+    run(displayBinary);
     // Compile the real read-only preflight against NVS/NimBLE stubs with no erase/write API.
     const binary = join(cache,'ble_storage_test');
     run('c++', [...flags, '-I'+join(firmware,'test/stubs/ble_storage'),
@@ -110,8 +113,7 @@ export async function buildHost(suite) {
       ...sources, join(sketch,'src/sentinel/connectivity_config.cpp'),
       join(sketch,'src/sentinel/network.cpp'), join(firmware,'test/connectivity_test.cpp'),
       join(cache,'cJSON.o'), crypto, '-o', connectivityBinary]);
-    run(connectivityBinary, [join(firmware,'test/transports/fixtures/root.pem'),
-      join(firmware,'test/transports/fixtures/valid.pem')]);
+    run(connectivityBinary);
   }
   console.log(`Firmware ${suite}: PASS (host; no physical radio/NVS claims)`);
   return cache;

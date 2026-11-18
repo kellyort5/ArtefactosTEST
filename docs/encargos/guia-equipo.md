@@ -1,5 +1,7 @@
 # Cómo trabajar con las guías de Sentinel Node
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
 
 Estas guías explican el reparto existente; no añaden funcionalidades, cambian la arquitectura ni acreditan implementaciones pendientes. Cada spec tiene **un único autor**. Otro integrante revisa su entrega sin tomar sus tareas de implementación.
@@ -9,7 +11,7 @@ Estas guías explican el reparto existente; no añaden funcionalidades, cambian 
 | Persona 1 — Jefry | [Coordinación, contratos, núcleo y Escudo](guia-persona-1.md) | Interfaces compartidas, Escudo completo, integración del núcleo y seguimiento OpenSpec. |
 | Persona 2 | [Auditor y Sanitizador](guia-persona-2.md) | Auditoría, STA+AP/NAT IPv4, clientes/tráfico, DNS y DoH. |
 | Persona 3 | [Cebo y servidor de alertas](guia-persona-3.md) | HTTP/Telnet, clasificación y persistencia, webhook y envío push.           |
-| Persona 4 | [App, broker y laboratorio](guia-persona-4.md) | UI de los tres módulos, Android/BLE/WSS/push, broker LAN y evidencia conjunta. |
+| Persona 4 | [App, broker y laboratorio](guia-persona-4.md) | UI de los tres módulos, Android/BLE/WS/push, broker LAN y evidencia conjunta. |
 
 ## 1. Qué leer y para qué sirve
 
@@ -47,8 +49,8 @@ Ante una contradicción entre ficha, spec, contrato o decisión aprobada, indica
 | Futuro `firmware/SentinelNode/src/sanitizador/` | Auditoría, pasarela, DNS y DoH. | P2 |
 | Futuro `firmware/SentinelNode/src/cebo/` | Servicios ficticios y clasificación. | P3 |
 | Futuro `notifications/` | Componente de alertas con package/lockfile y Compose propios. | P3 |
-| `app/`, `package.json` y `package-lock.json` raíz | App y dependencias; excepción: app-protocolo-v2 corresponde a P1. | P4; P1 solo esa spec |
-| `broker/` | Mosquitto, TLS/WSS, ACL y preparación LAN. | P4 |
+| `app/`, `package.json` y `package-lock.json` raíz | App y dependencias; excepción: app-protocolo-v2 y diagnóstico P1 corresponden a P1. | P4; P1 mantiene también diagnóstico/infraestructura común entregada y coordina sus cambios |
+| `broker/` | Mosquitto, TCP/WS anónimos y preparación LAN. | P4 |
 | `simulator/`, futuros `docs/lab/` y `docs/evidence/` | Reproducción de mensajes, procedimientos e informes conjuntos. | P4 |
 | Arquitectura, decisiones, roadmap y seguimiento OpenSpec | Coherencia y estado de los acuerdos del equipo. | P1 |
 
@@ -71,7 +73,7 @@ Reglas que todos deben conservar:
 - Eventos v2: `payload.origin` obligatorio, `real` para observaciones físicas y `simulated` para reproducción de prueba. Conservarlo durante el replay. El historial v1 permanece intacto.
 - Identidad de evento: `(device_id,message_id)`. Retransmitir conserva identidad; no crear un incidente nuevo por cada llegada. El push usa ese `message_id` como `event_id`.
 - ACK `accepted` indica aceptación de trabajo, no finalización. Respetar `applied`/`rejected` y, en trabajos asíncronos, resultado posterior correlacionado.
-- Sesión, autorización, nodo, boot, revisión, vigencia, duplicados y retained se comprueban en el receptor. Un schema válido no autentica al emisor. Seguir el orden de admisión/caché del protocolo.
+- BLE exige vínculo autenticado/cifrado; MQTT no tiene cuentas ni roles. Nodo, boot, revisión, vigencia, duplicados y retained se comprueban en el receptor, sin autenticar al emisor MQTT. Un schema válido no autentica al emisor. Seguir el orden de admisión/caché del protocolo.
 - Escudo se controla por BLE sin asociarse a la red auditada ni publicar MQTT directo. Sanitizador usa BLE para control. Cebo publica MQTT y admite sus canales definidos.
 - Sin contraseñas capturadas, tokens, cookies ni cuerpos completos en eventos, estado, logs, fixtures o informes. Las credenciales propias se configuran fuera de Git.
 

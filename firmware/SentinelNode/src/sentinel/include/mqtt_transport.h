@@ -2,15 +2,14 @@
 #include <cstddef>
 #include <cstdint>
 namespace sentinel {
-// Owns MQTT I/O in one worker. Supervisor calls never wait for sockets/TLS.
+// Owns MQTT I/O in one worker. Supervisor calls never wait for sockets.
 class MqttTransport {
 public:
   static constexpr size_t MaxPayload = 2048;
   struct Config {
-    char host[257] = {}, ca[2049] = {}, user[257] = {}, password[513] = {};
+    char host[257] = {};
     char client_id[72] = {}, commands[160] = {}, availability[160] = {};
-    uint16_t port = 8883;
-    bool time_valid = false;
+    uint16_t port = 1883;
   };
   using StateCallback = void (*)(bool connected, bool error);
   using MessageCallback = void (*)(const char *, size_t, bool retained);

@@ -1,5 +1,7 @@
 # Tasks
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 El coordinador marca casillas con evidencia y línea exacta del CLI. Un responsable de implementación por cambio.
 
 ## 1. Implementación y verificación

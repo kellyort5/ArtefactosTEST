@@ -1,5 +1,7 @@
 # Design
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 **Política posterior aplicable:** [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) reemplaza RAM-only, continuidad USB y tabla inmutable si aparecen en el plan previo. Identidad/bonds/configuración/historial confirmado persisten en uso normal/reinicio/corte; USB permite reinicialización sin migración. Primera carga de tabla nueva limpia desde IDE; cuatro claves mínimas y recetas oficiales. Conservar responsables, alcance completo y pendientes físicos. Las evidencias previas son históricas; el build integrado nuevo requiere evidencia nueva.
 
 > **Ruta vigente:** la simplificación aprobada sustituye la dependencia del paquete Sentinel por el core oficial y sentinel-arduino-dependencies. El sketch distribuye v2_validator.h; no requiere generación por build. Las decisiones/evidencias originales siguientes describen el port previo y se conservan como antecedente; instalación actual en [firmware](../../../docs/firmware.md).

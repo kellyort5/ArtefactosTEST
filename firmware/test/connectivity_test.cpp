@@ -2,7 +2,6 @@
 #include "../SentinelNode/src/sentinel/include/module_runtime.h"
 #include "../SentinelNode/src/sentinel/include/sentinel.h"
 #include "http_parser.h"
-#include "mbedtls/x509_crt.h"
 #include "nvs.h"
 #include <algorithm>
 #include <cassert>
@@ -14,21 +13,12 @@
 #include <string>
 #include <vector>
 
-// Existing system libcrypto, like digest.cpp: no additional development headers.
-extern "C" {
-struct bio_st; struct x509_st;
-bio_st *BIO_new_mem_buf(const void *, int);
-int BIO_free(bio_st *);
-x509_st *PEM_read_bio_X509(bio_st *, x509_st **, void *, void *);
-int X509_check_ca(x509_st *);
-void X509_free(x509_st *);
-}
 namespace {
 std::vector<unsigned char> committed, pending;
 bool namespace_exists = false, fail_open = false, fail_read = false,
      fail_write = false, fail_commit = false, short_read = false;
 unsigned writes = 0, commits = 0, starts = 0, connects = 0, stops = 0,
-         tls_starts = 0;
+         mqtt_starts = 0;
 wifi_mode_t mode = WIFI_MODE_NULL;
 wifi_config_t applied;
 bool mqtt_stopped = true;
@@ -38,16 +28,17 @@ std::string read(const char *path) {
   std::ifstream stream(path); assert(stream);
   return {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
 }
-cJSON *args(const std::string &ca, const char *ssid = "own-lab") {
+cJSON *args(const char *ssid = "own-lab") {
   auto j = cJSON_CreateObject();
   for (auto pair : {std::pair{"ssid", ssid}, {"wifi_password", "fixture-wifi"},
-       {"mqtt_uri", "mqtts://broker.example:8883"}, {"mqtt_username", "fixture-user"},
-       {"mqtt_password", "fixture-mqtt"}, {"ca_certificate", ca.c_str()}})
+       {"mqtt_uri", "mqtt://broker.example:1883"}})
     cJSON_AddStringToObject(j, pair.first, pair.second);
   return j;
 }
 void replace(cJSON *j, const char *key, const std::string &value) {
-  assert(cJSON_ReplaceItemInObjectCaseSensitive(j, key, cJSON_CreateString(value.c_str())));
+  if (cJSON_GetObjectItemCaseSensitive(j,key))
+    assert(cJSON_ReplaceItemInObjectCaseSensitive(j, key, cJSON_CreateString(value.c_str())));
+  else cJSON_AddStringToObject(j,key,value.c_str());
 }
 void expect_error(const char *error, const char *expected) {
   assert(error && !strcmp(error, expected));
@@ -108,16 +99,6 @@ int nvs_commit(nvs_handle_t h) {
   if (fail_commit) return ESP_FAIL;
   committed = pending; return ESP_OK;
 }
-void mbedtls_x509_crt_init(mbedtls_x509_crt *cert) { cert->ca_istrue = false; }
-int mbedtls_x509_crt_parse(mbedtls_x509_crt *cert, const unsigned char *pem, size_t n) {
-  auto bio = BIO_new_mem_buf(pem, static_cast<int>(n)); assert(bio);
-  auto x509 = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr);
-  cert->ca_istrue = x509 && X509_check_ca(x509) > 0;
-  if (x509) X509_free(x509);
-  BIO_free(bio); return x509 ? 0 : -1;
-}
-void mbedtls_x509_crt_free(mbedtls_x509_crt *) {}
-
 esp_event_base_t WIFI_EVENT = "wifi", IP_EVENT = "ip";
 QueueHandle_t xQueueCreate(unsigned, unsigned) { return reinterpret_cast<QueueHandle_t>(1); }
 int xQueueSend(QueueHandle_t, const void *, unsigned) { return pdTRUE; }
@@ -156,9 +137,9 @@ int esp_netif_set_ip_info(esp_netif_t *, esp_netif_ip_info_t *) { return ESP_OK;
 int esp_netif_napt_enable(esp_netif_t *) { return ESP_OK; }
 int esp_netif_napt_disable(esp_netif_t *) { return ESP_OK; }
 int http_parser_parse_url(const char *uri, size_t, int, http_parser_url *out) {
-  assert(!strcmp(uri, "mqtts://broker.example:8883"));
-  out->field_set = 3; out->port = 8883;
-  out->field_data[UF_HOST] = {8, 14}; return 0;
+  assert(!strcmp(uri, "mqtt://broker.example:1883"));
+  out->field_set = 3; out->port = 1883;
+  out->field_data[UF_HOST] = {7, 14}; return 0;
 }
 namespace sentinel {
 uint64_t monotonic_ms() { return 100; }
@@ -166,26 +147,23 @@ bool post(Signal) { return true; }
 bool submit(Channel, const char *, size_t, bool, bool, uint32_t) { return true; }
 bool MqttTransport::init(StateCallback, MessageCallback) { return true; }
 bool MqttTransport::start(const Config &cfg) {
-  assert(cfg.time_valid && !strcmp(cfg.user, "fixture-user") &&
-         !strcmp(cfg.password, "fixture-mqtt") && !strcmp(cfg.host, "broker.example"));
-  ++tls_starts; return true;
+  assert(cfg.port == 1883 && !strcmp(cfg.host, "broker.example"));
+  ++mqtt_starts; mqtt_stopped = false; return true;
 }
-void MqttTransport::request_stop() {}
+void MqttTransport::request_stop() { mqtt_stopped = true; }
 bool MqttTransport::stopped() const { return mqtt_stopped; }
 bool MqttTransport::stopping() const { return !mqtt_stopped; }
 bool MqttTransport::connected() const { return false; }
 bool MqttTransport::enqueue(const char *, const char *, size_t, int, bool) { return true; }
 }
 
-int main(int argc, char **argv) {
+int main() {
   using namespace sentinel;
-  assert(argc == 3);
-  const auto ca = read(argv[1]), leaf = read(argv[2]);
   ConnectivityConfig restored;
   assert(load_connectivity(restored) == ConnectivityLoad::Missing);
   namespace_exists = true; // Existing namespace but no key is also normal.
   assert(load_connectivity(restored) == ConnectivityLoad::Missing);
-  auto original = args(ca), replacement = args(ca, "own-new-lab");
+  auto original = args(), replacement = args("own-new-lab");
   Network network;
   assert(network.init("fixture-node") && !network.configuration_error());
   Runtime state;
@@ -200,7 +178,7 @@ int main(int argc, char **argv) {
   assert(commits == 1 && !network.active());
   const auto valid_blob = committed;
   assert(load_connectivity(restored) == ConnectivityLoad::Loaded);
-  assert(!strcmp(restored.ssid, "own-lab") && !strcmp(restored.ca, ca.c_str()));
+  assert(!strcmp(restored.ssid, "own-lab"));
   assert(!supervisor.transition(Profile::Cebo, 100));
   assert(network.active() && !memcmp(applied.sta.ssid, "own-lab", 7));
   for (bool *failure : {&fail_open, &fail_write, &fail_commit}) {
@@ -228,7 +206,7 @@ int main(int argc, char **argv) {
   expect_error(network.configure(original), "invalid_state");
   auto before_connects = connects;
   network.tick(10000, true);
-  assert(connects == before_connects && writes == before_writes && tls_starts == 0);
+  assert(connects == before_connects && writes == before_writes && mqtt_starts == 0);
   assert(!supervisor.transition(Profile::Idle, 105));
 
   // Recovery uses the production Network::init, not a storage-only stand-in.
@@ -245,10 +223,10 @@ int main(int argc, char **argv) {
   assert(reboot_state.profile == Profile::Idle && !reboot.active());
   assert(mode == WIFI_MODE_NULL && starts == before_starts && connects == before_connects);
   assert(!reboot_supervisor.transition(Profile::Cebo, 106));
-  reboot.tick(50001, false); // Provisioned config cannot restore an old UTC clock.
-  assert(tls_starts == 0 && !strcmp(reboot.mqtt_state, "error"));
+  reboot.tick(50001, false); // MQTT connects with unknown UTC after restart.
+  assert(mqtt_starts == 1 && !strcmp(reboot.mqtt_state, "connecting"));
   reboot.tick(50002, true);
-  assert(tls_starts == 1);
+  assert(mqtt_starts == 1);
   assert(!reboot_supervisor.transition(Profile::Idle, 107));
 
   for (unsigned fault = 0; fault < 9; ++fault) {
@@ -256,7 +234,7 @@ int main(int argc, char **argv) {
     if (fault == 0) committed.pop_back();
     if (fault == 1) committed.push_back(0);
     if (fault == 2) committed[0] ^= 1;
-    if (fault == 3) committed[4] = 2; // Unsupported format, no migration.
+    if (fault == 3) committed[4] = 1; // Unsupported format, no migration.
     if (fault == 4) std::fill(committed.begin() + 8, committed.begin() + 41, 'x'); // No NUL.
     if (fault == 5) committed[8] = 0; // Empty SSID.
     if (fault == 6) fail_open = true;
@@ -277,31 +255,36 @@ int main(int argc, char **argv) {
   assert(validator.init("fixture-node"));
   for (auto test : {std::pair{"ssid", std::string(33, 's')},
        {"wifi_password", std::string(64, 'w')}, {"mqtt_username", std::string(65, 'u')},
-       {"mqtt_password", std::string(129, 'p')}, {"mqtt_uri", std::string("mqtt://broker.example")},
-       {"ca_certificate", std::string("corrupt certificate")}, {"ca_certificate", leaf},
+       {"mqtt_password", std::string(129, 'p')}, {"mqtt_uri", std::string("mqtts://broker.example")},
        {"mqtt_username", std::string("\xc0\xaf")}}) {
-    auto invalid = args(ca); replace(invalid, test.first, test.second);
+    auto invalid = args(); replace(invalid, test.first, test.second);
     before_writes = writes;
     expect_error(validator.configure(invalid), "invalid_message");
     assert(writes == before_writes && committed == valid_blob);
     cJSON_Delete(invalid);
   }
-  // Even correctly-sized blobs must pass content and CA validation on restore.
+  // An old MQTT/TLS command must be rejected without touching current storage.
+  auto legacy = args();
+  cJSON_AddStringToObject(legacy, "ca_certificate", "obsolete-public-ca");
+  before_writes = writes;
+  expect_error(validator.configure(legacy), "invalid_message");
+  assert(writes == before_writes && committed == valid_blob);
+  cJSON_Delete(legacy);
+  // Even correctly-sized blobs must pass content validation on restore.
   ConnectivityConfig invalid;
   assert(invalid.from_args(original));
-  for (auto target : {invalid.uri, invalid.ca, invalid.username}) {
+  for (auto target : {invalid.uri, invalid.ssid}) {
     assert(invalid.from_args(original));
     target[0] = '\xff';
     memcpy(committed.data() + 8, &invalid, sizeof(invalid));
     assert(load_connectivity(restored) == ConnectivityLoad::Error);
   }
-  for (auto content : {std::pair{"mqtt_uri", std::string("mqtt://broker.example")},
-       {"ca_certificate", std::string("invalid PEM")}, {"ca_certificate", leaf},
-       {"mqtt_username", std::string(65, 'u')}}) {
+  for (auto content : {std::pair{"mqtt_uri", std::string("mqtts://broker.example")},
+       {"ssid", std::string("\xc0\xaf")}}) {
     // Build a correctly sized but semantically corrupt blob, bypassing save validation.
     assert(invalid.from_args(original));
     char *destination = !strcmp(content.first, "mqtt_uri") ? invalid.uri
-        : !strcmp(content.first, "ca_certificate") ? invalid.ca : invalid.username;
+        : invalid.ssid;
     strcpy(destination, content.second.c_str());
     memcpy(committed.data() + 8, &invalid, sizeof(invalid));
     assert(load_connectivity(restored) == ConnectivityLoad::Error);

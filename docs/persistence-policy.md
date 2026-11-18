@@ -1,5 +1,7 @@
 # Persistencia operativa y programación USB
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
 Política aprobada en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/proposal.md), con [diseño](../openspec/changes/sentinel-mvp-standard-persistence/design.md) y tareas bajo control del coordinador. Sustituye la excepción anterior de conectividad solo en RAM y la exigencia de continuidad de datos entre versiones/cargas USB. No reduce Escudo, Sanitizador, Cebo ni sus responsables.
 
 Identidad, bonds BLE, configuración aceptada e historial confirmado deben sobrevivir al uso normal, reinicio y corte de alimentación. Solo se confirma persistencia después de completar escritura y commit; una escritura interrumpida puede perderse. Un error de NVS se informa sin formato automático ni expulsión de vínculos durante el arranque normal. Reconectar BLE/MQTT no es una reinstalación.
@@ -39,7 +41,7 @@ Escudo conserva también la selección aceptada SSID/BSSID/canal mediante el hel
 
 El boot permanece en Idle. Al entrar en Escudo tras boot o Idle se recupera el objetivo con captura detenida, sin scan, asociación ni MQTT automáticos; `get_state` ya representa esa combinación sin cambios wire. Ausencia permite seleccionar; corrupción/error se informa mediante `system.status` sin formato ni borrado ajeno y permite una selección explícita válida. Si había selección válida en RAM en este boot, un error de lectura no la descarta. La recuperación descarta toda base temporal de detección: Evil Twin exige una observación nueva del objetivo para compararlo con candidatos actuales; la seguridad anterior no se presenta como anuncio nuevo. Ver [conducta y pruebas del objetivo](modules/escudo-discovery.md).
 
-Se permiten las credenciales propias autorizadas y CA en NVS estándar; **no se promete cifrado físico de flash**. No guardar credenciales recibidas por honeypot/terceros. Nunca incluir secretos en Git, eventos, estado público, logs o evidencia. Mantener BLE protegido y TLS con CA/nombre/fechas; descartar formularios y copias transitorias tras procesarlos.
+Se permiten las credenciales propias autorizadas en NVS estándar (MQTT del MVP no usa CA); **no se promete cifrado físico de flash**. No guardar credenciales recibidas por honeypot/terceros. Nunca incluir secretos en Git, eventos, estado público, logs o evidencia. Mantener BLE protegido y TLS con CA/nombre/fechas para HTTPS/DoH; MQTT usa TCP/WS autenticados en LAN de confianza según R-04 actualizada; descartar formularios y copias transitorias tras procesarlos.
 
 P2 extenderá esta política a upstream/AP/DNS/DoH/reglas cuando implemente sus encargos. P3 persistirá configuración de Cebo e historial sanitizado mediante los recursos centrales. P4 gestionará identidad/caché/cursores tras inicialización USB sin prometer migración. Estos módulos, sus pantallas y verificaciones físicas siguen pendientes según sus fichas.
 

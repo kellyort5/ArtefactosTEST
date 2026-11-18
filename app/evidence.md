@@ -1,5 +1,10 @@
 # Evidencia de grupos 1, 2 y 7
 
+> Registro histórico de su entrega. Para instalación y alcance actual consultar [acuerdos vigentes](../docs/mvp-policy.md). TLS, cuentas/ACL o dependencias anteriores aquí descritas no se reinstalan para el MVP actual; se conservan las evidencias y pendientes originales.
+
+**Evidencia histórica:** las pruebas TLS/WSS de este documento corresponden a la configuración anterior. El MVP actual usa MQTT/TCP1883 y WS9001 sin certificados; ver [verificación vigente](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md).
+
+
 Cambio `sentinel-core-foundation`, rama `feat/sentinel-core-foundation`; 2026-11-08 America/El_Salvador. Ámbito exclusivo: raíz npm/.nvmrc, `contracts/`, `app/`, README raíz, `docs/development.md`, `simulator/README.md` y casillas propias. Sin commits, push, merge, cambios de rama, borrado de fuentes ni cambios de proposal/design/specs; se preservó trabajo compartido. No se modificó `.gitignore` raíz: ya separaba artefactos generados de configuración fuente. El `.gitignore` nativo de Capacitor se conserva dentro de app.
 
 ## Implementación

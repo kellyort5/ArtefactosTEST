@@ -3082,34 +3082,13 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 256,
-                  "pattern": "^mqtts://(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?|\\[[0-9A-Fa-f:]+\\])(?::[0-9]{1,5})?(?![\\s\\S])"
-                },
-                "mqtt_username": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 64,
-                  "pattern": "^[^\u0000]*(?![\\s\\S])"
-                },
-                "mqtt_password": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 128,
-                  "pattern": "^[^\u0000]*(?![\\s\\S])"
-                },
-                "ca_certificate": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 1536,
-                  "pattern": "^[^\u0000]*(?![\\s\\S])"
+                  "pattern": "^mqtt://(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?|\\[[0-9A-Fa-f:]+\\])(?::[0-9]{1,5})?(?![\\s\\S])"
                 }
               },
               "required": [
                 "ssid",
                 "wifi_password",
-                "mqtt_uri",
-                "mqtt_username",
-                "mqtt_password",
-                "ca_certificate"
+                "mqtt_uri"
               ],
               "additionalProperties": false
             }
@@ -3789,34 +3768,13 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 256,
-                  "pattern": "^mqtts://(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?|\\[[0-9A-Fa-f:]+\\])(?::[0-9]{1,5})?(?![\\s\\S])"
-                },
-                "mqtt_username": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 64,
-                  "pattern": "^[^\u0000]*(?![\\s\\S])"
-                },
-                "mqtt_password": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 128,
-                  "pattern": "^[^\u0000]*(?![\\s\\S])"
-                },
-                "ca_certificate": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 1536,
-                  "pattern": "^[^\u0000]*(?![\\s\\S])"
+                  "pattern": "^mqtt://(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?|\\[[0-9A-Fa-f:]+\\])(?::[0-9]{1,5})?(?![\\s\\S])"
                 }
               },
               "required": [
                 "ssid",
                 "wifi_password",
-                "mqtt_uri",
-                "mqtt_username",
-                "mqtt_password",
-                "ca_certificate"
+                "mqtt_uri"
               ],
               "additionalProperties": false
             }

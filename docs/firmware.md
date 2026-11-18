@@ -1,5 +1,10 @@
 # Firmware Sentinel — Arduino IDE Windows
 
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+
+**MQTT vigente (2026-11-17):** TCP1883/WS9001 anónimos en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
+
+
 **Política vigente:** [persistencia operativa y carga USB](persistence-policy.md). El estado del build con tabla nueva/configuración persistente se registra en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores no acreditan estos cambios. Primera carga limpia desde el IDE; reinicios/cortes posteriores deben conservar datos confirmados.
 
 Firmware modular C/C++ para ESP32-S3 N16R8, con FreeRTOS y APIs ESP-IDF disponibles en Arduino. El [sketch](../firmware/SentinelNode/SentinelNode.ino) integra supervisor, BLE, MQTT, periféricos, descubrimiento, captura, cuatro detectores y recuperación del Escudo. Cebo y Sanitizador conservan API y puntos de extensión; sus servicios siguen en sus propios encargos. Ver [contratos v2](../contracts/module-protocol.md) y [conectividad segura](connectivity.md).
@@ -15,15 +20,14 @@ El recorrido del equipo es abrir el sketch, seleccionar placa/opciones, **Verifi
 ### Instalación inicial
 
 1. Abrir Arduino IDE 2. En **Archivo → Preferencias → URLs adicionales de gestor de placas**, agregar `https://espressif.github.io/arduino-esp32/package_esp32_index.json` conservando las URLs existentes. En el gestor de placas, buscar **esp32 de Espressif Systems** e instalar **3.3.12**.
-2. Descargar el ZIP de [ESP_SSLClient 3.1.3](https://github.com/mobizt/ESP_SSLClient/releases/download/v3.1.3/ESP_SSLClient.zip). En **Programa/Sketch → Incluir biblioteca → Añadir biblioteca .ZIP**, seleccionar ese archivo.
-3. Cerrar Arduino IDE y abrir PowerShell en la raiz del repositorio. Ejecutar:
+2. Cerrar Arduino IDE y abrir PowerShell en la raiz del repositorio. Ejecutar:
 
    ```powershell
    .\firmware\arduino\install-wolfmqtt.ps1
    .\firmware\arduino\install-board-config.ps1
    ```
 
-4. Abrir nuevamente Arduino IDE y seleccionar las opciones de la siguiente tabla.
+3. Abrir nuevamente Arduino IDE y seleccionar las opciones de la siguiente tabla.
 
 Los instaladores detectan las rutas configuradas por Arduino. El primero descarga wolfMQTT2.2.0 original, verifica SHA256, prepara la estructura y aplica los tres archivos Sentinel, sin instalar wolfSSL. El segundo combina cuatro claves locales y retira las cinco recetas Sentinel obsoletas de carga/exportación para el core3.3.12, conservando opciones/comentarios ajenos. No instalan otro SDK ni cambian la flash. Se ejecutan al preparar el equipo o actualizar estas dependencias, nunca por compilación.
 
@@ -133,7 +137,7 @@ node firmware/test/arduino_build_test.mjs
 
 Los runners usan cJSON 1.7.19 verificado por SHA-256 desde caché o descarga oficial. Cubren lógica real y contratos, con fallos inyectados de recursos/almacenamiento; no acreditan radio ni flash física. Ver [guía de pruebas de Persona 1](guia-pruebas-persona-1.md) para el recorrido del Escudo con ESP32/app reales.
 
-El [mantenimiento de transportes](development.md) conserva además la regresión de CA vencida/futura y los casos de MQTT5/TLS/colas en `firmware/test/check_transports.mjs`, usando archivos originales de proveedor verificados por hash y certificados públicos sintéticos. Sus17 casos y siete transcripciones pasan por software; no agrega pasos a Verificar/Subir ni acredita MQTT/TLS en placa.
+El [mantenimiento de transportes](development.md) conserva la regresión MQTT5/TCP/colas en `firmware/test/check_transports.mjs`, usando wolfMQTT original verificado por hash y dobles explícitos de socket/DNS/RTOS. Comprueba MQTT5, QoS1, retained, cancelación y reenvío después de caída. No agrega pasos a Verificar/Subir ni acredita radio física. ESP_SSLClient y certificados no son dependencias de MQTT en el MVP; ver [verificación vigente MQTT](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md).
 
 ## Registro circular
 
@@ -166,7 +170,7 @@ Trazabilidad de pendientes físicos:
 | 6.2 | Ventana física, SC-only/MITM/passkey/bonds/CCCD protegidos implementados; falta pairing y nivel negociado con hardware. |
 | 6.3 | GATT y framing conectados al gestor; falta intercambio de metadata/get_state/indications en BLE real. |
 | 6.4 | Antecedente: configuración/UTC protegidos en RAM. Política actual: configuración autorizada en NVS oficial; UTC sigue transitorio. Falta prueba BLE real, restauración validada y reinicio/corte sin upload. |
-| 6.5 | STA/esp-mqtt5/TLS real implementados; falta conexión desde placa y rechazo de CA/hostname/fecha incorrectos. |
+| 6.5 | STA/wolfMQTT5/TCP implementados; falta conexión desde placa y comprobar conectividad anónima en LAN. |
 | 6.6 | Topics/QoS/LWT/periódico/replay implementados; falta orden real MQTT/duplicado/retained desde placa. |
 | 6.7 | Cierre STA/MQTT y reconciliación implementados; falta recorrido Cebo–Escudo físico sin asociación residual. |
 | 6.8 | Flujo documentado en connectivity.md; falta ejecutar esos pasos en placa. |
@@ -175,3 +179,11 @@ Las casillas que requieren estas comprobaciones permanecen abiertas. La compilac
 
 
 Compilación final del 2026-11-09 UTC (2026-11-08 en El Salvador): `pio run -d firmware -e sentinel_s3` **SUCCESS**, 116.29 s, sin errores ni warnings. RAM estática **77368/327680 bytes** (23.6 %); imagen **1183525/4194304 bytes** (28.2 % del límite factory). Son cifras de enlace, no heap libre observado, flash física detectada ni medición de PSRAM. Configuración efectiva verificada: SC-only=1, nivel4, bonds4, legacy/debug keys deshabilitados, validación de fecha TLS habilitada, flash16 MiB y PSRAM octal80 MHz. Informe de entrega: [firmware/EVIDENCE.md](../firmware/EVIDENCE.md).
+
+## Visualización serie temporal P1 sin OLED
+
+En `SentinelConfig.h`, cambiar `SENTINEL_SERIAL_TEST_DISPLAY` de `0` a `1`, compilar y cargar. Usar USB CDC On Boot Disabled, el conector USB-UART y Monitor serie a 115200 abierto antes del pairing. El botón externo GPIO4–GND sigue siendo necesario. `[P1 DISPLAY]` informa estado y `[P1 CAPTURE] detector_input_total` cuenta observaciones reales cada 5 s. OLED ausente sigue ausente en el estado público.
+
+Mantener botón 3 s; emparejar Android dentro de la ventana física de 120 s con las seis cifras temporales `[P1 PAIR CODE]`. No guardar consola/capturas con ese código. Se comprueba aceptación del driver UART, no lectura humana; no se reproduce el código automáticamente. El modo conserva SC/MITM/cifrado, no imprime contraseñas ni material de bonds y no cambia NVS/particiones. Con opción `0` no imprime passkey y mantiene el flujo OLED habitual. Volver a `0` y comprobar OLED cuando esté disponible.
+
+La [guía P1](guia-pruebas-persona-1.md) detalla el APK diagnóstico BLE, el checkout aislado y las pruebas pendientes. Su panel es de pruebas; no reemplaza pantallas finales ni acredita radio, ataques u OLED sin evidencia física.

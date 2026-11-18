@@ -295,19 +295,19 @@ static void transmit(void *) {
     wipe(&tx, sizeof(tx));
   }
 }
-void ble_init() {
+bool ble_init() {
   if (ble_storage_preflight() != ESP_OK) {
     // Never truncate/evict four previous bonds or overwrite unknown formats.
     // BLE stays stopped; the existing status contract exposes that state.
     ESP_LOGE(
         "sentinel",
         "BLE store incompatible; data preserved; see sketch README recovery");
-    return;
+    return false;
   }
   outgoing = xQueueCreate(12, sizeof(Tx));
   confirmation = xSemaphoreCreateBinary();
   if (!outgoing || !confirmation || nimble_port_init() != ESP_OK)
-    return;
+    return false;
   ble_hs_cfg.sync_cb = sync;
   ble_hs_cfg.sm_io_cap = BLE_HS_IO_DISPLAY_ONLY;
   ble_hs_cfg.sm_bonding = 1;
@@ -348,9 +348,11 @@ void ble_init() {
   services[0].uuid = &service.u;
   services[0].characteristics = chars;
   if (ble_gatts_count_cfg(services) || ble_gatts_add_svcs(services))
-    return;
+    return false;
+  if (xTaskCreate(transmit, "ble_tx", 6144, nullptr, 4, nullptr) != pdPASS)
+    return false;
   nimble_port_freertos_init(host);
-  xTaskCreate(transmit, "ble_tx", 6144, nullptr, 4, nullptr);
+  return true;
 }
 bool ble_send(const char *json, size_t n, uint32_t session) {
   if (!outgoing || !subscribed || !n || n > MaxMessage)

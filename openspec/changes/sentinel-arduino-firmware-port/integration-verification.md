@@ -1,5 +1,7 @@
 # Verificación de integración Arduino Windows
 
+> Antecedente fechado: esta versión puede describir TLS/cuentas/ACL/SDK anteriores. Para el comportamiento vigente usar [política del MVP](../../../docs/mvp-policy.md). No convierte pruebas físicas pendientes en realizadas.
+
 **Aviso posterior de vigencia:** este registro conserva resultados, comandos, hashes y pendientes históricos. [sentinel-mvp-standard-persistence](../sentinel-mvp-standard-persistence/design.md) sustituye las exigencias anteriores de RAM-only, continuidad USB y tabla inmutable: NVS explícita para configuración autorizada, tabla nueva/cuatro claves y carga/exportación oficial. Primera carga limpia desde IDE; USB permite reinicializar sin migración. Los resultados de este informe no acreditan la nueva tabla ni el build integrado nuevo, pendiente de evidencia del coordinador; los pendientes físicos siguen abiertos.
 
 Fecha: **2026-11-13**, America/Guatemala. Repositorio `C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto`; rama `feat/sentinel-arduino-migration`, baseline `af7200ab1047f2d0dfc09b64047dfec6a3ce3309`. Tarea Orca `task_4491e2f691d6`. Este informe cubre documentación y revisión final separadas de los autores del SDK y del port; no modifica `tasks.md` ni declara aceptación física.
@@ -28,7 +30,7 @@ Se aplicó la skill local `openspec-apply-change`: esquema `spec-driven`, instru
 
 Plataforma real instalada en `C:\Users\Jefry\Documents\Arduino\hardware\sentinel\esp32`, separada del core oficial en Arduino15. Paquete `3.3.12-sentinel.1`, FQBN `sentinel:esp32:sentinel_s3_n16r8`, nombre **Sentinel ESP32-S3 N16R8 (secure SDK)**. El CLI nativo identifica `manually_installed:true` y `compatible:true` con `board listall Sentinel --format json`.
 
-ZIP real `C:\Users\Jefry\AppData\Local\Temp\sentinel-arduino-sdk\release\sentinel-esp32s3-n16r8-3.3.12-sentinel.1-windows.zip`, 576.518.681 bytes; SHA256 `6c3bdd904f62b01d7c64342c47d81f38aad22c018cc6d671578e46c82e2d24b0`. El manifiesto distribuido SHA256 `bfeb51cbbd2d287ed51cfc377eb526b25e1dd1931309cf4736a2d3924dfa1b8a` conserva inventario de 8.174 archivos. Fabricación Linux/WSL y herramientas de trabajo Windows están descritas en [la guía del paquete](../../../firmware/arduino-package/README.md); los binarios permanecen fuera de Git.
+ZIP real `C:\Users\Jefry\AppData\Local\Temp\sentinel-arduino-sdk\release\sentinel-esp32s3-n16r8-3.3.12-sentinel.1-windows.zip`, 576.518.681 bytes; SHA256 `6c3bdd904f62b01d7c64342c47d81f38aad22c018cc6d671578e46c82e2d24b0`. El manifiesto distribuido SHA256 `bfeb51cbbd2d287ed51cfc377eb526b25e1dd1931309cf4736a2d3924dfa1b8a` conserva inventario de 8.174 archivos. Fabricación Linux/WSL y herramientas de trabajo Windows están descritas en la guía del paquete (`firmware/arduino-package/README.md`, artefacto SDK local retirado); los binarios permanecen fuera de Git.
 
 El coordinador ejecutó el sketch completo y este worker reutilizó la evidencia conforme a su instrucción, sin repetir el build:
 
