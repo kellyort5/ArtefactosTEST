@@ -39,7 +39,7 @@ Capacitor `loggingBehavior:none` evita registrar argumentos GATT privados inclus
 
 ## Flujo BLE real (pendiente de verificación física)
 
-1. Arrancar el ESP32 con OLED y botón configurados; mantener3 s para abrir ventana120 s. Sin OLED no debe permitirse pairing nuevo.
+1. Arrancar el ESP32 con OLED y botón configurados; mantener3 s para abrir ventana120 s. Sin OLED no debe permitirse pairing nuevo salvo el modo serie temporal explícito de pruebas P1 documentado al final.
 2. Pulsar **Buscar y conectar BLE**. La app pide permisos Android, comprueba Bluetooth, filtra el UUID de servicio compartido v1/v2 y crea bond si falta. Introducir el passkey OLED en el diálogo del sistema. Firmware exige LE Secure Connections/MITM: un bond por sí solo no demuestra seguridad; comprobar nivel real en firmware al hacer el recorrido.
 3. La app lee metadatos protegidos, suscribe indicaciones y solicita get_state/read_events. Escribe con respuesta y framing MTU23; no requiere negociar MTU grande. Limpia ensamblados al desconectar/expirar10 s y serializa mensajes completos.
 4. Consultar estado y sincronizar hora UTC mediante BLE. Enviar SSID/contraseña, mqtts URI/usuario/contraseña de nodo y CA pública en **Conectividad del dispositivo**. Todo el mensaje debe caber2048 bytes. Los campos de contraseña se limpian al enviar y todo el formulario se restablece al terminar, incluso si falla. El firmware actual persiste la configuración autorizada en NVS después de validarla; la app mantiene sus credenciales de sesión solo en RAM. Al reiniciar el nodo se requiere una referencia UTC vigente. Ver [política de persistencia y USB](../docs/persistence-policy.md).
@@ -79,3 +79,9 @@ NODE_EXTRA_CA_CERTS="$PWD/broker/.secrets/ca.crt" npm run check:wss -w app
 ```
 
 Los tests focalizados comprueban negociación, retención/boot/revisión, ACK rechazados o de tipo incorrecto, pérdida de transporte, páginas incompletas, historial v1/v2 de tres módulos y limpieza de credenciales de sesión. Chromium comprueba UI inicial, diagnóstico BLE web, navegación v2 y rechazo sin cambio optimista con fixtures de prueba, responsive e IndexedDB real tras recarga. WSS comprueba adaptador, operador/observador y rechazo de contraseña contra Mosquitto real; usa un comando de prueba sin ESP32 y no acredita aplicación en placa. [evidence.md](evidence.md) conserva la evidencia de la base; la [verificación de app v2](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) registra este incremento y sus pruebas físicas pendientes. API de transporte/formatos exactos en [contracts/README.md](../contracts/README.md). Los fixtures solo existen en tests; nunca alimentan la UI de producto.
+
+## Diagnóstico optativo de Persona 1
+
+Para probar firmware Escudo antes de las pantallas finales: `VITE_SENTINEL_P1_TOOLS=1 npm run android:sync` desde la raíz y después `npm run android:assemble`. El panel usa el mismo BLE protegido, metadatos frescos, contratos v2 y journal; permite catálogo paginado, objetivo, captura, estado, historial y negativos públicos explícitos. Sin BLE permanece deshabilitado. Enviar no significa aplicado: revisar ACK correlacionado. No introducir credenciales en el panel. Su memoria de respuestas es acotada y temporal.
+
+El valor por defecto está desactivado; para un APK de producto ejecutar `npm run android:sync` sin esa variable y ensamblar de nuevo. El flag se incorpora durante build web, no es una opción que pueda activarse en el teléfono. La [guía P1](../docs/guia-pruebas-persona-1.md) explica salida serie temporal sin OLED y el recorrido completo; no acredita OLED, ataques en aire ni módulos ausentes.

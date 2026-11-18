@@ -26,7 +26,7 @@ bool post(Signal signal);
 bool submit(Channel channel, const char *json, size_t n, bool authorized,
             bool retained = false, uint32_t session = 0);
 bool metadata(char *out, size_t capacity);
-void ble_init();
+bool ble_init();
 bool ble_send(const char *json, size_t n, uint32_t session = 0);
 void ble_window(uint64_t deadline);
 uint64_t ble_deadline();

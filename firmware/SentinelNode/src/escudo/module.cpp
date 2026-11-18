@@ -1,4 +1,5 @@
 #include "include/escudo.hpp"
+#include "../sentinel/include/test_diagnostics.h"
 #include "../sentinel/include/escudo_target.h"
 #include <cstdio>
 #include <cstring>
@@ -69,6 +70,7 @@ bool Escudo::init(ModuleContext &c) {
       [](void *arg, const Observation &o) {
         auto &self = *static_cast<Escudo *>(arg);
         self.detectors.ingest(o);
+        note_detector_input();
         if (self.external_observer)
           self.external_observer(self.external_observer_arg, o);
       },
