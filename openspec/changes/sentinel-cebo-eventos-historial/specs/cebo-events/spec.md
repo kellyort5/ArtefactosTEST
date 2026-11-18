@@ -26,7 +26,7 @@ Cebo SHALL conservar eventos pendientes en un búfer persistente limitado y recu
 
 ### Requirement: Historial MQTT deduplicable
 
-Cebo SHALL publicar eventos y métricas por MQTT seguro y permitir lectura paginada con detección de huecos.
+Cebo SHALL publicar eventos y métricas por MQTT anónimo del núcleo en la LAN autorizada y permitir lectura paginada con detección de huecos.
 
 #### Scenario: Historial MQTT deduplicable verificable
 

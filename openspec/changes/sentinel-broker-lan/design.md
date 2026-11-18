@@ -1,5 +1,7 @@
 # Design
 
+**Acuerdos vigentes:** [alcance y reparto](../../../docs/mvp-policy.md) y [persistencia](../../../docs/persistence-policy.md). MQTT anónimo TCP/WS; BLE protegido y HTTPS/DoH conservan sus requisitos. Identidad, bonds, configuración aceptada e historial confirmado sobreviven a reinicio/corte normal; USB puede reinicializarlos. Los pendientes físicos requieren evidencia propia.
+
 ## Context
 
 P4 consume la base broker TCP1883/WS9001 anónima entregada por P1. El usuario retiró TLS/cuentas/roles/ACL. Ver docs/mvp-policy.md y broker/README.md. No reimplementar preparación de cuentas ni certificados.

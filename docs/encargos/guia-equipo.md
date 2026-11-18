@@ -2,7 +2,7 @@
 
 **Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
 
-Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md).
 
 Estas guías explican el reparto existente; no añaden funcionalidades, cambian la arquitectura ni acreditan implementaciones pendientes. Cada spec tiene **un único autor**. Otro integrante revisa su entrega sin tomar sus tareas de implementación.
 
@@ -34,10 +34,10 @@ Ante una contradicción entre ficha, spec, contrato o decisión aprobada, indica
 
 ## 2. Estado desde el que parte el equipo
 
-- La base está [archivada con aceptación de pendientes](../../openspec/changes/archive/2026-11-10-sentinel-core-foundation/closure.md): 26/45 tareas verificadas y 19 comprobaciones aceptadas bajo una suposición de funcionamiento físico. No son 19 pruebas realizadas.
-- `sentinel-module-contracts` está implementado, aprobado por el usuario y [archivado con 7/7 tareas](../../openspec/changes/archive/2026-11-11-sentinel-module-contracts/closure.md). Ver [evidencia](../../contracts/evidence-v2.md) y [spec principal](../../openspec/specs/module-protocol/spec.md). Está publicado en el [PR #2](https://github.com/Jefry-P/ArtefactosProyecto/pull/2); no rehacer la biblioteca ni asumir que un PR abierto ya está integrado.
-- Escudo tiene implementación y tests de software; sus pruebas físicas continúan pendientes. Sanitizador/Cebo y las pantallas específicas describen trabajo futuro. La base original usó v1. El firmware actual y la app común de P1 ya consumen v2; los eventos históricos v1 se conservan. Las pantallas específicas y los servicios de Sanitizador/Cebo siguen en sus encargos.
-- Las fichas/specs/guías están publicadas en el [PR #3](https://github.com/Jefry-P/ArtefactosProyecto/pull/3), con dependencia de #2. Confirmar con Jefry la referencia de partida que incorpora ambas entregas antes de trabajar; no asumir merges por el hecho de estar publicadas.
+- Partir de **origin/develop** actualizado. Los contratos v2, API de módulos, Escudo y app común de P1 ya están entregados por software. No volver a empezar contrato/API ni esperar los PR originales #2/#3.
+- P1 también entregó diagnóstico BLE, salida serie optativa y broker anónimo. Consultar [verificación vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md); diagnóstico **4.3 sigue pendiente físicamente**, igual que los casos físicos de los cierres archivados.
+- P2 implementa Sanitizador; P3 Cebo/servidor de alertas; P4 las pantallas finales, push Android, despliegue LAN y laboratorio. Las dependencias y estado de cada una están en el [índice actualizado](README.md#encargos-y-dependencias-de-integración).
+- La base original y los siete encargos archivados conservan su evidencia histórica; no usar sus referencias a PlatformIO/SDK como configuración de instalación actual. Para firmware usar [Arduino oficial 3.3.12](../firmware.md). No modificar las casillas archivadas por haber migrado de herramienta.
 
 ## 3. Dónde está cada cosa
 
@@ -77,13 +77,13 @@ Reglas que todos deben conservar:
 - Escudo se controla por BLE sin asociarse a la red auditada ni publicar MQTT directo. Sanitizador usa BLE para control. Cebo publica MQTT y admite sus canales definidos.
 - Sin contraseñas capturadas, tokens, cookies ni cuerpos completos en eventos, estado, logs, fixtures o informes. Las credenciales propias se configuran fuera de Git.
 
-P3/P4 también leen [notifications.md](../../contracts/notifications.md): es el contrato HTTPS de registro/baja/estado y push. La biblioteca valida datos; implementar autenticación, persistencia y entrega corresponde a los encargos del servidor/app.
+P3/P4 también leen [notifications.md](../../contracts/notifications.md): es el contrato HTTPS de registro/baja/estado y push. La biblioteca valida datos; implementar la clave propia de acceso HTTPS del contrato, persistencia y entrega corresponde a los encargos del servidor/app. Esa clave técnica no introduce usuarios, roles ni permisos MQTT. Los permisos Android corresponden al sistema operativo.
 
 ## 5. Preparar tu copia y tu rama
 
 Leer [CONTRIBUTING.md](../../CONTRIBUTING.md) y [AGENTS.md](../../AGENTS.md). Usa un clon propio; los cuatro no editan una misma carpeta de trabajo. Si aún no tienes la documentación o el contrato revisado, pide a Jefry la referencia publicada antes de empezar.
 
-En este trabajo la referencia de integración usada por la base y los contratos es `develop`; `main` conserva la versión estable. **Confirmar con Jefry la base vigente y que contiene las dependencias**: CONTRIBUTING permite elegir la base adecuada y menciona normalmente `main`. No se añade aquí un proceso completo de releases/hotfixes ni se asume que todos los PR anteriores estén integrados.
+En este trabajo la referencia de integración usada por la base y los contratos es `develop`; `main` conserva la versión estable. **Confirmar con Jefry la base vigente y que contiene las dependencias**: CONTRIBUTING permite elegir la base adecuada y menciona normalmente `main`. Los contratos/API comunes están integrados; comprobar las dependencias funcionales pendientes en el índice antes del cierre de cada encargo.
 
 Ejemplo para una copia limpia, con dependencias ya revisadas e integradas en `origin/develop`:
 

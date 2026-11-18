@@ -2,6 +2,8 @@
 
 **Responsable único:** Persona 4 — app, Android, broker y coordinación del laboratorio. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-app-push`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
+La clave técnica de la API HTTPS sigue el [contrato de notificaciones](../../contracts/notifications.md); no implica crear usuarios, roles o permisos de aplicación. P3 entrega URL y configuración privada a P4. No reutilizar esa clave como credencial MQTT ni gestionar una CA del broker. Los permisos Android son del sistema operativo.
+
 ## Qué debes entregar
 
 Las alertas internas y WS no cumplen recepción con la aplicación cerrada.

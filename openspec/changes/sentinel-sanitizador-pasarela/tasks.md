@@ -5,7 +5,7 @@ Responsable único de todas las casillas: **Persona 2**. Estado inicial: todo pe
 ## 1. Pasarela y métricas
 
 - [ ] 1.1 Comprobar forwarding/NAPT en el core oficial fijado con Persona 1 y configurar netifs mediante sentinel_api; verificar build con forwarding/NAPT y sin drivers duplicados.
-- [ ] 1.2 Implementar AP autenticado, DHCP y detección de solapamiento; probar validaciones de clave/subred y documentar configuración en docs/modules/sanitizador-gateway.md.
+- [ ] 1.2 Implementar AP autenticado, DHCP y detección de solapamiento; probar clave/subred, persistencia oficial con commit antes de confirmar y recuperación en Idle tras reinicio/corte sin USB; documentar en docs/modules/sanitizador-gateway.md.
 - [ ] 1.3 Integrar NAPT y parada/reconexión; comprobar que no hay port forwarding ni protección IPv6 anunciada.
 - [ ] 1.4 Implementar lista de clientes, RSSI y contadores IPv4 por dirección; probar cálculo/delta y páginas v2 con casos focalizados.
 

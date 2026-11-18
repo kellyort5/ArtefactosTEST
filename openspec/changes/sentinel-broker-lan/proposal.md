@@ -1,5 +1,7 @@
 # Proposal
 
+**Acuerdos vigentes:** [alcance y reparto](../../../docs/mvp-policy.md) y [persistencia](../../../docs/persistence-policy.md). MQTT anónimo TCP/WS; BLE protegido y HTTPS/DoH conservan sus requisitos. Identidad, bonds, configuración aceptada e historial confirmado sobreviven a reinicio/corte normal; USB puede reinicializarlos. Los pendientes físicos requieren evidencia propia.
+
 ## Why
 
 El equipo necesita comprobar acceso físico en su LAN para ESP32, Android e integración de notificaciones. P1 ya entrega Compose y transportes TCP/WS anónimos; no corresponde reimplementar la base o crear cuentas.

@@ -2,6 +2,8 @@
 
 **Responsable único:** Persona 3 — firmware Cebo y servidor de notificaciones. **Estado:** documentado, pendiente de revisión e implementación. **Rama prevista:** `feat/sentinel-alertas-push-servidor`. El nombre de persona se sustituye por el del integrante al repartir; tú eres Persona 1.
 
+La clave técnica de la API HTTPS sigue el [contrato de notificaciones](../../contracts/notifications.md); no implica crear usuarios, roles o permisos de aplicación. P3 entrega URL y configuración privada a P4. No reutilizar esa clave como credencial MQTT ni gestionar una CA del broker. Los permisos Android son del sistema operativo.
+
 ## Qué debes entregar
 
 La recepción con Android cerrado requiere proveedor push y registro seguro de instalaciones, además de alertas MQTT.

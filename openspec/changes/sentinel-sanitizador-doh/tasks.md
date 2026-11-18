@@ -4,7 +4,7 @@ Responsable único de todas las casillas: **Persona 2**. Estado inicial: todo pe
 
 ## 1. Cliente e integración
 
-- [ ] 1.1 Implementar configuración HTTPS/CA y POST DoH acotado; probar respuesta válida, ID incorrecto, tamaño excesivo y tipo de contenido.
+- [ ] 1.1 Implementar configuración HTTPS/CA persistente y POST DoH acotado; probar commit/fallo de guardado, recuperación en Idle tras reinicio/corte sin USB, respuesta válida, ID incorrecto, tamaño excesivo y tipo de contenido.
 - [ ] 1.2 Validar TLS/hora y fallos cerrados; comprobar certificado inválido y timeout sin DNS plano.
 - [ ] 1.3 Integrar caché, reintentos, métricas y estado de protección; documentar bootstrap y límites en docs/modules/sanitizador-doh.md.
 - [ ] 1.4 Compilar y probar consultas permitidas/bloqueadas desde cliente AP con NAT+DoH reales; registrar endpoint y resultado sin secretos.

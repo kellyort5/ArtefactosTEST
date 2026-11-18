@@ -2,11 +2,13 @@
 
 **Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
 
-Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md).
 
 P3 persistirá configuración aceptada de Cebo e historial sanitizado mediante recursos centrales, con límites, commit antes de confirmar y recuperación tras reinicio/corte sin USB; no iniciar servicios automáticamente. Mantener eventos/IDs/cursores y dedup dentro del ring. No guardar credenciales recibidas por HTTP/Telnet/honeypot o terceros. NVS estándar no promete cifrado físico; secretos propios solo por canal autorizado, nunca Git/log/event/status. Webhook y push mantienen sus encargos completos.
 
 Entregas el Módulo 3 completo y el componente que envía webhook y push. Persona 4 hace la UI y recibe el push en Android; tú implementas el envío en servidor. El Cebo es un servicio ficticio seguro en una LAN autorizada, sin administración real ni ejecución de comandos.
+
+La clave técnica de la API HTTPS sigue el [contrato de notificaciones](../../contracts/notifications.md); no implica crear usuarios, roles o permisos de aplicación. P3 entrega URL y configuración privada a P4. No reutilizar esa clave como credencial MQTT ni gestionar una CA del broker. Los permisos Android son del sistema operativo.
 
 ## 1. Qué leer antes de programar
 
@@ -57,7 +59,7 @@ Una rama `feat/<nombre completo del cambio>` y un PR por encargo. No abrir dos i
 1. Clasificar ambos servicios mediante ventanas y contadores acotados: aislado, repetido, expiración y nivel de sospecha. Mantener tests con reloj controlado.
 2. Publicar eventos/métricas v2 y `cebo.stats`: IP de origen, puertos, protocolo, tiempo/tipo de interacción y cantidades permitidas. Respetar la relación sospecha/severidad del contrato.
 3. Integrar journal circular central, persistencia y recuperación MQTT por cursor/IDs. Conservar contadores aunque una alerta repetida sea suprimida.
-4. Documentar umbrales/retención; comprobar HTTP/Telnet reales y recepción MQTT con identidad autorizada.
+4. Documentar umbrales/retención; comprobar HTTP/Telnet reales y recepción MQTT con device_id/topic esperados sobre MQTT anónimo, sin afirmar autenticidad del emisor.
 5. Cortar/restaurar broker y reiniciar brevemente; recuperar eventos con mismo ID y huecos visibles si se sobreescribió el anillo, sin duplicar incidentes.
 
 ### D. sentinel-alertas-webhook
@@ -66,7 +68,7 @@ Una rama `feat/<nombre completo del cambio>` y un PR por encargo. No abrir dos i
 
 1. Crear componente Node mínimo con package/lockfile y Compose propios. Consumir MQTT TCP anónimo por los topics de Cebo del contrato; pedir endpoints a P4.
 2. Implementar enrutado, dedup y outbox persistente acotada con reintentos/vencimiento. No convertirlo en una plataforma histórica adicional.
-3. Integrar webhook HTTPS con destinos/cuentas propios configurados fuera de Git. Mantener la gestión de fallos del webhook separada del futuro canal push.
+3. Integrar webhook HTTPS con destinos y claves propias configurados fuera de Git. Mantener la gestión de fallos del webhook separada del futuro canal push.
 4. Implementar estado por HTTPS con autenticación por nodo y CORS explícito conforme al contrato; no devolver tokens/destinos privados.
 5. Documentar configuración/arranque/retención en `notifications/README.md` y documento del módulo. Recibir una alerta de un incidente real en el webhook configurado, repetirlo y comprobar supresión y recuperación limitada.
 
