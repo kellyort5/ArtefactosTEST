@@ -1,20 +1,20 @@
 # Guía de Persona 4 — App, broker LAN y laboratorio
 
-**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). Sin TLS/cuentas/roles/ACL MQTT; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
+**Acuerdo vigente (2026-11-17):** [MQTT anónimo, entrega P1 y reparto actualizado](../mvp-policy.md). La conexión MQTT es anónima; BLE y HTTPS/DoH conservan sus protecciones. Evidencia histórica no sustituye las pruebas físicas pendientes.
 
-Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md).
+Aplicar la [política aprobada de persistencia](../persistence-policy.md): identidad, bonds, configuración aceptada e historial confirmado sobreviven al uso/reinicio/corte normal; reinstalación/actualización USB puede reinicializarlos sin migración. Primera carga de tabla nueva limpia desde IDE. Los módulos, responsables y pendientes físicos se conservan; el estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md).
 
 P4 debe contemplar que reinstalar/actualizar por USB puede reiniciar identidad, bonds e historial/cursores. Si ocurre, retirar vínculos/caché obsoletos del teléfono, volver a emparejar/configurar y reconciliar desde metadata/estado nuevos; no reutilizar el cursor anterior frente a un historial reinicializado, aunque el device_id derivado de MAC siga igual. No prometer migración de datos entre versiones. Conservar resultados históricos por separado y no presentar mensajes antiguos como actuales. En reinicios sin upload sí se exige recuperar datos confirmados. Esta documentación no declara implementada una UI nueva.
 
 Tu entrega es la aplicación de los tres módulos, su integración Android/BLE/WS/push, el broker accesible en LAN y la consolidación de evidencia del equipo. Los otros tres autores implementan firmware y P3 envía alertas desde servidor. Tú consumes esas entregas; no programas sus detectores, NAT o servicios Cebo.
 
-El usuario reasignó únicamente `sentinel-app-protocolo-v2` a P1 el 2026-11-12. Tú consumes esa entrega y el panel diagnóstico P1, y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
+P1 entrega la app común v2 y el diagnóstico sin OLED, incluidas las correcciones BLE; su prueba física4.3 sigue pendiente. Tú consumes esa entrega y el panel diagnóstico P1, y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
 
 ## 1. Qué leer antes de programar
 
 1. [Guía del equipo](guia-equipo.md) y [reparto](README.md): propiedad de archivos, ramas, dependencias y evidencias.
 2. [Arquitectura](../architecture.md), [decisiones R-03/R-04/R-06/R-07/R-08/R-10/R-11 y H-08](../technical-decisions.md), [roadmap](../roadmap.md).
-3. [Desarrollo](../development.md), [app/README.md](../../app/README.md), [broker/README.md](../../broker/README.md) y [guía de pruebas de la base](../core-foundation-test-guide.md).
+3. [Desarrollo](../development.md), [app/README.md](../../app/README.md), [broker/README.md](../../broker/README.md) y [guía de pruebas P1 de la entrega integrada](../guia-pruebas-persona-1.md).
 4. [Protocolo v2](../../contracts/module-protocol.md), [notificaciones](../../contracts/notifications.md) y ejemplos de los tres módulos.
 5. [Ficha app-protocolo-v2](sentinel-app-protocolo-v2.md), con su diseño, spec y tareas; repetir la lectura para cada encargo.
 
@@ -52,9 +52,9 @@ Esta secuencia concreta el reparto, sin poner fechas ni cambiar sus dependencias
 
 ### B. Broker: sentinel-broker-lan
 
-1. Reutilizar Compose/transportes anónimos entregados. No generar CA, usuarios, contraseñas, rol notify ni ACL.
+1. Reutilizar Compose y los transportes anónimos entregados. Arrancar directamente con los comandos del paso5; para conectar solo se necesitan el endpoint y el ID del nodo.
 2. Comprobar desde la red del equipo TCP1883/WS9001 por IP, firewall y aislamiento de clientes. Conservar el volumen y topics/replay v1/v2.
-3. Verificar con P3 suscripción a eventos y con app/nodo publicación/ACK. No hay pruebas de permisos por rol o rechazo cross-node: no existe ese aislamiento. Validación/topic/device_id no acreditan autenticación.
+3. Verificar con P3 suscripción a eventos y con app/nodo publicación/ACK. Cualquier cliente con acceso al broker puede leer y publicar. Los consumidores validan mensajes y deduplican; el topic y device_id sirven para enrutar, no para autenticar.
 4. Entregar endpoints/topics a P3 y registrar pruebas físicas con teléfono/ESP32 cuando estén disponibles. localhost del teléfono no es el PC.
 5. Documentar resultados en docs/modules/broker-lan.md con los números de tarea de la ficha. No declarar hardware probado por un smoke local.
 
@@ -92,10 +92,10 @@ No hace falta generar ataques en el aire para probar parsers/heurísticas con fi
 ### G. Android push: sentinel-app-push
 
 1. Revisar con P3/Jefry proveedor/plugin compatibles y fijar dependencia; configurar Firebase Android localmente según diseño. P3 conserva claves Admin del servidor fuera de la app.
-2. Implementar permisos, registro/renovación/baja HTTPS con identidad autorizada, cambio de token y caso permiso denegado.
+2. Solicitar el permiso de notificaciones de Android e implementar registro/renovación/baja HTTPS según el contrato de P3, cambio de token y caso de permiso Android denegado.
 3. Recibir notificación y abrir Cebo por `event_id`; consultar historial si hay canal y mostrar pendiente/fuera de retención cuando corresponda.
 4. Compilar/sincronizar e instalar en teléfono real. Cerrar desde recientes, generar incidente Cebo real con P3 y comprobar recepción/tap. Documentar las limitaciones de force-stop por separado; no prometer recepción bajo cualquier estado del sistema.
-5. Registrar dispositivo/permiso/hora/ID y la evidencia de recepción real, sin tokens ni configuración privada.
+5. Registrar dispositivo, permiso Android, hora/ID y evidencia de recepción real, sin tokens ni configuración privada.
 
 MQTT y una alerta interna con la app abierta no sustituyen push. Una respuesta FCM aceptada del servidor tampoco demuestra por sí sola recepción en Android.
 
@@ -117,11 +117,11 @@ Los schemas rechazan propiedades desconocidas; no resolverlo quitando validacion
 
 La disponibilidad de una operación depende del firmware/canal real. En Escudo solo BLE, sin asociación/MQTT directo; Sanitizador usa BLE para control; Cebo usa los canales definidos. El cambio de modo puede cerrar el canal desde el que lo pediste: reconciliar estado y no confundir desconexión con éxito o fallo definitivo.
 
-El registro push usa HTTPS y credencial propia de esa API, no la contraseña MQTT. Validar el nodo autorizado; no persistir tokens ni introducir secretos en bundle web. Consultar con P3 los endpoints reales cuando los implemente: ahora el paquete de contratos no levanta ningún servidor.
+El registro push utiliza la API HTTPS de P3 y los identificadores de nodo/instalación del contrato. Sus claves de servicio y tokens pertenecen a esa integración y se gestionan conforme a su contrato; no incorporarlos al bundle ni a evidencias públicas. Consultar con P3 los endpoints reales cuando los implemente: ahora el paquete de contratos no levanta ningún servidor.
 
 ## 5. Preparar y ejecutar
 
-Usar Node 24 y npm del repositorio; JDK21/SDK36 para Android, Docker/Compose/Python/OpenSSL para broker, según [desarrollo](../development.md). No modificar versiones fijadas solo para hacer desaparecer un error local.
+Usar Node 24 y npm del repositorio; JDK21/SDK36 para Android, Docker/Compose y Python3 para el helper del broker, según [desarrollo](../development.md). No modificar versiones fijadas solo para hacer desaparecer un error local.
 
 Desde raíz, después de obtener la referencia revisada y crear tu rama en un clon limpio:
 
@@ -142,7 +142,7 @@ npm run android:assemble
 
 El script de assemble usa el wrapper de shell del proyecto: seguir las instrucciones de [app](../../app/README.md) para el entorno elegido; en Windows nativo está `app/android/gradlew.bat`. Las rutas locales de SDK se configuran en el entorno o `local.properties` ignorado, no en archivos públicos.
 
-Para broker, leer primero sus instrucciones de preparación. En un laboratorio ya preparado:
+Para el broker, iniciar Docker Desktop/Engine y ejecutar desde la raíz del repositorio:
 
 ```sh
 python3 broker/scripts/manage.py config
@@ -150,7 +150,7 @@ python3 broker/scripts/manage.py up
 python3 broker/scripts/manage.py ps
 ```
 
-Estos comandos existen; no prueban por sí solos acceso LAN físico o push. Seguir las verificaciones de la ficha y del README. Un emulador sirve para UI, arranque y casos de permisos; no sustituye la evidencia BLE físico o push con el teléfono real requerida por las specs. Para periféricos y pairing de la ESP32, coordinar con P1 y seguir la [guía de base](../core-foundation-test-guide.md).
+Estos comandos existen; no prueban por sí solos acceso LAN físico o push. Seguir las verificaciones de la ficha y del README. Un emulador sirve para UI, arranque y casos de permisos Android; no sustituye la evidencia BLE físico o push con el teléfono real requerida por las specs. Para periféricos y pairing de la ESP32, coordinar con P1 y seguir la [guía P1 integrada](../guia-pruebas-persona-1.md).
 
 ## 6. Primera sesión y cierre
 
@@ -166,7 +166,7 @@ Estos comandos existen; no prueban por sí solos acceso LAN físico o push. Segu
 | P2 | Resultados y métricas reales Sanitizador ↔ pantalla BLE y pruebas conjuntas con cliente AP. |
 | P3 | Eventos y API/servidor de alertas ↔ broker anónimo, UI Cebo y registro/recepción Android. |
 
-Tu cierre exige tres pantallas integradas con hardware, broker con seguridad real, push recibido con app cerrada y matriz de evidencia completa. Los fixtures permiten preparar interfaces; no reemplazan esos cierres. Mantener pruebas focalizadas de negociación, ACK, dedup/paginación, privacidad y registro push. Los benchmarks/estabilidad prolongada quedan después.
+Tu cierre exige tres pantallas integradas con hardware, broker anónimo accesible en la LAN del equipo, push recibido con app cerrada y matriz de evidencia completa. Los fixtures permiten preparar interfaces; no reemplazan esos cierres. Mantener pruebas focalizadas de negociación, ACK, dedup/paginación, privacidad y registro push. Los benchmarks/estabilidad prolongada quedan después.
 
 En cada PR usar el [formato de entrega común](guia-equipo.md#6-rutina-por-tarea-y-entrega). Jefry mantiene OpenSpec; tú consolidas evidencia, sin dar por implementado lo que un autor no demostró.
 
