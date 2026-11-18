@@ -4,13 +4,15 @@
 
 Sistema modular de seguridad de redes para **ESP32-S3-DevKitC-1 N16R8**, broker Eclipse Mosquitto en Docker y aplicación React/Capacitor Android. Un supervisor permite ejecutar un único modo a la vez: Escudo Pasivo, Auditor/Sanitizador o Cebo de Red Local. Solo se utiliza en redes propias o autorizadas.
 
+**Para empezar:** [mini setup Windows: Arduino IDE, Mosquitto y app](docs/mini-setup.md).
+
 ## Estado actual
 
 Estado de esta entrega: **2026-11-17**. La base y el Escudo están implementados en firmware; el MVP completo de tres módulos todavía requiere las entregas del equipo y la comprobación física.
 
 | Componente | Implementado y comprobado por software | Pendiente |
 | --- | --- | --- |
-| Firmware compartido | Supervisor, gestión de radio, BLE protegido, transporte MQTT seguro, OLED/botón, contratos v2 y journal persistente. Compilación completa Windows con core oficial. | Arranque, memoria, periféricos, BLE/MQTT y persistencia en la placa real. |
+| Firmware compartido | Supervisor, gestión de radio, BLE protegido, transporte MQTT anónimo, OLED/botón, contratos v2 y journal persistente. Compilación completa Windows con core oficial. | Arranque, memoria, periféricos, BLE/MQTT y persistencia en la placa real. |
 | Escudo — Persona 1 | Descubrimiento pasivo, selección de objetivo, captura, cuatro detectores y recuperación. Configuración de conectividad y objetivo persistentes. | Pruebas reales de captura/coexistencia, reinicio y corte de alimentación; integración final de los tres modos y alertas recientes en OLED. |
 | Sanitizador — Persona 2 | Contratos, API y encargos preparados. | Auditoría, pasarela/NAT, DNS y DoH; su flag permanece deshabilitado hasta integrar la implementación real. |
 | Cebo — Persona 3 | Contratos, API y encargos preparados. | Servicios HTTP/Telnet, detección, historial y alertas; su flag permanece deshabilitado hasta integrar la implementación real. |
@@ -53,7 +55,7 @@ npm run dev
 
 Workspaces npm privados: `app/` y `contracts/`, un solo `package-lock.json`. `firmware/` y `broker/` son independientes; `simulator/` conserva el límite de integración futuro, sin bloquear hardware.
 
-`npm run dev` abre la app web. El flujo BLE de esta implementación se prueba con la app **Android**; consultar [compilación del APK, permisos y acceso LAN](app/README.md). Para Mosquitto, seguir [preparación y ejecución del broker](broker/README.md): preparar cuentas locales antes de levantarlo. Un teléfono o ESP32 usa la IP LAN del PC sin certificados ni cambios de router; `localhost` en el teléfono no apunta a la computadora. Las pruebas físicas LAN siguen en la integración de Persona 4.
+`npm run dev` abre la app web. El flujo BLE de esta implementación se prueba con la app **Android**; consultar [compilación del APK, permisos y acceso LAN](app/README.md). Para Mosquitto, seguir [preparación y ejecución del broker](broker/README.md): arrancar Compose directamente, sin cuentas. Un teléfono o ESP32 usa la IP LAN del PC sin certificados ni cambios de router; `localhost` en el teléfono no apunta a la computadora. Las pruebas físicas LAN siguen en la integración de Persona 4.
 
 ## Documentación y reparto
 
@@ -61,7 +63,7 @@ Workspaces npm privados: `app/` y `contracts/`, un solo `package-lock.json`. `fi
 - [Contratos v1, ejemplos y API](contracts/README.md)
 - [Aplicación, Android y acceso LAN](app/README.md)
 - [Firmware, cableado, build/upload/monitor](docs/firmware.md)
-- [Broker local, acceso LAN y permisos](broker/README.md)
+- [Broker local y acceso LAN anónimo](broker/README.md)
 - [Conectividad BLE y MQTT del nodo](docs/connectivity.md)
 - [Evidencia de app y contratos](app/evidence.md)
 - [Comprobación integral](docs/core-foundation-check.md)
