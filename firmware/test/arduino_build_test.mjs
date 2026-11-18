@@ -31,6 +31,20 @@ temporary('sentinel-module-flags-', build => {
   assert.notEqual(invalid.status,0);
   assert.match(invalid.stderr,/flags must be 0 or 1/);
 });
+temporary('sentinel-display-flag-', directory => {
+  const source = join(directory,'display.cpp');
+  writeFileSync(source,'#include "'+join(sketch,'SentinelConfig.h')+'"\n');
+  const counter = join(directory,'counter.cpp');
+  writeFileSync(counter,'#include "'+join(sketch,'src/sentinel/include/test_diagnostics.h')+'"\n#include <cassert>\nint main(){ assert(sentinel::detector_inputs()==0); sentinel::note_detector_input(); sentinel::note_detector_input(); assert(sentinel::detector_inputs()==2*SENTINEL_SERIAL_TEST_DISPLAY); }\n');
+  for (const value of [0,1]) {
+    const binary=join(directory,'counter-'+value);
+    run('c++',['-std=c++17','-DSENTINEL_SERIAL_TEST_DISPLAY='+value,counter,'-o',binary]);run(binary);
+  }
+  for (const value of [0,1,2]) {
+    const result = spawnSync('c++',['-E','-DSENTINEL_SERIAL_TEST_DISPLAY='+value,source],{encoding:'utf8'});
+    assert.equal(result.status===0,value!==2,'Explicit boolean test display flag');
+  }
+});
 console.log('Module value flags, disabled factory symbols and missing enabled factories: PASS');
 
 const required = {

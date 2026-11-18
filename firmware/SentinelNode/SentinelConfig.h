@@ -31,3 +31,14 @@
     (SENTINEL_MODULE_CEBO != 0 && SENTINEL_MODULE_CEBO != 1)
 #error Sentinel module flags must be 0 or 1
 #endif
+
+// Temporary local display for P1 tests without OLED. Never enable in public logs.
+#ifndef SENTINEL_SERIAL_TEST_DISPLAY
+#define SENTINEL_SERIAL_TEST_DISPLAY 0
+#endif
+#if SENTINEL_SERIAL_TEST_DISPLAY != 0 && SENTINEL_SERIAL_TEST_DISPLAY != 1
+#error Sentinel serial test display flag must be 0 or 1
+#endif
+#if SENTINEL_SERIAL_TEST_DISPLAY && ARDUINO_USB_CDC_ON_BOOT
+#error Use USB CDC On Boot Disabled and the USB-UART connector for the P1 display
+#endif

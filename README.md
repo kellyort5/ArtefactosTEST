@@ -15,7 +15,7 @@ Estado de esta entrega: **2026-11-17**. La base y el Escudo están implementados
 | Aplicación — Persona 4 | Base Android/web v2: conexión BLE/WS, estado, comandos e historial. | Controles específicos y gráficos de los módulos, pantallas completas y notificaciones push. |
 | Broker e integraciones | Mosquitto MQTT/TCP y WS autenticados, ACL v1/v2 para LAN; sin certificados. | Pruebas con ESP32/teléfono; webhooks y push en sus encargos. |
 
-Subir el firmware y arrancar la app y Docker permite comenzar las pruebas de la base; no completa los módulos ni las pantallas pendientes. **Escudo funciona por BLE y no utiliza MQTT directo ni se asocia a la red observada.** La UI común aún no incorpora los botones de escanear, seleccionar e iniciar/detener captura; esas pruebas requieren la pantalla específica o un cliente de diagnóstico v2 conforme a la guía.
+Subir el firmware y arrancar la app y Docker permite comenzar las pruebas de la base; no completa los módulos ni las pantallas pendientes. **Escudo funciona por BLE y no utiliza MQTT directo ni se asocia a la red observada.** La UI común conserva las pantallas finales de P4 pendientes; para probar Escudo ya se incluye un panel diagnóstico BLE optativo (`VITE_SENTINEL_P1_TOOLS=1`) con scan, catálogo, objetivo, captura e historial. Sin OLED puede usarse la salida serie temporal (`SENTINEL_SERIAL_TEST_DISPLAY=1`) con el mismo botón y pairing protegido, según la guía P1. Ambas opciones están desactivadas por defecto.
 
 La [verificación integrada](openspec/changes/sentinel-mvp-standard-persistence/verification.md) y el [informe del build nativo](openspec/changes/sentinel-mvp-standard-persistence/native-build-verification.md) registran compilación Windows PASS, pruebas host con ASan/UBSan y nueve tareas de software completadas. Esto no acredita pruebas físicas ni cierra el MVP completo. Las evidencias y pendientes históricos se conservan en sus respectivos cierres OpenSpec.
 
@@ -31,7 +31,7 @@ El flujo diario utiliza **Arduino IDE Windows**, core oficial **ESP32 3.3.12**, 
    ```
 
 2. Abrir [SentinelNode.ino](firmware/SentinelNode/SentinelNode.ino). Seleccionar **ESP32S3 Dev Module**, flash **16MB**, **QIO 80MHz**, **OPI PSRAM** y **Sentinel standard USB (4MiB factory, no OTA)**.
-3. Seguir el [cableado y las pruebas de Persona 1](docs/guia-pruebas-persona-1.md). La OLED y el botón permiten autorizar y mostrar el código de emparejamiento BLE.
+3. Seguir el [cableado y las pruebas de Persona 1](docs/guia-pruebas-persona-1.md). El botón físico sigue siendo necesario; la guía explica OLED o monitor serie temporal para mostrar el código BLE.
 4. Para la **primera carga con la tabla nueva**, seleccionar **Erase All Flash Before Sketch Upload: Enabled**, identificar el COM real y subir. Se pierden los datos anteriores: emparejar y configurar de nuevo. Después volver a Disabled si no se solicita borrado completo; ninguna actualización USB garantiza conservar datos.
 
 Identidad, vínculos BLE, configuración aceptada, objetivo del Escudo e historial confirmado deben conservarse durante el uso normal, reinicios y cortes. Se permite reinicializarlos al reinstalar/actualizar por USB, sin migración entre versiones. Ver [política de persistencia y protecciones restantes](docs/persistence-policy.md). No se almacenan secretos en Git, logs, eventos o estado público ni se promete cifrado físico de flash.

@@ -177,3 +177,11 @@ Las casillas que requieren estas comprobaciones permanecen abiertas. La compilac
 
 
 Compilación final del 2026-11-09 UTC (2026-11-08 en El Salvador): `pio run -d firmware -e sentinel_s3` **SUCCESS**, 116.29 s, sin errores ni warnings. RAM estática **77368/327680 bytes** (23.6 %); imagen **1183525/4194304 bytes** (28.2 % del límite factory). Son cifras de enlace, no heap libre observado, flash física detectada ni medición de PSRAM. Configuración efectiva verificada: SC-only=1, nivel4, bonds4, legacy/debug keys deshabilitados, validación de fecha TLS habilitada, flash16 MiB y PSRAM octal80 MHz. Informe de entrega: [firmware/EVIDENCE.md](../firmware/EVIDENCE.md).
+
+## Visualización serie temporal P1 sin OLED
+
+En `SentinelConfig.h`, cambiar `SENTINEL_SERIAL_TEST_DISPLAY` de `0` a `1`, compilar y cargar. Usar USB CDC On Boot Disabled, el conector USB-UART y Monitor serie a 115200 abierto antes del pairing. El botón externo GPIO4–GND sigue siendo necesario. `[P1 DISPLAY]` informa estado y `[P1 CAPTURE] detector_input_total` cuenta observaciones reales cada 5 s. OLED ausente sigue ausente en el estado público.
+
+Mantener botón 3 s; emparejar Android dentro de la ventana física de 120 s con las seis cifras temporales `[P1 PAIR CODE]`. No guardar consola/capturas con ese código. Se comprueba aceptación del driver UART, no lectura humana; no se reproduce el código automáticamente. El modo conserva SC/MITM/cifrado, no imprime contraseñas ni material de bonds y no cambia NVS/particiones. Con opción `0` no imprime passkey y mantiene el flujo OLED habitual. Volver a `0` y comprobar OLED cuando esté disponible.
+
+La [guía P1](guia-pruebas-persona-1.md) detalla el APK diagnóstico BLE, el checkout aislado y las pruebas pendientes. Su panel es de pruebas; no reemplaza pantallas finales ni acredita radio, ataques u OLED sin evidencia física.

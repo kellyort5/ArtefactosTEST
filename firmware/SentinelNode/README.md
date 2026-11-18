@@ -58,3 +58,9 @@ npm run test:escudo
 ```
 
 La evidencia del build oficial completo y las limitaciones físicas se registra en [verification.md](../../openspec/changes/sentinel-arduino-dependencies/verification.md). Un build o una prueba host no acredita upload, radio, pairing Android, MQTT/TCP en ESP32, OLED, botón ni persistencia física. Solo probar redes propias/autorizadas; configurar credenciales por BLE protegido y no incluirlas en fuentes, logs o ejemplos.
+
+## Pruebas sin OLED
+
+El usuario autoriza un display temporal por UART0: `SENTINEL_SERIAL_TEST_DISPLAY=1` en `SentinelConfig.h`, USB CDC On Boot Disabled, conector USB-UART y monitor a 115200 abierto antes de emparejar. El botón sigue abriendo la ventana física de 120 s; las seis cifras temporales aparecen como `[P1 PAIR CODE]`. No registrar ni publicar ese código. No cambian SC/MITM/cifrado, bonds ni persistencia. La ausencia de OLED sigue siendo real en el estado. UART confirma aceptación por el driver, no lectura humana.
+
+Por defecto la opción vale `0`: conserva OLED y no muestra código por serie. Restaurar ese valor y probar la pantalla cuando esté disponible. El contador temporal `[P1 CAPTURE] detector_input_total` acredita pasos reales a detectores, sin tramas crudas ni ataques simulados. [Guía completa P1 y APK diagnóstico](../../docs/guia-pruebas-persona-1.md).

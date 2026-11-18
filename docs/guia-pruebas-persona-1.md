@@ -2,11 +2,9 @@
 
 **Política vigente:** [persistencia y USB](persistence-policy.md). La primera carga de la tabla nueva requiere **Erase All Flash Before Sketch Upload: Enabled** y elimina datos previos; emparejar/configurar de nuevo. El estado del build final integrado se registra en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds/logs anteriores no prueban esta tabla.
 
-Guía de instalación, cableado y pruebas desde cero, actualizada para la app común **v2** de Persona 1. El firmware de recuperación de `dd0840c` ([PR #10](https://github.com/Jefry-P/ArtefactosProyecto/pull/10)) ya está integrado en la referencia `af7200a`; la migración actual vive en `feat/sentinel-arduino-migration`. El adaptador de app `sentinel-app-protocolo-v2` y su cierre archivado se versionan junto con esta entrega; consultar el estado del PR antes de asumir que está integrado en develop. Usar una entrega revisada que contenga ambas piezas y reconstruir su APK; un nombre de rama, un PR o un APK antiguo no prueban qué código estás ejecutando.
+Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `sentinel-p1-pruebas-sin-oled`. La fuente se mantiene con opciones de pruebas desactivadas; activarlas según 0.1. La [verificación de esta adaptación](../openspec/changes/sentinel-p1-pruebas-sin-oled/verification.md) identifica builds, APK y pendientes. Esta guía describe un procedimiento; no acredita pruebas físicas realizadas.
 
-**Objetivo de la primera sesión física:** compilar/cargar desde Arduino IDE, comprobar memoria/OLED/botón e instalar tu app v2 para probar BLE, estado, Reposo ↔ Escudo e historial real. **El firmware completo ya compiló con el core oficial ESP32 3.3.12** y las dos bibliotecas fijadas; seguir la instalación de [firmware](firmware.md#preparar-arduino-ide). Las pruebas de software y las comprobaciones físicas conservan sus evidencias y límites por separado. Los controles específicos de descubrimiento/captura requieren todavía `sentinel-app-escudo` de Persona 4 o un cliente de diagnóstico v2 ya disponible y revisado. La integración final también requiere Sanitizador y Cebo.
-
-La [verificación de app v2](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) registra build web/APK y 26 tests de app aprobados, con **5/6 tareas**. El cambio está [archivado con esa prueba pendiente aceptada](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/closure.md). La tarea **2.1 sigue pendiente de control real**. La 2.2 permite compilar y documentar permisos/BLE físicos pendientes: su casilla no acredita que ya se probó el teléfono. Esta guía es un procedimiento, no evidencia de ejecución.
+**Primera sesión:** cargar firmware con visualización serie, conectar el botón externo, instalar APK diagnóstico, emparejar por BLE y ejecutar T01–T15 con las condiciones de cada caso. Se añaden controles de diagnóstico para probar el firmware existente; las pantallas finales de P4, OLED real, ensayos RF de ataques y los módulos de los compañeros conservan sus entregas y comprobaciones pendientes.
 
 ## 0. Lee esto antes de copiar comandos
 
@@ -17,6 +15,19 @@ La [verificación de app v2](../openspec/changes/archive/2026-11-12-sentinel-app
 - `COM_REAL` y los ejemplos de redes son marcadores: reemplazarlos antes de ejecutar. No asumir que la placa tendrá un nombre de puerto específico.
 - Compilar genera archivos en la computadora. **Upload/grabar** transfiere el firmware a la ESP32. **Monitor** muestra su consola. **RESET/EN** reinicia; **BOOT** sirve para programación; el **botón externo GPIO4** controla Sentinel.
 
+### 0.1. Activar las dos opciones de pruebas
+
+1. En la copia del sketch que abrirás en Arduino, abre `SentinelConfig.h` y cambia únicamente:
+
+   ```cpp
+   #define SENTINEL_SERIAL_TEST_DISPLAY 1
+   ```
+
+   El valor de Git es `0`; la copia preparada del paso 3 ya usa `1`. No cambies seguridad BLE ni flags de módulos. Selecciona **USB CDC On Boot: Disabled**, usa el conector **USB-UART** y abre **Monitor serie a 115200** antes de abrir la ventana BLE. El modo de pruebas acepta ausencia de OLED, pero sigue informando `peripherals.oled:false`.
+2. Construye el APK con `VITE_SENTINEL_P1_TOOLS=1` según paso 11. Verifica que aparece **Diagnóstico P1**. El navegador permite revisar la interfaz pero las órdenes BLE requieren Android real.
+3. El passkey se muestra como `[P1 PAIR CODE]` únicamente durante un intento real dentro de la ventana física. Introduce las seis cifras, incluidos ceros iniciales, en Android. **No guardes consola/capturas con ese código ni las adjuntes al repositorio.** UART confirma entrega al controlador, no que una persona haya abierto el monitor: mantenlo abierto antes de emparejar. Si pasó el código, cancela y repite el intento; no se reproduce automáticamente.
+4. Al recibir OLED, vuelve a `SENTINEL_SERIAL_TEST_DISPLAY=0`, recompila/carga y genera APK sin la variable de diagnóstico. La pantalla del producto y su prueba física siguen siendo obligatorias. No hace falta borrar flash para RESET ni para probar persistencia.
+
 ### Qué está disponible en esta referencia
 
 | Parte | Situación y qué esperar |
@@ -25,6 +36,7 @@ La [verificación de app v2](../openspec/changes/archive/2026-11-12-sentinel-app
 | Escudo: descubrimiento, captura y cuatro detectores | Implementados en firmware, con control/eventos v2 por BLE. |
 | Recuperación | Journal compartido conectado y comprobado por software; coexistencia y pruebas físicas pendientes. |
 | App común v2, de P1 | Admite nodos v1/v2, BLE protegido, estado, modos disponibles, navegación común e historial paginado/deduplicado. Se puede probar con el firmware v2 actual. |
+| Panel diagnóstico P1 | Disponible al compilar con `VITE_SENTINEL_P1_TOOLS=1`; scan, catálogo, selección, captura, estado, historial y negativos por BLE real. No sustituye la pantalla final. |
 | Pantalla Escudo completa, de P4 | Siguen pendientes catálogo/selección, controles de captura, gráficos y detalle de incidentes. La navegación común no los implementa. |
 | Cebo y Sanitizador | No registrados en los defaults actuales. No se espera que funcionen ni que el botón entre en ellos. |
 | Alertas recientes en OLED e integración de tres modos | Trabajo pendiente de `sentinel-integracion-tres-modos`. La pantalla de estado actual no acredita ese resumen. |
@@ -39,7 +51,7 @@ Para firmware basta Arduino IDE Windows con la integración oficial entregada; N
 2. Completar pasos 7–10: cableado, USB, grabación y T01/T02.
 3. Seguir pasos 11–13: instalar APK, conectar por BLE y ejecutar T03 desde los botones reales.
 4. Ejecutar T14/T15 del paso 17: reconexión e historial básico, sin necesitar iniciar captura.
-5. Conservar T04–T06 y T08–T13 como pruebas de firmware a ejecutar cuando esté disponible la pantalla específica o el cliente de diagnóstico indicado. T07 de lógica ya puede ejecutarse en el host.
+5. Activar **Diagnóstico P1** y ejecutar T04–T13 según las instrucciones de esta guía. T07/T12 tienen comprobaciones host; ataques reales, OLED y futuras integraciones siguen pendientes cuando falte su equipo o entrega.
 
 No necesitas broker, Wi-Fi del teléfono ni contraseña de tu AP para el recorrido BLE básico. No es necesario conectar el teléfono por USB para usar BLE: ese cable y ADB solo son opcionales para instalar/diagnosticar Android; el USB de la ESP32 sí se utiliza aquí para programar y observar la consola.
 
@@ -49,10 +61,10 @@ No necesitas broker, Wi-Fi del teléfono ni contraseña de tu AP para el recorri
 | --- | --- |
 | ESP32-S3-DevKitC-1 N16R8, 44 pines | Ejecutar Sentinel; se esperan 16 MiB de flash y 8 MiB de PSRAM. |
 | Cable USB de datos | Alimentación, programación y consola. Un cable que solo carga no permite programar. |
-| OLED SSD1306 I2C de **128×32**, dirección inicial `0x3C` | Estado y código de emparejamiento. Confirmar el módulo real; el firmware actual está configurado para esa resolución. |
+| OLED SSD1306 I2C de **128×32**, dirección inicial `0x3C` | Opcional para esta sesión: monitor serie sustituye temporalmente estado y código BLE con la opción de pruebas habilitada. OLED física se prueba después. |
 | Botón pulsador externo, cables Dupont y protoboard | Conectar GPIO4 a GND únicamente al presionar. |
 | PC Windows con Arduino IDE 2 y core oficial ESP32 3.3.12 | Firmware nativo Windows; dos bibliotecas y configuración inicial documentadas en el paso4.2. WSL/Node se usan solo si haces mantenimiento host o compilas la app allí. |
-| Teléfono Android con BLE | Emparejar y probar estado/modos/historial con tu app v2; los controles específicos de Escudo dependen de su pantalla. |
+| Teléfono Android con BLE | Emparejar y probar estado/modos/historial con tu app v2; el APK diagnóstico incluye controles de prueba del Escudo. |
 | Red propia de **2.4 GHz** | Objetivo de observación. Escudo no se conecta ni necesita su contraseña. |
 
 Para probar dos redes/canales necesitas otra red propia de 2.4 GHz, por ejemplo otro AP o un hotspot configurado a esa banda. Si no está disponible, esa parte queda pendiente; no inventar un resultado.
@@ -81,30 +93,37 @@ wsl --set-version Ubuntu 2
 
 Referencia: [instalación oficial de WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-## 3. Abrir el repositorio correcto
+## 3. Abrir el checkout de esta adaptación
 
-**Windows:** abre en el Explorador `C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto`. La carpeta debe contener `firmware`, `contracts`, `app`, `docs` y `openspec`. Desde Arduino IDE, usa **Archivo → Abrir** y selecciona `firmware\SentinelNode\SentinelNode.ino`; conserva la carpeta completa del repositorio, no copies únicamente el `.ino`.
+La adaptación se preparó en **`feat/sentinel-p1-serial`**, desde `b1f8729`, para preservar el trabajo MQTT concurrente del directorio original. Las fuentes se mantienen en esa rama; su publicación no mezcla automáticamente el trabajo MQTT LAN.
 
-Si tienes Git instalado en Windows, puedes registrar la referencia desde PowerShell:
-
-```powershell
-Set-Location 'C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto'
-git status --short --branch
-git log -1 --oneline
-```
-
-**Alternativa Ubuntu / WSL, solo si ya lo usas para mantenimiento o app:**
+**Ubuntu / WSL:**
 
 ```sh
-cd "/mnt/c/Users/Jefry/Documents/Arduino/ArtefactosProyecto"
+cd /home/jefry/orca/workspaces/ArtefactosProyecto/sentinel-p1-serial
 pwd
 git status --short --branch
 git log -1 --oneline
 ```
 
-Debes estar en la carpeta que contiene `firmware`, `contracts`, `app`, `docs` y `openspec`. Esta es la **raíz del repositorio**; los comandos siguientes parten de allí salvo que se indique otra cosa.
+Esa es la raíz usada para app, tests y documentación. En Windows se puede abrir desde `\\wsl.localhost\Ubuntu\home\jefry\orca\workspaces\ArtefactosProyecto\sentinel-p1-serial`.
 
-Para incluir recuperación, la referencia de prueba debe contener `dd0840c` o una entrega posterior que lo integre, además de la app v2. La referencia de partida de esta migración es `af7200a` y la rama de trabajo `feat/sentinel-arduino-migration`; conserva además la app v2 local y su archivo previo sin commit. Para otro equipo, obtener una entrega revisada que incluya las fuentes Arduino, el paquete y la app v2. Si pruebas modificaciones locales adicionales, registrar también `git status` y `git diff --stat`: el hash de HEAD por sí solo no las identifica. No cambiar a un `develop` antiguo solo por su nombre ni descartar cambios locales. Para otra máquina, usar la entrega publicada/revisada que incluya ambos componentes.
+Para Arduino Windows usa una copia local completa del sketch, evitando que las herramientas intenten compilar desde una ruta UNC. Ya se preparó una copia de prueba en:
+
+```text
+C:\Users\Jefry\AppData\Local\Temp\sentinel-p1-serial-check\input\SentinelNode\SentinelNode.ino
+```
+
+Puedes abrirla directamente en el IDE para esta sesión. Tiene `SENTINEL_SERIAL_TEST_DISPLAY=1`. Si necesitas recrearla, cierra el sketch y ejecuta en **PowerShell**:
+
+```powershell
+$repoP1 = '\\wsl.localhost\Ubuntu\home\jefry\orca\workspaces\ArtefactosProyecto\sentinel-p1-serial'
+$sketchP1 = Join-Path $env:TEMP 'sentinel-p1-manual\SentinelNode'
+New-Item -ItemType Directory -Force (Split-Path $sketchP1) | Out-Null
+Copy-Item -Recurse "$repoP1\firmware\SentinelNode" $sketchP1
+```
+
+Usa un destino nuevo si ya hay una copia; no superpongas archivos de versiones distintas. Después abre el `.ino` y cambia la opción según 0.1. No copies únicamente el `.ino`. Los instaladores de bibliotecas/menú se ejecutan desde la raíz completa del checkout, nunca desde el sketch aislado. No cambiar ramas ni descartar los cambios de MQTT para probar esto.
 
 ## 4. Herramientas opcionales de mantenimiento y app
 
@@ -150,7 +169,7 @@ npm install -g npm@11.8.0
 
 ### 4.2. Arduino IDE y core oficial en Windows
 
-Abrir Arduino IDE Windows y el sketch `firmware/SentinelNode/SentinelNode.ino` desde el checkout completo. La simplificación usa el core oficial ESP32 **3.3.12**, instalado en este equipo junto al SDK estándar, separado de la plataforma Sentinel anterior.
+Abrir Arduino IDE Windows y el `.ino` de la copia local completa indicada en el paso 3. La simplificación usa el core oficial ESP32 **3.3.12**, instalado en este equipo junto al SDK estándar, separado de la plataforma Sentinel anterior.
 
 Seguir la [instalación inicial](firmware.md#instalación-inicial): instalar el core oficial **3.3.12** desde el IDE (sin ESP_SSLClient para MQTT); cerrarlo y ejecutar estos dos comandos en **PowerShell, desde la raíz del repositorio**:
 
@@ -172,7 +191,7 @@ No instalar el SDK propio para cumplir el objetivo nuevo ni eliminar instalacion
 Para app/contratos y tests host:
 
 ```sh
-cd "/mnt/c/Users/Jefry/Documents/Arduino/ArtefactosProyecto"
+cd /home/jefry/orca/workspaces/ArtefactosProyecto/sentinel-p1-serial
 source "$HOME/.nvm/nvm.sh"
 nvm use
 ```
@@ -209,7 +228,7 @@ Abrir la URL que indique Vite (normalmente `http://localhost:5173`). Sin nodo, d
 
 ## 6. Verificar firmware y mantenimiento opcional
 
-**Arduino IDE Windows:** abrir `firmware/SentinelNode/SentinelNode.ino` desde el checkout completo y pulsar **Verificar** con las opciones del paso 4.2. Esperar a que termine sin errores. No es necesario conectar aún la placa para compilar. El CLI nativo equivalente está en [firmware](firmware.md#comandos-windows-equivalentes); no sustituirlo por el FQBN del SDK anterior.
+**Arduino IDE Windows:** abrir el `.ino` de la copia local completa del paso 3 y pulsar **Verificar** con las opciones del paso 4.2. Esperar a que termine sin errores. No es necesario conectar aún la placa para compilar. El CLI nativo equivalente está en [firmware](firmware.md#comandos-windows-equivalentes); no sustituirlo por el FQBN del SDK anterior.
 
 Arduino compila el validador local `src/sentinel/v2_validator.h`; no necesita Node/Python ni generar código antes de **Verificar**. El build final oficial terminó **exit0**, imagen **1376726 bytes**, variables globales **160228 bytes**. Su [evidencia](../openspec/changes/sentinel-arduino-dependencies/verification.md) distingue esas cifras de la memoria que debe informar tu placa. El build anterior con SDK propio se conserva como antecedente.
 
@@ -235,7 +254,7 @@ Se esperan `PASS` sin fallos de sanitizer. [Legibilidad](../openspec/changes/sen
 
 ## 7. Cablear con la ESP32 desconectada
 
-Retirar el USB antes de mover cables. Leer las etiquetas de tu OLED; el orden de sus terminales puede variar.
+Retirar el USB antes de mover cables. **Sin OLED, omite su tabla y conecta solamente el botón GPIO4–GND.** No hace falta puentear SDA/SCL. Cuando llegue la pantalla, leer sus etiquetas; el orden de terminales puede variar.
 
 | OLED | ESP32 |
 | --- | --- |
@@ -300,10 +319,10 @@ Sentinel 0.1.0 device=node-... boot=... flash=16777216 psram=8388608 profile=idl
 
 1. Anotar commit, puerto, `device`, `boot`, flash y PSRAM.
 2. Confirmar flash **16777216 bytes** y PSRAM **8388608 bytes** en la lectura real, no en el resumen de compilación.
-3. Confirmar OLED con estado de Sentinel. `resource_error: OLED unavailable; new pairing disabled` indica que no se podrá emparejar un teléfono nuevo.
+3. Sin OLED y con modo serie, confirmar `[P1 DISPLAY] OLED ABSENT` seguido del perfil/fase/conectividad/diagnóstico. En app debe seguir figurando OLED no disponible. Si aparece `OLED unavailable; new pairing disabled`, revisa la opción, recompila y vuelve a cargar. Con modo de producto, ese bloqueo sigue siendo correcto.
 4. Pulsar RESET otra vez: `device` debe mantenerse; `boot` debe cambiar. El inicio es Idle.
 
-Si falta PSRAM o su tipo no coincide, ESP-IDF puede detenerse antes de la línea Sentinel. Si OLED permanece negra, revisar alimentación, SDA/SCL, dirección y resolución antes de continuar con pairing.
+Si falta PSRAM o su tipo no coincide, ESP-IDF puede detenerse antes de la línea Sentinel. Sin OLED puede aparecer un NACK al sondear I2C `0x3C`; es esperable con ese periférico desconectado si después aparece `[P1 DISPLAY] OLED ABSENT` y el modo serie funciona. Con OLED instalada, revisar alimentación, SDA/SCL, dirección y resolución si permanece negra. Sin OLED, la salida serie permite continuar; no marques aprobada la pantalla física.
 
 ### Prueba T02 — Botón externo
 
@@ -313,18 +332,18 @@ Si falta PSRAM o su tipo no coincide, ESP-IDF puede detenerse antes de la línea
 4. El código aparece **durante el intento de emparejamiento**, no necesariamente al abrir la ventana. No confundir esa espera con una pantalla averiada.
 5. RESET permite volver a Idle. El regreso por comando se prueba después con el cliente v2.
 
-**Punto de control B:** consola, memoria, OLED y botón funcionan. Esto todavía no demuestra captura o comandos desde teléfono.
+**Punto de control B:** consola, memoria, visualización local y botón funcionan; OLED física queda pendiente si no está conectada. Esto todavía no demuestra captura o comandos desde teléfono.
 
 ## 11. Generar e instalar tu APK v2
 
-La app común de esta rama ya es v2. Para esta primera sesión **no necesitas esperar otro APK de P4**. Sí necesitas reconstruir/instalar el APK de la referencia que vas a probar; una instalación anterior no se actualiza al editar el repositorio.
+La app de esta adaptación es v2 y añade el panel optativo P1. Para esta primera sesión **no necesitas esperar otro APK de P4**. Sí necesitas reconstruir/instalar el APK de la referencia que vas a probar; una instalación anterior no se actualiza al editar el repositorio.
 
 ### 11.1. Generar el APK
 
 Si todavía no tienes JDK 21 y SDK Android Linux configurados, completar primero el **anexo A**. Volver a la raíz en Ubuntu, con Node y ese entorno cargados:
 
 ```sh
-npm run android:sync
+VITE_SENTINEL_P1_TOOLS=1 npm run android:sync
 npm run android:assemble
 ls -lh app/android/app/build/outputs/apk/debug/app-debug.apk
 ```
@@ -333,8 +352,8 @@ ls -lh app/android/app/build/outputs/apk/debug/app-debug.apk
 
 ### 11.2. Instalar copiando el archivo (opción sencilla)
 
-1. En el Explorador de Windows, abrir `C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto\app\android\app\build\outputs\apk\debug`.
-2. Conectar el teléfono por USB en modo transferencia de archivos y copiar `app-debug.apk` a Descargas. También puedes transferirlo por otro medio propio.
+1. Para la copia ya generada de esta adaptación, abrir `C:\Users\Jefry\AppData\Local\Temp\sentinel-p1-serial-check` y usar **sentinel-p1-diagnostic.apk**. Si acabas de reconstruir, usa `app/android/app/build/outputs/apk/debug/app-debug.apk` del checkout del paso 3, accesible en Windows por su ruta WSL; no uses el APK del checkout MQTT original.
+2. Conectar el teléfono por USB en modo transferencia de archivos y copiar ese APK a Descargas. También puedes transferirlo por otro medio propio.
 3. Abrir el APK desde el gestor de archivos del teléfono y permitir la instalación desde esa fuente si Android lo solicita. Instalar/actualizar **Sentinel Node**.
 4. No desinstalar ni borrar datos como paso rutinario: perderías el historial local que queremos comprobar. Ante un conflicto de firma, conservar primero la evidencia y resolver qué APK/referencia corresponde.
 5. Desconectar el cable del teléfono si lo deseas. BLE funciona directamente entre teléfono y ESP32; no depende de ADB ni de USB en el teléfono.
@@ -355,7 +374,7 @@ $sentinelAdb = 'C:\Users\Jefry\AppData\Local\Android\Sdk\platform-tools\adb.exe'
 
 ```powershell
 $sentinelPhoneSerial = 'SERIAL_REAL'
-& $sentinelAdb -s $sentinelPhoneSerial install -r 'C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto\app\android\app\build\outputs\apk\debug\app-debug.apk'
+& $sentinelAdb -s $sentinelPhoneSerial install -r 'C:\Users\Jefry\AppData\Local\Temp\sentinel-p1-serial-check\sentinel-p1-diagnostic.apk'
 ```
 
 Esperar `Success` y abrir Sentinel en el teléfono. No pasar el USB del teléfono ni el de la ESP32 a WSL: ADB y Arduino usan Windows en este flujo. El SDK Linux compila el APK y ADB Windows puede instalar ese archivo; cada herramienta usa las rutas de su propio entorno.
@@ -364,13 +383,14 @@ Esperar `Success` y abrir Sentinel en el teléfono. No pasar el USB del teléfon
 
 ### 12.1. Emparejar
 
-1. Dejar la ESP32 encendida y con OLED operativa. Cerrar/desconectar nRF Connect u otro cliente BLE: el firmware admite una conexión BLE a la vez.
+1. Dejar la ESP32 encendida y con OLED operativa **o monitor serie abierto con modo de pruebas**. Cerrar/desconectar nRF Connect u otro cliente BLE: el firmware admite una conexión BLE a la vez.
 2. Activar Bluetooth en el teléfono y abrir Sentinel. Conceder **Dispositivos cercanos** cuando Android lo solicite; revisar los permisos que correspondan a la versión instalada si se denegaron.
 3. Mantener el botón externo tres segundos para abrir la ventana de 120 segundos.
 4. En la tarjeta **Bluetooth protegido**, pulsar **Buscar y conectar BLE** y seleccionar Sentinel.
-5. Completar el diálogo de emparejamiento de Android con las seis cifras del OLED. El código aparece durante el intento; no fotografiarlo ni guardarlo como evidencia pública.
+5. Completar el diálogo de emparejamiento de Android con las seis cifras de OLED o `[P1 PAIR CODE]` del monitor serie. El código aparece durante el intento; no fotografiarlo ni guardarlo como evidencia pública.
 6. Esperar canal `connected`, cabecera **Protocolo 2** y estado **Actualizado en vivo**. La app lee Metadata protegida y solicita `get_state` y `read_events` automáticamente. Verificar órdenes y posibles errores, no solo el vínculo Android.
-7. Si falla, cerrar el error, revisar permisos/ventana/OLED y reconectar. Si se usa el anexo B para diagnosticar, desconectarlo antes de volver a Sentinel.
+7. Si acabas de realizar una carga USB limpia, el firmware puede haber perdido el bond que Android todavía recuerda. Si ese vínculo ya no permite autenticar, usa Ajustes → Bluetooth → el Sentinel correcto → Olvidar/desvincular, solo en el teléfono, y empareja de nuevo con botón/código. No borrar datos de la app ni hacer esto durante T11: esa prueba exige conservar el vínculo tras RESET/corte normal.
+8. Si falla, cerrar el error, revisar permisos/ventana/salida local y reconectar. Si se usa el anexo B para diagnosticar, desconectarlo antes de volver a Sentinel.
 
 El framing y las lecturas protegidas los realiza la app. No pegar JSON directamente en una característica GATT. Un teléfono “vinculado” no acredita por sí solo LE Secure Connections/MITM: la evidencia de seguridad negociada de la base sigue siendo una comprobación separada.
 
@@ -390,7 +410,7 @@ El framing y las lecturas protegidas los realiza la app. No pegar JSON directame
 
 En esta sesión dejar sin configurar **MQTT sobre WS** y **Conectividad del dispositivo**. Escudo no se asocia a tu AP y no requiere su contraseña, un broker ni aprovisionamiento MQTT. La sección común tampoco tiene botones de scan, selección o start/stop de captura: llegan en `sentinel-app-escudo`.
 
-**Punto de control C:** la app lee y muestra datos del nodo v2 real. Puedes seguir con T03, T14 y T15. Las demás pruebas de firmware mantienen sus requisitos de cliente específico.
+**Punto de control C:** la app lee y muestra datos del nodo v2 real. Puedes seguir con T03, T14 y T15. Para T04–T13 usa el panel **Diagnóstico P1** descrito a continuación.
 
 ## 13. Pruebas de API y control v2 desde tu app
 
@@ -403,17 +423,25 @@ En esta sesión dejar sin configurar **MQTT sobre WS** y **Conectividad del disp
 5. Abrir la pestaña **Escudo Pasivo**: tras una primera carga limpia sin selección aceptada debe mostrar objetivo sin seleccionar y captura detenida. Si ya hay una selección guardada, debe mostrar la misma tupla SSID/BSSID/canal con captura detenida, sin catálogo recuperado ni exploración automática. Consultar de nuevo **General**: Wi-Fi/MQTT del nodo deben estar desconectados. No se inicia captura al entrar en el modo.
 6. Regresar a **General** y pulsar **Reposo** en perfiles. Esperar `applied`, perfil `idle` y recursos de radio liberados. La pestaña Escudo puede seguir disponible por capacidad; eso no significa que siga activo.
 7. Volver a Escudo y pulsar **Sincronizar hora por BLE**, con el teléfono en hora correcta. Esperar aplicación y comprobar hora/calidad reportada; los eventos antiguos con hora desconocida no se reescriben con una fecha inventada.
-8. Confirmar que Cebo/Sanitizador ausentes figuran no disponibles y no pueden activarse desde los controles normales. Su rechazo `not_implemented` se prueba con un cliente de diagnóstico que permita enviar esa orden; no hay un botón oculto para forzarlo en esta UI.
+8. Confirmar que Cebo/Sanitizador ausentes figuran no disponibles y no pueden activarse desde los controles normales. Su rechazo `not_implemented` se prueba desde Diagnóstico P1 con los presets **Cebo ausente (negativo)** y **Sanitizador ausente (negativo)**; no se habilitan los servicios.
 
 **Evidencia mínima para la parte real de la tarea 2.1 de app v2:** referencia del firmware y app/APK, teléfono/Android, permisos y pairing usados, mismo `device_id` entre consola y app, `get_state` aplicado y recorrido Reposo → Escudo → Reposo con ID/ACK/revisión/estado observados. Adjuntar también resultados de tests/build/arranque web del paso 5. No cerrar 2.1 solo por instalar o conectar el APK; informar el resultado al coordinador antes de actualizar OpenSpec.
 
-Los casos de comandos viejos, duplicados, conflictos de ID, capacidad ausente y parada con timeout tienen pruebas de software. Su comprobación física negativa requiere cliente de diagnóstico que deje controlar esos campos; la app normal construye órdenes vigentes. Un rechazo debe mantener el estado real y mostrarse como `rejected`; la app consulta estado por el canal disponible. Si no se pudo provocar ese caso, registrarlo pendiente.
+Los casos de comandos viejos, duplicados, conflictos de ID, capacidad ausente y parada con timeout tienen pruebas de software. Diagnóstico P1 permite boot/revisión/caducidad incorrectos, reenvío exacto y modo ausente; conflicto de ID con contenido distinto y timeout inducido conservan sus casos host y requieren instrumentación específica si se ensayan físicamente. La app normal construye órdenes vigentes. Un rechazo debe mantener el estado real y mostrarse como `rejected`; la app consulta estado por el canal disponible. Si no se pudo provocar ese caso, registrarlo pendiente.
 
 ### Antes de continuar con T04–T13
 
-Los JSON de los siguientes pasos indican **la operación que debe enviar una app/herramienta compatible**, no comandos de terminal ni mensajes GATT completos. No existe una consola JSON en la app común. Ejecutarlos cuando P4 entregue `sentinel-app-escudo` o con un cliente de diagnóstico v2 ya revisado que implemente autenticación, Metadata, sobre, caducidad y framing; esta guía no crea ese cliente.
+Los JSON de los siguientes pasos describen **operación y argumentos**, no mensajes GATT ni comandos de terminal. En **Diagnóstico P1**:
 
-Hasta entonces puedes comprobar T07 por software y T14/T15 desde la app común, y registrar T04–T06/T08–T13 como pendientes de interfaz/instrumentación, sin descartar esas funcionalidades de firmware.
+1. Conecta BLE y comprueba versión 2. El panel queda deshabilitado sin BLE; no utiliza MQTT.
+2. Elige el preset correspondiente. Edita solo **Argumentos públicos (JSON)** con el objeto `args` del ejemplo; no pegues el sobre completo. Pulsa **Enviar por BLE**.
+3. Espera la respuesta del nodo en **Últimas 20 respuestas BLE**, buscando `payload.command_id` en la tabla de órdenes. Un ID/enviado o `accepted` no acredita aplicación. Comprueba `applied`/`rejected` y el estado real. Consulta **Estado** para refrescar el snapshot completo; la sección expandible también muestra métricas recibidas.
+4. Para páginas de catálogo, copia exactamente `payload.result.next` del ACK como `after` y conserva `limit:4`. Repite hasta `more:false`. El panel no inventa cursores.
+5. Para objetivo copia juntos `ssid`, `bssid` y `channel` de una entrada real. SSID suele ser texto; si el catálogo usa `{ "encoding":"hex", "value":"..." }`, copia ese objeto sin convertirlo.
+6. Para negativos de sobre elige **Boot incorrecto**, **Revisión incorrecta** o **Caducado** con una operación de modificación como seleccionar objetivo o cambiar modo. Comprueba rechazo y estado intacto; vuelve a **Normal**. **Reenviar última orden exacta** conserva ID y contenido, no genera una modificación nueva; úsalo dentro del mismo arranque y sus 30 s de validez. Nunca se reintenta automáticamente. Conflictos de ID con contenido distinto y timeout inducido siguen cubiertos por pruebas host; no inventar ejecución física de esos casos.
+7. Para T10 elige **Historial** y fija explícitamente `after_cursor` anterior con un comando **nuevo**; esto prueba replay de página y deduplicación local sin depender de que expire el comando original. La recuperación usa el journal habitual.
+
+El panel conserva como máximo 20 respuestas en memoria y las borra al cambiar nodo/arranque/desconectar. El historial confirmado permanece en IndexedDB. No admite aprovisionamiento ni contraseñas. No reemplaza gráficos/UX finales de P4.
 
 ## 14. Probar descubrimiento y selección
 
@@ -498,8 +526,8 @@ Conservar el resultado `PASS`. En estas pruebas el origen de eventos es `simulat
 
 1. Mantener captura sobre tu AP y recibir métricas BLE reales.
 2. Confirmar capacidad de detectores y revisar que los mensajes reales mantienen nodo/boot/tiempo y, si aparece un incidente, `origin:"real"`.
-3. Para acreditar específicamente que las observaciones benignas alcanzan `Detectors::ingest`, registrar evidencia con depurador/instrumentación revisada o con el recorrido de laboratorio de P4. El firmware normal no exporta un contador por cada llamada a esa función ni tramas crudas; no inventar una pantalla de diagnóstico existente.
-4. Hasta disponer de esa evidencia, marcar esa parte física como pendiente. Que Beacon crezca demuestra captura/parser, pero no comprueba por sí solo cada detector.
+3. Con modo serie habilitado, observar cada 5 s `[P1 CAPTURE] detector_input_total=N`. Anotar N antes y después de capturar tráfico benigno: debe crecer al atravesar el camino real de `Detectors::ingest`. Al detener captura debe estabilizarse tras drenar pendientes. El contador es temporal, vuelve a cero al reiniciar y no guarda tramas ni modifica detectores.
+4. Registrar la diferencia del contador y métricas recibidas como evidencia del camino real. Esto no prueba sensibilidad de cada familia ante ataques: esos escenarios conservan sus ensayos de laboratorio propios/autorizados con P4.
 5. No esperar que cada detector produzca una alerta en tráfico benigno. Las alertas expresan indicios, no certeza; SSID duplicado solo no dispara Evil Twin.
 
 No necesitas ejecutar herramientas de desautenticación o un AP Karma para comenzar. Los ensayos en aire de patrones sospechosos se coordinan con P4 en laboratorio propio/autorizado. Detalles: [detectores](modules/escudo-detectors.md).
@@ -527,7 +555,7 @@ Esto prueba desconexión/control de la app sin captura. La coexistencia con capt
 
 La app conserva hasta **256 eventos por nodo**; el dispositivo retiene **64 registros**. Esta prueba usa eventos del núcleo y no cierra por sí sola la recuperación del Escudo mientras captura ni la disponibilidad de sus detectores después de recuperar.
 
-### Pruebas con captura activa: requieren pantalla específica o cliente de diagnóstico
+### Pruebas con captura activa: usar Diagnóstico P1
 
 ### Prueba T09 — BLE desconectado, captura activa
 
@@ -604,6 +632,8 @@ Con los componentes actuales no se puede dar por aprobado ese recorrido ni MQTT/
 | [integracion-tres-modos](../openspec/changes/sentinel-integracion-tres-modos/tasks.md) | Pendiente de implementación e integración. | Paso 18; las siete tareas conservan sus criterios completos. |
 | [core-foundation](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/tasks.md) | Base histórica reutilizada. | T01/T02/BLE aportan evidencia parcial; MQTT/TCP/app completa y demás pendientes se comprueban con sus componentes reales. |
 
+**Sin OLED:** T01/T02 comprueban visualización local por serie y botón; la prueba de la pantalla física sigue pendiente. El panel habilita T04–T06 y T08–T13 con hardware real; T07 y el ring reducido de T12 son host. Detectar ataques reales y descartar probes en aire requieren laboratorio autorizado. El paso 18 depende de entregas P2/P3/P4.
+
 No marcar una casilla solo porque una parte pasó. El archivo de una spec tampoco convierte sus pendientes físicos en pruebas realizadas.
 
 ## 20. Guardar resultados y resolver errores
@@ -645,7 +675,8 @@ Dependencia o siguiente acción:
 | `Connecting…` | Revisar puerto y entrada BOOT; ver paso 9. |
 | Consola ilegible/vacía | UART correcto, 115200, RESET y COM correcto disponible. |
 | OLED negra | GND/VCC/SDA/SCL, modelo, altura y dirección. Leer el error de consola. |
-| BLE no empareja | OLED operativa, ventana larga de 120 s, permisos y ausencia de otro cliente conectado. |
+| `BLE_INIT: Malloc failed` o reinicio al enviar la primera orden | Usar la [corrección final de memoria/pila P1](../openspec/changes/sentinel-p1-pruebas-sin-oled/ble-stack-verification.md) y su paquete local. Las imágenes iniciales son anteriores. No quitar seguridad BLE ni borrar NVS como solución. |
+| BLE no empareja | OLED o modo serie con monitor abierto a 115200, ventana física de 120 s, permisos y ausencia de otro cliente. No usar Just Works ni quitar seguridad. |
 | App no entiende metadata / `unsupported_version` | Reconstruir e instalar el APK de tu app v2, no el antiguo de base. Confirmar referencia y cabecera tras conectar; no bajar el firmware para fingir integración. |
 | ADB no muestra el teléfono | USB de datos, teléfono desbloqueado, depuración y autorización; ADB no es necesario si instalas copiando el APK. |
 | App conectada pero no veo scan/start/stop | Es la UI común v2; esos controles siguen en `sentinel-app-escudo` de P4. No confundir la pestaña con activar el modo. |
@@ -657,7 +688,7 @@ Dependencia o siguiente acción:
 | Historial con gap | Registrar pérdida/rango y continuar por cursor; no es motivo para borrar flash. |
 | Cebo/Sanitizador no disponibles | Es la expectativa actual hasta integrar los módulos de tus compañeros. |
 
-**Primera sesión práctica tras entregar el flujo oficial:** completar pasos 1–13 y T14/T15 del paso 17; el mantenimiento Node/WSL es opcional para firmware. Guardar resultados T01/T02/T03, método de pairing sin passkey, referencia del APK y resultados de software. Después ejecutar las pruebas específicas de firmware cuando esté disponible su cliente; el paso 18 espera las entregas del equipo y tu última spec. Actualizar documentación no marca como realizadas las pruebas físicas.
+**Primera sesión práctica tras entregar el flujo oficial:** completar pasos 1–13 y T14/T15 del paso 17; el mantenimiento Node/WSL es opcional para firmware. Guardar resultados T01/T02/T03, método de pairing sin passkey, referencia del APK y resultados de software. Después ejecutar las pruebas específicas con Diagnóstico P1; el paso 18 espera las entregas del equipo y tu última spec. Actualizar documentación no marca como realizadas las pruebas físicas.
 
 ## Anexo A. Preparar la compilación Android v2 en WSL
 
@@ -706,7 +737,7 @@ Leer/aceptar las licencias que correspondan. Si la distribución descargada sust
 
 ```sh
 npm ci
-npm run android:sync
+VITE_SENTINEL_P1_TOOLS=1 npm run android:sync
 npm run android:assemble
 ```
 
@@ -724,7 +755,7 @@ Este anexo prepara la compilación de tu app común; las pantallas específicas 
 
 Usar solo si necesitas aislar un problema de descubrimiento/lectura. [nRF Connect for Mobile de Nordic](https://www.nordicsemi.com/Products/Development-tools/nRF-Connect-for-mobile) permite explorar GATT; no sustituye los comandos ni el recorrido con Sentinel v2.
 
-1. Con OLED operativa, abrir la ventana física de emparejamiento; conectar desde la herramienta y completar el código del OLED.
+1. Con OLED operativa o modo serie y monitor abierto, abrir la ventana física; conectar desde la herramienta y completar el código mostrado localmente.
 2. Localizar Metadata, leer su valor protegido completo como UTF-8 y comprobar `version:2`, `device_id`, `boot_id`, revisión, uptime y `max_message_bytes:2048`.
 3. Las indicaciones de salida usan fragmentos, no necesariamente JSON legible. No escribir los JSON de esta guía directamente en GATT.
 4. Desconectar/cerrar la herramienta antes de volver a Sentinel. El firmware admite un cliente BLE a la vez.
