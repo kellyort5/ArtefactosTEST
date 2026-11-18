@@ -32,12 +32,12 @@ Payload `command`: campos obligatorios `command_id` (ID), `target_boot_id` (ID),
 | --- | --- | --- |
 | get_state | `{}` | BLE/MQTT |
 | set_mode | `{"mode":"idle"}` (idle/escudo/cebo/sanitizador) | BLE/MQTT |
-| configure_connectivity | `{"ssid":"LAB-EXAMPLE","wifi_password":"example-only","mqtt_uri":"mqtts://broker.example:8883","mqtt_username":"node-example","mqtt_password":"example-only","ca_certificate":"-----BEGIN CERTIFICATE-----\nEXAMPLE\n-----END CERTIFICATE-----\n"}` | solo BLE protegido |
+| configure_connectivity | `{"ssid":"LAB-EXAMPLE","wifi_password":"example-only","mqtt_uri":"mqtt://192.0.2.10:1883","mqtt_username":"node-example","mqtt_password":"example-only"}` | solo BLE protegido |
 | set_time | `{"timestamp":"2026-01-01T00:00:00Z"}` | solo BLE protegido |
 | read_events | `{"after_cursor":0,"limit":8}` (limit 1..8) | BLE/MQTT |
 | start_capture / start_honeypot | `{}` | responde not_implemented |
 
-Los campos de configuración no admiten NUL. Límites UTF-8 adicionales al esquema: ssid 1..32 bytes; wifi_password 0..63 bytes; mqtt_uri 1..256 caracteres y solo mqtts://host[:puerto], sin credenciales/ruta/query; mqtt_username 1..64; mqtt_password 1..128; ca_certificate 1..1536. El conjunto debe caber en 2048 bytes: una CA demasiado grande requiere un certificado de laboratorio compacto, no desactivar TLS ni fragmentar comandos lógicos mayores. Secretos solo RAM; no guardar comando completo en store/logs/caché de resultados. Operaciones futuras se reconocen solo para rechazarlas; no indican capacidad implementada.
+Los campos de configuración no admiten NUL. Límites UTF-8 adicionales al esquema: ssid 1..32 bytes; wifi_password 0..63 bytes; mqtt_uri 1..256 caracteres y solo mqtt://host[:puerto], sin credenciales/ruta/query; mqtt_username 1..64; mqtt_password 1..128. El conjunto debe caber en 2048 bytes; no requiere CA. El nodo persiste configuración validada según la política de persistencia; la app conserva credenciales de sesión solo en RAM; no guardar comando completo en store/logs/caché de resultados. Operaciones futuras se reconocen solo para rechazarlas; no indican capacidad implementada.
 
 Payload `ack`: `{"command_id":"cmd-1","status":"applied","revision":1,"error":null,"result":null}`. status accepted/applied/rejected; rejected exige error, otros error null. Para read_events applied, result es `{"next_cursor":8,"retained_from":1,"retained_to":8,"more":false,"gap":false}`. En ring vacío retained_from/to son 0. gap también puede señalar huecos internos de slots no recuperables; no exigir secuencias contiguas cuando el nodo reporta esa pérdida. Los eventos se entregan como mensajes individuales ANTES del ack applied de la página; no embutir una página en un mensaje. get_state entrega state individual y ack. Otros resultados null.
 
@@ -57,7 +57,7 @@ Cada fragmento tiene 8 bytes LE: transfer_id uint32 en 0, offset uint16 en 4, to
 
 ## MQTT 5
 
-Prefijo `sentinel/v1/nodes/<device_id>/`. state/availability QoS1 retained, metrics QoS0 no retained, events/commands/acks QoS1 no retained. availability es texto ASCII `online`/`offline` (LWT), no un sexto tipo de sobre. Sesión Clean Start y Session Expiry 0. Rechazar comandos retained en firmware. Estado periódico5 s; app marca antiguo tras15 s y un retained aislado no demuestra presencia. Operador publica solo commands de su nodo; observador solo recibe. configure_connectivity/set_time prohibidos por MQTT. WSS exige CA/hostname/fecha confiables, nunca fallback claro. Credenciales app solo sesión en RAM.
+Prefijo `sentinel/v1/nodes/<device_id>/`. state/availability QoS1 retained, metrics QoS0 no retained, events/commands/acks QoS1 no retained. availability es texto ASCII `online`/`offline` (LWT), no un sexto tipo de sobre. Sesión Clean Start y Session Expiry 0. Rechazar comandos retained en firmware. Estado periódico5 s; app marca antiguo tras15 s y un retained aislado no demuestra presencia. Operador publica solo commands de su nodo; observador solo recibe. configure_connectivity/set_time prohibidos por MQTT. MQTT usa TCP1883 y WS9001 autenticados en LAN de confianza, sin TLS ni CA. Credenciales app solo sesión en RAM.
 
 ## API TypeScript
 

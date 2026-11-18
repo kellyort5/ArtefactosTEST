@@ -1,5 +1,8 @@
 # Evidencia de sentinel-module-contracts
 
+**Evidencia histórica:** las pruebas TLS/WSS de este documento corresponden a la configuración anterior. El MVP actual usa MQTT/TCP1883 y WS9001 sin certificados; ver [verificación vigente](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md).
+
+
 Fecha: **2026-11-11**, America/El_Salvador. Rama: **feat/sentinel-module-contracts**, creada desde `origin/develop` después de integrar la base. Base Git: `f696371`.
 
 Estado: implementación y comprobaciones técnicas terminadas; **contrato aprobado expresamente por el usuario y tarea 2.2 cerrada el 2026-11-11**. Su respuesta fue «Apruebo el contrato; cerrar 2.2». También eligió «Sincronizar los seis requisitos y archivar (recomendado)». La aprobación no se infiere de una prueba automática ni de una opinión de agente.

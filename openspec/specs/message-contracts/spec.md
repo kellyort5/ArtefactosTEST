@@ -13,6 +13,11 @@ Los participantes SHALL intercambiar mensajes validados de la versión soportada
 - **WHEN** llega un mensaje de versión desconocida, identidad incorrecta o tamaño superior al límite documentado
 - **THEN** se descarta o rechaza con diagnóstico acotado sin ejecutar órdenes ni registrar su contenido sensible
 
+#### Scenario: Configurar MQTT del MVP
+- **WHEN** se envía configure_connectivity v1 o v2 mediante BLE protegido
+- **THEN** el contrato exige SSID, contraseña Wi-Fi, URI mqtt:// sin credenciales/ruta/query, usuario y contraseña MQTT, sin ca_certificate
+- **AND** rechaza el formato MQTT/TLS anterior sin aplicarlo y conserva los límites de tamaño
+
 ### Requirement: Comandos frescos y autorizados
 Las órdenes SHALL identificar comando, nodo y arranque destinatarios, revisión esperada y vencimiento verificable con el tiempo del dispositivo. Una orden no autorizada, retenida, vencida o dirigida a otro arranque SHALL rechazarse sin efectos.
 

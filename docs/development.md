@@ -1,5 +1,8 @@
 # Desarrollo de la base compartida
 
+**MQTT vigente (2026-11-17):** TCP1883/WS9001 autenticados en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
+
+
 **Política aprobada vigente:** [persistencia operativa y USB](persistence-policy.md), definida en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/design.md). Conservar identidad, bonds, configuración e historial confirmado en uso normal/reinicio/corte; USB permite reinicialización sin migración. Arduino oficial primero; justificar cada excepción mínima. La tabla nueva/cuatro claves/configuración persistente se verifican en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores son históricos y no cierran pruebas físicas.
 
 Trabajar desde la raíz del repositorio en la rama correspondiente a cada cambio; la base se publicó desde `feat/sentinel-core-foundation`. Leer [brief](brief.md), [CONTRIBUTING](../CONTRIBUTING.md) y el [diseño de la base archivada](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/design.md). No se necesitan servicios de monorepo ni un backend adicional.
@@ -10,7 +13,7 @@ Trabajar desde la raíz del repositorio en la rama correspondiente a cada cambio
 - App: React19, Vite7, TypeScript5, Tailwind4/plugin Vite, Zustand5, mqtt.js5, Capacitor8 y BLE comunitario8. Versiones exactas en `app/package.json` y lockfile raíz. AJV8 y ajv-formats3 en `contracts/`.
 - Android: JDK21, SDK Platform36 y Build Tools36; Gradle8.14.3 y AGP8.13.0 provistos por Capacitor8.6.0. Proyecto nativo y wrapper versionados; APK/caches/assets web regenerados ignorados.
 - Firmware: Arduino IDE Windows, core oficial ESP32 3.3.12, APIs ESP-IDF y FreeRTOS. El firmware completo tiene build Windows PASS con wolfMQTT2.2.0 y ESP_SSLClient3.1.3; [firmware](firmware.md) documenta instalación inicial/opciones y subida física pendiente. El [build del SDK propio](../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md) es evidencia histórica. Node no es requisito para compilar/subir desde el IDE.
-- Broker: Docker Desktop/Engine y Compose, OpenSSL/Python3 para material local; [preparación](../broker/README.md).
+- Broker: Docker Desktop/Engine y Compose, Python3 para cuentas locales; [preparación](../broker/README.md).
 
 Entorno WSL de esta implementación (todas las órdenes desde la raíz):
 
@@ -39,7 +42,7 @@ npm ci
 | `npm run android:sync` | Build de contratos/web y sincronización nativa Android. |
 | `npm run android:assemble` | `assembleDebug` usando wrapper del proyecto Android; sin dispositivo. |
 | `npm run check:browser -w app` | Chromium real: servidor Vite activo, UI, IndexedDB256/cursor/gap tras recarga. |
-| `NODE_EXTRA_CA_CERTS="$PWD/broker/.secrets/ca.crt" npm run check:wss -w app` | Adaptador mqtt.js real contra broker local preparado; cuentas solo desde archivo privado. |
+| `npm run check:mqtt -w app` | Adaptador mqtt.js real contra broker local preparado; cuentas solo desde archivo privado. |
 
 Para la comprobación Chromium, `npm exec -w app -- playwright install chromium` instala su navegador si falta; no es un emulador Android. Los fixtures utilizados en tests no acreditan funcionalidades del ESP32.
 
@@ -49,13 +52,13 @@ Abrir `firmware/SentinelNode/SentinelNode.ino` en Arduino IDE Windows. Usar **Ve
 
 Upload/monitor requieren placa y COM identificados; los puertos Bluetooth no sustituyen la conexión USB de la ESP32. Sin placa, solo build y pruebas focalizadas de host son evidencia válida. No usar PlatformIO ni generar una segunda copia de las fuentes para desarrollar un módulo.
 
-Preparar y ejecutar broker conforme a [broker/README.md](../broker/README.md). Sus scripts son independientes de npm; CA/usuarios/ACL deben existir antes del arranque. Mantener loopback por defecto. Usar una IP/SAN y firewall explícitos para LAN autorizada, sin abrir puertos del router. Un broker accesible desde WSL no demuestra acceso desde teléfono/ESP32.
+Preparar y ejecutar broker conforme a [broker/README.md](../broker/README.md). Sus scripts son independientes de npm; usuarios/ACL deben existir antes del arranque. Publica TCP1883/WS9001 en LAN por defecto; usar IP del PC y permitir Docker en el firewall local. Sin certificados ni cambios de router. Un broker accesible desde WSL no demuestra acceso desde teléfono/ESP32.
 
 [simulator/README.md](../simulator/README.md) delimita un futuro apoyo ligero. No hay simulador de comportamiento de producto en esta base; las pruebas pequeñas de contratos son auxiliares y no sustituyen controles/periféricos reales.
 
 ## Seguimiento y comprobación
 
-[App](../app/README.md) describe instalación, confianza CA y recorrido funcional BLE/WSS. El usuario autorizó continuar con el teléfono, la ESP32 y el emulador del SDK Windows. Seguir la [guía de prueba](core-foundation-test-guide.md) y registrar las comprobaciones ejecutadas en la [evidencia integral](core-foundation-check.md). Las tareas de teléfono y radio requieren su recorrido físico completo para cerrar las casillas correspondientes.
+[App](../app/README.md) describe instalación, acceso LAN y recorrido funcional BLE/WS. El usuario autorizó continuar con el teléfono, la ESP32 y el emulador del SDK Windows. Seguir la [guía de prueba](core-foundation-test-guide.md) y registrar las comprobaciones ejecutadas en la [evidencia integral](core-foundation-check.md). Las tareas de teléfono y radio requieren su recorrido físico completo para cerrar las casillas correspondientes.
 
 No versionar node_modules, dist, .gradle, build, APK, configuración local privada ni credenciales. Mantener native Android, wrapper JAR, configuración fuente, esquemas, fixtures y lockfile. Las actualizaciones de casillas deben releer/contrastar la línea original bajo lock exclusivo `/tmp/sentinel-core-tasks.lock`; solo completar comportamiento y verificación realmente cumplidos.
 
@@ -76,7 +79,7 @@ El firmware de esta rama anuncia **metadata v2** y recibe órdenes v2 conforme a
 | `network.cpp` / `ble.cpp` | Recursos de red compartidos y canal BLE protegido; los módulos no crean otro gestor. |
 | `mqtt_transport.cpp` | Adaptar wolfMQTT al worker/outbox acotados y confirmar su cierre; no implementa otro protocolo MQTT. |
 | `mqtt_dns.cpp` | Resolver DNS de manera cancelable mediante lwIP, fuera del ciclo del supervisor. |
-| `tls_verification.cpp` | Comprobar cadena y fechas con BearSSL después de la validación CA/DNS/IP oficial y antes de enviar MQTT. |
+| `mqtt_transport.cpp` | MQTT5 sobre NetworkClient TCP oficial, worker y colas acotados; sin certificados. |
 | `ble_storage.cpp` | Revisar vínculos anteriores mediante NVS de solo lectura; detener BLE ante incompatibilidad sin borrar datos. |
 | `arduino_environment.cpp` / `arduino_requirements.cpp` | Conservar el resultado inicial de NVS y verificar la configuración oficial soportada. |
 | `wire.cpp` / `protocol_v2.cpp` / `v2_validator.h` | Sobres, validación y contratos existentes; no deciden modos por separado. |
@@ -164,13 +167,13 @@ Los dos primeros comandos ya incluyen compilación C++ y contraste con el codec;
 
 Los runners de firmware usan Node en lugar de Python. La app/contratos mantienen sus dependencias npm y el firmware no las requiere para **Verificar/Subir** en Arduino.
 
-La regresión opcional del transporte compila el worker y la validación TLS activos contra wolfMQTT/BearSSL originales, con dobles declarados de socket, DNS y FreeRTOS:
+La regresión opcional del transporte compila el worker activo contra wolfMQTT original, con dobles declarados de socket, DNS y FreeRTOS:
 
 ```sh
 SENTINEL_SANITIZE=1 node firmware/test/check_transports.mjs --archives /ruta/a/archivos-upstream-en-cache
 ```
 
-La carpeta contiene `wolfMQTT.tar.gz` y `ESP_SSLClient.zip` de las URLs/versiones de [dependencies.json](../firmware/arduino/dependencies.json), sin cambiar sus nombres; el runner comprueba sus hashes antes de usarlos. Requiere Node24, compiladores C/C++, OpenSSL y headers, `tar`/`unzip` y las dependencias npm existentes. No descarga ni versiona proveedores, claves o binarios. Cubre17 casos de política TLS/colas y siete transcripciones MQTT independientes; [limpieza](../openspec/changes/sentinel-firmware-cleanup/verification.md) detalla el resultado y sus límites. Es mantenimiento opcional: no se ejecuta para compilar/subir con Arduino y no acredita la conexión física.
+La carpeta contiene `wolfMQTT.tar.gz` de la URL/versión de [dependencies.json](../firmware/arduino/dependencies.json); el runner comprueba su hash antes de usarlo. Requiere Node24, compiladores C/C++, `tar` y dependencias npm existentes. No requiere ESP_SSLClient/BearSSL ni certificados. Cubre TCP, MQTT5, QoS, retained, cancelación y reenvío con cinco transcripciones MQTT independientes. Es mantenimiento opcional: no se ejecuta para compilar/subir con Arduino ni acredita radio física. Ver [evidencia vigente](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md).
 
 El host prueba un consumidor mínimo, exclusión y timeout, gate, capacidades ausentes, concesiones de radio, validación, saturación y recuperación mixta v1/v2 del journal. `check_contracts.mjs` contrasta fixtures v1/v2 y salidas C++ con el codec AJV real. Son comprobaciones de lógica; no acreditan radio, OLED ni flash reales.
 

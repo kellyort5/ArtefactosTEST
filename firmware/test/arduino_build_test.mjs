@@ -38,7 +38,7 @@ const required = {
   SPIRAM:1, SPIRAM_MODE_OCT:1, SPIRAM_SPEED_80M:1,
   BT_ENABLED:1, BT_NIMBLE_ENABLED:1, BT_NIMBLE_SM_SC:1,
   BT_NIMBLE_MAX_BONDS:3, BT_NIMBLE_NVS_PERSIST:1,
-  MBEDTLS_HAVE_TIME:1, MBEDTLS_SSL_KEEP_PEER_CERTIFICATE:1, MBEDTLS_SSL_PROTO_TLS1_2:1,
+  MBEDTLS_SSL_PROTO_TLS1_2:1,
   LWIP_IP_FORWARD:1, LWIP_IPV4_NAPT:1,
 };
 temporary('sentinel-sdk-guards-', directory => {
@@ -59,7 +59,7 @@ temporary('sentinel-sdk-guards-', directory => {
   }
   assert.equal(check({...required, BT_NIMBLE_SM_SC_ONLY:0, BT_NIMBLE_SM_LVL:0,
     BT_NIMBLE_SM_LEGACY:1, BT_NIMBLE_MAX_CONNECTIONS:3, MBEDTLS_HAVE_TIME_DATE:0}),0,
-    'Official defaults are permitted; adapter SC/MITM/session/date checks remain mandatory at runtime');
+    'Official defaults are permitted; adapter SC/MITM/session checks remain mandatory at runtime');
   for (const key of ['ESP_PHY_INIT_DATA_IN_PARTITION', 'BT_NIMBLE_SM_SC_DEBUG_KEYS',
     'ESP_TLS_INSECURE','ESP_TLS_SKIP_SERVER_CERT_VERIFY'])
     assert.notEqual(check({...required,[key]:1}),0,'Insecure SDK property: '+key);
@@ -72,10 +72,8 @@ temporary('sentinel-sdk-guards-', directory => {
 console.log('Official core/version/partition/SDK rejection guards and accepted defaults: PASS (preprocessor only)');
 
 temporary('sentinel-transport-guards-', directory => {
-  writeFileSync(join(directory,'ESP_SSLClient.h'),'#pragma once\n');
   writeFileSync(join(directory,'wolfMQTT.h'),'#pragma once\n');
-  const required = {WOLFMQTT_V5:1, ESP_SSLCLIENT_VERSION_MAJOR:3,
-    ESP_SSLCLIENT_VERSION_MINOR:1, ESP_SSLCLIENT_VERSION_PATCH:3};
+  const required = {WOLFMQTT_V5:1};
   function check(values) {
     const result = spawnSync('c++',['-E','-x','c++','-I'+directory,
       ...Object.entries(values).map(([k,v]) => '-D'+k+'='+v),
@@ -83,14 +81,13 @@ temporary('sentinel-transport-guards-', directory => {
     assert.ifError(result.error);
     return result.status;
   }
-  assert.equal(check(required),0,'MQTT5 with the complete verified external TLS engine');
+  assert.equal(check(required),0,'MQTT5 with the external Arduino TCP client');
   for (const key of Object.keys(required)) {
     const without = {...required}; delete without[key];
     assert.notEqual(check(without),0,'Missing transport requirement: '+key);
   }
-  for (const key of ['ENABLE_MQTT_TLS','SSLCLIENT_INSECURE_ONLY','BEARSSL_SSL_BASIC'])
+  for (const key of ['ENABLE_MQTT_TLS'])
     for (const value of [0,1]) assert.notEqual(check({...required,[key]:value}),0,'Forbidden transport option: '+key);
-  for (const key of ['ESP_SSLCLIENT_VERSION_MAJOR','ESP_SSLCLIENT_VERSION_MINOR','ESP_SSLCLIENT_VERSION_PATCH'])
-    assert.notEqual(check({...required,[key]:required[key]+1}),0,'Unverified TLS engine version: '+key);
+
 });
-console.log('MQTT5, external TLS, full X509 and pinned transport version guards: PASS (preprocessor only)');
+console.log('MQTT5 and external TCP transport guards: PASS (preprocessor only)');

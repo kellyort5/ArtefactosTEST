@@ -110,8 +110,7 @@ export async function buildHost(suite) {
       ...sources, join(sketch,'src/sentinel/connectivity_config.cpp'),
       join(sketch,'src/sentinel/network.cpp'), join(firmware,'test/connectivity_test.cpp'),
       join(cache,'cJSON.o'), crypto, '-o', connectivityBinary]);
-    run(connectivityBinary, [join(firmware,'test/transports/fixtures/root.pem'),
-      join(firmware,'test/transports/fixtures/valid.pem')]);
+    run(connectivityBinary);
   }
   console.log(`Firmware ${suite}: PASS (host; no physical radio/NVS claims)`);
   return cache;

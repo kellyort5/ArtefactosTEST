@@ -9,7 +9,7 @@ Estas guías explican el reparto existente; no añaden funcionalidades, cambian 
 | Persona 1 — Jefry | [Coordinación, contratos, núcleo y Escudo](guia-persona-1.md) | Interfaces compartidas, Escudo completo, integración del núcleo y seguimiento OpenSpec. |
 | Persona 2 | [Auditor y Sanitizador](guia-persona-2.md) | Auditoría, STA+AP/NAT IPv4, clientes/tráfico, DNS y DoH. |
 | Persona 3 | [Cebo y servidor de alertas](guia-persona-3.md) | HTTP/Telnet, clasificación y persistencia, webhook y envío push.           |
-| Persona 4 | [App, broker y laboratorio](guia-persona-4.md) | UI de los tres módulos, Android/BLE/WSS/push, broker LAN y evidencia conjunta. |
+| Persona 4 | [App, broker y laboratorio](guia-persona-4.md) | UI de los tres módulos, Android/BLE/WS/push, broker LAN y evidencia conjunta. |
 
 ## 1. Qué leer y para qué sirve
 
@@ -48,7 +48,7 @@ Ante una contradicción entre ficha, spec, contrato o decisión aprobada, indica
 | Futuro `firmware/SentinelNode/src/cebo/` | Servicios ficticios y clasificación. | P3 |
 | Futuro `notifications/` | Componente de alertas con package/lockfile y Compose propios. | P3 |
 | `app/`, `package.json` y `package-lock.json` raíz | App y dependencias; excepción: app-protocolo-v2 corresponde a P1. | P4; P1 solo esa spec |
-| `broker/` | Mosquitto, TLS/WSS, ACL y preparación LAN. | P4 |
+| `broker/` | Mosquitto, TCP/WS, ACL y preparación LAN. | P4 |
 | `simulator/`, futuros `docs/lab/` y `docs/evidence/` | Reproducción de mensajes, procedimientos e informes conjuntos. | P4 |
 | Arquitectura, decisiones, roadmap y seguimiento OpenSpec | Coherencia y estado de los acuerdos del equipo. | P1 |
 

@@ -267,9 +267,9 @@ int main(int argc, char **argv) {
   assert(utc_valid("2024-02-29T12:00:00.123456Z"));
   assert(!utc_valid("2023-02-29T12:00:00Z"));
   assert(!utc_valid("2024-01-01T24:00:00Z"));
-  assert(mqtt_uri_valid("mqtts://[::1]:8883"));
-  assert(!mqtt_uri_valid("mqtts://host:65536"));
-  assert(!mqtt_uri_valid("mqtts://user:password@host"));
+  assert(mqtt_uri_valid("mqtt://[::1]:1883"));
+  assert(!mqtt_uri_valid("mqtt://host:65536"));
+  assert(!mqtt_uri_valid("mqtt://user:password@host"));
   {
     Frame f;
     std::string body(2048, 'x');

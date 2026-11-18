@@ -7,23 +7,21 @@ import mqtt from 'mqtt';
 
 const broker = new URL('../', import.meta.url);
 const lab = JSON.parse(await readFile(new URL('.secrets/clients.json', broker), 'utf8'));
-const ca = await readFile(new URL('.secrets/ca.crt', broker));
 const host = process.env.SENTINEL_TEST_HOST || lab.host;
 const clients = new Set();
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const root = fileURLToPath(new URL('../', broker));
-const topic = suffix => `sentinel/v1/nodes/${lab.node_id}/${suffix}`;
-const peerTopic = suffix => `sentinel/v1/nodes/${lab.peer_id}/${suffix}`;
+let version = 1;
+const topic = suffix => `sentinel/v${version}/nodes/${lab.node_id}/${suffix}`;
+const peerTopic = suffix => `sentinel/v${version}/nodes/${lab.peer_id}/${suffix}`;
 
 async function connect(transport, account, overrides = {}) {
-  const port = transport === 'mqtts' ? 8883 : 9001;
-  const tls = { ca, minVersion: 'TLSv1.2', ...overrides };
+  const port = transport === 'mqtt' ? 1883 : 9001;
   const options = {
-    ...account, ...tls, protocolVersion: 5, clean: true, reconnectPeriod: 0,
+    ...account, ...overrides, protocolVersion: 5, clean: true, reconnectPeriod: 0,
     connectTimeout: 4000, properties: { sessionExpiryInterval: 0 },
-    wsOptions: tls,
   };
-  const client = mqtt.connect(`${transport}://${host}:${port}${transport === 'wss' ? '/mqtt' : ''}`, options);
+  const client = mqtt.connect(`${transport}://${host}:${port}${transport === 'ws' ? '/mqtt' : ''}`, options);
   clients.add(client);
   client.on('error', () => {}); // Individual operations assert errors; never log packets/credentials.
   try {
@@ -112,7 +110,8 @@ async function deniedRead(reader, writer, authorized, value) {
 
 async function run() {
   // Test payloads are transport probes; no fake product state or incidents.
-  for (const transport of ['mqtts', 'wss']) {
+  for (version of [1, 2]) {
+  for (const transport of ['mqtt', 'ws']) {
     const node = await connect(transport, lab.accounts.node);
     const operator = await connect(transport, lab.accounts.operator);
     const viewer = await connect(transport, lab.accounts.viewer);
@@ -130,13 +129,10 @@ async function run() {
     received = receive(operator, topic('acks'), 'transport-ack-probe');
     await node.publishAsync(topic('acks'), 'transport-ack-probe', { qos: 1 });
     await received;
-    console.log(`PASS ${transport}: node/operator/viewer authorized round trips`);
+    console.log(`PASS v${version} ${transport}: node/operator/viewer authorized round trips`);
 
     await rejection(transport, {}, {}, [134, 135]);
     await rejection(transport, { ...lab.accounts.node, password: 'invalid-disposable-password' }, {}, [134, 135]);
-    await rejection(transport, lab.accounts.node, { ca: undefined },
-      ['UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'SELF_SIGNED_CERT_IN_CHAIN', 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY']);
-    await rejection(transport, lab.accounts.node, { servername: 'not-in-san.invalid' }, ['ERR_TLS_CERT_ALTNAME_INVALID']);
     await deniedPublish(node, peerViewer, peerTopic('state'));
     await deniedPublish(viewer, node, topic('commands'));
     await deniedPublish(operator, peerViewer, peerTopic('state'));
@@ -145,18 +141,20 @@ async function run() {
     await deniedRead(node, peerNode, peerViewer, peerTopic('events'));
     await deniedRead(viewer, operator, node, topic('commands'));
     await deniedRead(operator, peerNode, peerViewer, peerTopic('state'));
-    console.log(`PASS ${transport}: anonymous/password/CA/hostname/ACL denied and unauthorized deliveries absent`);
+    console.log(`PASS v${version} ${transport}: anonymous/password/ACL denied and unauthorized deliveries absent`);
     await Promise.all([node, operator, viewer, peerViewer, peerNode].map(close));
   }
 
-  const node = await connect('mqtts', lab.accounts.node);
+  }
+  version = 1;
+  const node = await connect('mqtt', lab.accounts.node);
   const marker = `persistence-${crypto.randomUUID()}`;
   await node.publishAsync(topic('state'), marker, { qos: 1, retain: true });
   await close(node);
   execFileSync('python3', ['broker/scripts/manage.py', 'restart'], { cwd: root, stdio: ['ignore', 'ignore', 'pipe'] });
   let viewer;
   for (let attempt = 0; attempt < 20; attempt++) {
-    try { viewer = await connect('wss', lab.accounts.viewer); break; }
+    try { viewer = await connect('ws', lab.accounts.viewer); break; }
     catch { await pause(300); }
   }
   assert(viewer, 'broker did not reconnect after restart');
@@ -165,7 +163,7 @@ async function run() {
   await persisted;
   await close(viewer);
   // Clear only the disposable test retained probe; do not leave fake product state.
-  const cleanup = await connect('mqtts', lab.accounts.node);
+  const cleanup = await connect('mqtt', lab.accounts.node);
   await cleanup.publishAsync(topic('state'), '', { qos: 1, retain: true });
   await close(cleanup);
   console.log('PASS restart: retained state survives in named volume and is received with retain=true');

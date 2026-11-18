@@ -10,7 +10,7 @@ export type StatePayload = {
 export type CommandRequest =
  | {operation:'get_state'|'start_capture'|'start_honeypot';args:Record<string,never>}
  | {operation:'set_mode';args:{mode:Profile|'sanitizador'}}
- | {operation:'configure_connectivity';args:{ssid:string;wifi_password:string;mqtt_uri:string;mqtt_username:string;mqtt_password:string;ca_certificate:string}}
+ | {operation:'configure_connectivity';args:{ssid:string;wifi_password:string;mqtt_uri:string;mqtt_username:string;mqtt_password:string}}
  | {operation:'set_time';args:{timestamp:string}}
  | {operation:'read_events';args:{after_cursor:number;limit:number}};
 export type CommandPayload = CommandRequest & {command_id:string;target_boot_id:string;expected_revision:number;expires_at_uptime_ms:number};

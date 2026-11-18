@@ -19,7 +19,8 @@ export class MqttTransport implements Transport {
   await this.disconnect();
   const deviceId=settings.deviceId;
   const url=new URL(settings.endpoint);
-  if(url.protocol!=='wss:'||url.username||url.password)throw new Error('Usa wss:// con CA y nombre de servidor confiables, sin credenciales en URL.');
+  if(url.protocol!=='ws:'||url.username||url.password||url.search||url.hash||!url.hostname||url.port==='0')throw new Error('Usa ws://IP-DEL-PC:9001/mqtt, sin credenciales, query ni fragmento en URL.');
+  if(!settings.username||!settings.password)throw new Error('Usuario y contraseña MQTT obligatorios.');
   if(!/^[A-Za-z0-9._:-]{1,64}$/.test(deviceId))throw new Error('ID de nodo inválido.');
   if(settings.username!==`${settings.role}-${deviceId}`)throw new Error('La cuenta debe corresponder al rol y nodo autorizado.');
   this.sink.status('mqtt','connecting');this.deviceId=deviceId;this.role=settings.role;
@@ -39,14 +40,14 @@ export class MqttTransport implements Transport {
    client.options.password=undefined;client.options.username=undefined;
    if(this.client===client)this.sink.status('mqtt','disconnected');
   });
-  client.on('error',()=>{if(this.client===client)this.sink.error('MQTT: verifica credenciales, ACL, CA, SAN y fecha del sistema.');});
+  client.on('error',()=>{if(this.client===client)this.sink.error('MQTT: verifica IP del PC, red, puerto, credenciales y permisos.');});
   await new Promise<void>((resolve,reject)=>{
    let finished=false;
    const fail=()=>{
     if(finished)return;finished=true;clearTimeout(timeout);
     client.options.password=undefined;client.options.username=undefined;client.end(true);
     if(this.client===client){this.client=undefined;this.deviceId=undefined;this.role=undefined;this.sink.status('mqtt','error');}
-    reject(new Error('WSS: conexión o suscripción rechazada; revisa cuenta, ACL y CA/SAN.'));
+    reject(new Error('MQTT/WS: no se pudo conectar o suscribir. Revisa IP del PC, red, firewall local y cuenta.'));
    };
    const timeout=setTimeout(fail,12000);
    client.once('error',fail);client.once('close',fail);

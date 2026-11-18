@@ -13,7 +13,7 @@ export class BleTransport implements Transport {
  private pollTimer?:ReturnType<typeof setInterval>;
  constructor(private sink:TransportSink){}
  async connect():Promise<AnyMetadata>{
-  if(Capacitor.getPlatform()!=='android')throw new Error('BLE requiere la app Android; usa WSS en este navegador.');
+  if(Capacitor.getPlatform()!=='android')throw new Error('BLE requiere la app Android; usa WS en este navegador.');
   await this.disconnect();this.sink.status('ble','connecting');
   try {
    await BleClient.initialize({androidNeverForLocation:true});

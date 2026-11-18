@@ -5,8 +5,8 @@ services:
     restart: unless-stopped
     entrypoint: ["/bin/sh", "/sentinel/entrypoint.sh"]
     ports:
-      - "${SENTINEL_BIND_IP:-127.0.0.1}:8883:8883"
-      - "${SENTINEL_BIND_IP:-127.0.0.1}:9001:9001"
+      - "${SENTINEL_BIND_IP:-0.0.0.0}:1883:1883"
+      - "${SENTINEL_BIND_IP:-0.0.0.0}:9001:9001"
     volumes:
       - type: bind
         source: ./config

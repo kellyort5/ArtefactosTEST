@@ -1,5 +1,8 @@
 # Comprobación de sentinel-core-foundation
 
+**Registro histórico de la base:** TLS/WSS, confianza CA y ACL solo v1 de las ejecuciones anteriores fueron sustituidos por MQTT/TCP1883 y WS9001 con ACL v1/v2 el 2026-11-17. Consultar la [verificación vigente](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md) y la [guía de pruebas actual](core-foundation-test-guide.md). No usar estos resultados antiguos como instrucciones de configuración.
+
+
 **Aviso de vigencia:** este informe conserva resultados, autorizaciones y pendientes históricos. La [política aprobada posterior](persistence-policy.md) sustituye RAM-only y continuidad USB: NVS explícita para configuración autorizada, conservación en reinicio/corte normal y reinstalación USB con reinicialización permitida sin migración. Sus builds/logs no acreditan la nueva tabla ni cierran pendientes físicos.
 
 **Evidencia histórica de la base:** los comandos PlatformIO y rutas originales de este informe describen las ejecuciones registradas entonces. El flujo vigente de firmware es [Arduino IDE Windows](firmware.md); el [mapa de traslado](firmware-arduino-migration.md#7-árbol-único-y-mapa-del-movimiento-realizado) localiza las fuentes actuales. No se reinterpretan estos resultados ni sus pendientes como pruebas del port Arduino.

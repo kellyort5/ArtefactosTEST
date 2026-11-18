@@ -142,19 +142,19 @@ test('UTC calendar and time quality remain canonical in v2', async () => {
   invalid(() => encodeModuleMessage(message));
 });
 
-test('TLS destinations reject plain text, credentials, invalid ports and secret query endpoints', async () => {
+test('HTTPS destinations reject plain text, credentials, invalid ports and secret query endpoints', async () => {
   const doh = await fixture('sanitizador.configure_doh.valid.json');
   for (const endpoint of ['http://resolver.example/dns-query', 'https://user:NEVER-ECHO-THIS@resolver.example/', 'https://resolver.example:0/', 'https://resolver.example/dns-query?token=NEVER-ECHO-THIS']) {
     doh.payload.args.endpoint = endpoint;
     invalid(() => encodeModuleMessage(doh));
   }
   const mqtt = await fixture('configure_connectivity.valid.json');
-  mqtt.payload.args.mqtt_uri = 'mqtts://broker.example:0';
+  mqtt.payload.args.mqtt_uri = 'mqtt://broker.example:0';
   invalid(() => encodeModuleMessage(mqtt));
 });
 
 test('the 2048-byte logical message boundary is independent of BLE fragmentation', async () => {
-  const message = await fixture('configure_connectivity.valid.json');
+  const message = await fixture('sanitizador.configure_doh.valid.json');
   message.message_id = 'a'.repeat(64);
   message.payload.command_id = message.message_id;
   message.payload.args.ca_certificate = '';
@@ -296,4 +296,18 @@ test('history ACK cannot rewind or advance across missing events without a decla
   assert.equal(checkModuleAckForCommand(command, ack), null);
   command.payload.args.after_cursor = 100; ack.payload.result.next_cursor = 100;
   assert.equal(checkModuleAckForCommand(command, ack), null);
+});
+
+
+test('trusted LAN MQTT admits authenticated commands without encryption, BLE still requires encryption', async () => {
+  const command = await fixture('get_state.valid.json');
+  const mqttContext = {...context, channel:'mqtt', profile:'cebo', encrypted:false};
+  assert.equal(checkModuleCommandAdmission(command,mqttContext),null);
+  assert.equal(checkModuleCommandAdmission(command,{...mqttContext,authenticated:false}),'unauthorized');
+  assert.equal(checkModuleCommandAdmission(command,{...mqttContext,authorized:false}),'unauthorized');
+  assert.equal(checkModuleCommandAdmission(command,{...mqttContext,channel:'ble'}),'unauthorized');
+  const config=await fixture('configure_connectivity.valid.json');
+  assert.equal(checkModuleCommandAdmission(config,mqttContext),'unauthorized');
+  config.payload.args.ca_certificate='obsolete-ca';
+  invalid(()=>encodeModuleMessage(config));
 });

@@ -4,7 +4,7 @@ Responsable único de todas las casillas: **Persona 3**. Estado inicial: todo pe
 
 ## 1. Componente y canales
 
-- [ ] 1.1 Crear paquete/lockfile y Compose propios de notifications con MQTT TLS/ACL de lectura; verificar conexión autorizada y rechazo cross-node.
+- [ ] 1.1 Crear paquete/lockfile y Compose propios de notifications con MQTT TCP/ACL de lectura; verificar conexión autorizada y rechazo cross-node.
 - [ ] 1.2 Implementar enrutado, dedup, outbox y límites persistentes; probar repetición, fallo, vencimiento y recuperación con fixtures.
 - [ ] 1.3 Implementar webhook HTTPS; comprobar entrega en destinos de prueba propios y redacción de errores.
 - [ ] 1.4 Implementar API HTTPS de estado con autenticación por nodo/CORS; probar rechazo de otro nodo y ausencia de secretos.

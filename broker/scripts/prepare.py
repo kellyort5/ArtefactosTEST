@@ -2,7 +2,6 @@
 """Create a disposable, private lab. No passwords in argv, stdout or Docker env."""
 import argparse
 import base64
-import ipaddress
 import json
 import os
 import re
@@ -16,27 +15,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--node-id', required=True, help='ID real del nodo (sin secretos)')
     parser.add_argument('--peer-id', default='acl-check-peer', help='Segundo nodo local para verificar aislamiento ACL')
-    parser.add_argument('--san', action='append', default=[], help='DNS o IP autorizada; repetible')
     args = parser.parse_args()
-    if args.peer_id == args.node_id or not all(re.fullmatch(r'[A-Za-z0-9_-]{1,64}', x) for x in (args.node_id, args.peer_id)):
-        raise RuntimeError('ID inválido: usar 1–64 caracteres alfanuméricos, _ o -.')
-    sans = ['localhost', '127.0.0.1', *args.san]
-    san_entries = []
-    for value in dict.fromkeys(sans):
-        try:
-            value = str(ipaddress.ip_address(value))
-            san_entries.append('IP:' + value)
-        except ValueError:
-            if len(value) > 253 or not re.fullmatch(r'[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?', value):
-                raise RuntimeError('SAN inválido: usar DNS o IP literal.')
-            san_entries.append('DNS:' + value)
+    if args.peer_id == args.node_id or not all(re.fullmatch(r'[A-Za-z0-9_-]{1,55}', x) for x in (args.node_id, args.peer_id)):
+        raise RuntimeError('ID inválido: usar 1–55 caracteres alfanuméricos, _ o -.')
     lab = BROKER / '.secrets'
     if lab.exists() and any(lab.iterdir()):
         raise RuntimeError('broker/.secrets ya existe; no se sobrescribe. Conservarlo y usar otro checkout para otro laboratorio.')
     docker('info', '--format', '{{.ServerVersion}}', stdout=subprocess.DEVNULL)
     docker('pull', IMAGE)
     # Confirm Git exclusion BEFORE generating any private content.
-    subprocess.run(['git', 'check-ignore', '-q', 'broker/.secrets/runtime/server.key'], cwd=ROOT, check=True)
+    subprocess.run(['git', 'check-ignore', '-q', 'broker/.secrets/clients.json'], cwd=ROOT, check=True)
     os.umask(0o077)
     lab.mkdir(mode=0o700, exist_ok=True)
     if re.match(r'^/mnt/[a-z]/', str(lab)) is not None and restrict_windows_acl(lab) is False:
@@ -44,20 +32,6 @@ def main():
     runtime = lab / 'runtime'
     runtime.mkdir(mode=0o700)
 
-    def openssl(*items):
-        subprocess.run(['openssl', *map(str, items)], cwd=ROOT, check=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    openssl('req', '-x509', '-newkey', 'ec', '-pkeyopt', 'ec_paramgen_curve:P-256', '-nodes', '-sha256', '-days', '365',
-            '-subj', '/CN=Sentinel disposable lab CA', '-keyout', lab / 'ca.key', '-out', lab / 'ca.crt',
-            '-addext', 'basicConstraints=critical,CA:TRUE,pathlen:0',
-            '-addext', 'keyUsage=critical,keyCertSign,cRLSign')
-    openssl('req', '-new', '-newkey', 'rsa:2048', '-nodes', '-sha256',
-            '-subj', '/CN=Sentinel lab broker', '-keyout', runtime / 'server.key', '-out', lab / 'server.csr')
-    private_write(lab / 'server.ext', 'basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\nsubjectAltName=' + ','.join(san_entries) + '\n')
-    openssl('x509', '-req', '-in', lab / 'server.csr', '-CA', lab / 'ca.crt', '-CAkey', lab / 'ca.key',
-            '-set_serial', str(secrets.randbits(128)), '-days', '30', '-sha256', '-extfile', lab / 'server.ext',
-            '-out', runtime / 'server.crt')
     accounts = {role: {'username': f'{role}-{args.node_id}', 'password': secrets.token_urlsafe(32)}
                 for role in ('node', 'operator', 'viewer')}
     peer = {role: {'username': f'{role}-{args.peer_id}', 'password': secrets.token_urlsafe(32)}
@@ -77,9 +51,9 @@ def main():
     template = (BROKER / 'config/acl.template').read_text()
     private_write(runtime / 'acl', '\n'.join(template.replace('@NODE_ID@', node) for node in (args.node_id, args.peer_id)))
     private_write(lab / 'clients.json', json.dumps({'node_id': args.node_id, 'host': 'localhost',
-                                                 'sans': sans, 'accounts': accounts, 'peer_id': args.peer_id, 'peer_accounts': peer}, indent=2) + '\n')
+                                                 'accounts': accounts, 'peer_id': args.peer_id, 'peer_accounts': peer}, indent=2) + '\n')
     private_write(runtime / 'ready', 'prepared\n')
-    print('Laboratorio preparado en broker/.secrets; credenciales solo en clients.json privado, CA pública en ca.crt.')
+    print('Laboratorio preparado en broker/.secrets; credenciales solo en clients.json privado. Sin certificados.')
 
 
 def restrict_windows_acl(path):
@@ -94,5 +68,5 @@ if __name__ == '__main__':
         main()
     except (RuntimeError, subprocess.CalledProcessError, OSError) as error:
         print(str(error), file=sys.stderr)
-        print('Preparación fallida; comprobar Docker/OpenSSL/permisos y broker/README.md. No se habilitó acceso anónimo.', file=sys.stderr)
+        print('Preparación fallida; comprobar Docker/permisos y broker/README.md. No se habilitó acceso anónimo.', file=sys.stderr)
         sys.exit(1)

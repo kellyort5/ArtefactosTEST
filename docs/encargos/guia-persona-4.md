@@ -4,7 +4,7 @@ Aplicar la [política aprobada de persistencia](../persistence-policy.md): ident
 
 P4 debe contemplar que reinstalar/actualizar por USB puede reiniciar identidad, bonds e historial/cursores. Si ocurre, retirar vínculos/caché obsoletos del teléfono, volver a emparejar/configurar y reconciliar desde metadata/estado nuevos; no reutilizar el cursor anterior frente a un historial reinicializado, aunque el device_id derivado de MAC siga igual. No prometer migración de datos entre versiones. Conservar resultados históricos por separado y no presentar mensajes antiguos como actuales. En reinicios sin upload sí se exige recuperar datos confirmados. Esta documentación no declara implementada una UI nueva.
 
-Tu entrega es la aplicación de los tres módulos, su integración Android/BLE/WSS/push, el broker accesible en LAN y la consolidación de evidencia del equipo. Los otros tres autores implementan firmware y P3 envía alertas desde servidor. Tú consumes esas entregas; no programas sus detectores, NAT o servicios Cebo.
+Tu entrega es la aplicación de los tres módulos, su integración Android/BLE/WS/push, el broker accesible en LAN y la consolidación de evidencia del equipo. Los otros tres autores implementan firmware y P3 envía alertas desde servidor. Tú consumes esas entregas; no programas sus detectores, NAT o servicios Cebo.
 
 El usuario reasignó únicamente `sentinel-app-protocolo-v2` a P1 el 2026-11-12. Tú consumes esa entrega y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
 
@@ -22,7 +22,7 @@ Las specs son Markdown que puedes seguir sin instalar OpenSpec. Informa tareas n
 
 - `app/`: UI, controller, store, journal, transportes, tests y proyecto Android fuente. Las pantallas nuevas se organizan en `app/src/features/<modulo>/` según diseño.
 - `package.json` y `package-lock.json` raíz: dependencias del workspace `app`/`contracts`. Los otros integrantes te piden cambios aquí; evitar ediciones concurrentes del lockfile.
-- `broker/`: Mosquitto, TLS/WSS, ACL y documentación de LAN.
+- `broker/`: Mosquitto, TCP/WS, ACL y documentación de LAN.
 - `simulator/`, futuros `docs/lab/` y `docs/evidence/`: reproductor de mensajes, procedimientos e informes sanitizados.
 
 P1 mantiene contratos/núcleo/Escudo; P2 Sanitizador; P3 Cebo y `notifications/` con dependencias propias. Un fallo del componente ajeno se devuelve a su autor con reproducción; no lo corriges modificando su carpeta dentro de tu PR.
@@ -51,10 +51,10 @@ Esta secuencia concreta el reparto, sin poner fechas ni cambiar sus dependencias
 ### B. Broker: sentinel-broker-lan
 
 1. Revisar preparación existente y soporte SAN LAN: hay generación local con `--san`, pero aún debes comprobar su uso real y completar ACL/rol v2 del encargo. No recrear un laboratorio con secretos ya preparados.
-2. Configurar confianza CA, DNS/IP y bind de LAN propios para ESP32 y teléfono. Mantener TLS 8883/WSS 9001 y autenticación; no habilitar 1883 anónimo ni desactivar validación TLS.
+2. Usar IP LAN del PC, MQTT TCP1883/WS9001 y cuentas autorizadas, sin CA/SAN ni cambios de router. Mantener autenticación y permisos.
 3. Completar ACL exactas v1/v2 y rol `notify` de lectura mínima para P3. Conservar replay histórico v1. Probar denegación de otro nodo/rol, además de conexión permitida.
-4. Documentar host/firewall y comprobar TLS/WSS desde ESP32/teléfono reales. `localhost` en el teléfono es el teléfono, no el PC del broker.
-5. Entregar a P3 endpoints, CA pública y configuración de rol por canal privado para los secretos. No publicar credenciales en Git, capturas, chat o variables `VITE_*`.
+4. Documentar host/firewall y comprobar TCP/WS desde ESP32/teléfono reales. `localhost` en el teléfono es el teléfono, no el PC del broker.
+5. Entregar a P3 endpoints por IP y configuración de rol por canal privado para los secretos. No publicar credenciales en Git, capturas, chat o variables `VITE_*`.
 
 ### C. Laboratorio: sentinel-laboratorio-pruebas
 
@@ -82,7 +82,7 @@ No hace falta generar ataques en el aire para probar parsers/heurísticas con fi
 
 ### F. UI Cebo: sentinel-app-cebo
 
-1. Controles confirmados, estado de HTTP/Telnet y métricas/gráficos por MQTT/WSS.
+1. Controles confirmados, estado de HTTP/Telnet y métricas/gráficos por MQTT/WS.
 2. Tabla, filtros, historial y alertas internas; dedup, gap y ausencia de datos sensibles.
 3. Consumir API HTTPS de estado de notificaciones de P3; mostrar fallos y aceptación por proveedor sin inventar confirmación de lectura.
 4. Con Cebo real, observar interacciones HTTP/Telnet; cortar/restaurar MQTT y un canal externo, comprobar recuperación y documentar `docs/modules/app-cebo.md`.

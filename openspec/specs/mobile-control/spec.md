@@ -19,7 +19,12 @@ La aplicación SHALL ofrecer adaptadores BLE y MQTT que compartan contratos y no
 
 #### Scenario: Configuración de conexión
 - **WHEN** el usuario configura el nodo BLE o endpoint y cuenta MQTT autorizados
-- **THEN** la app establece el canal protegido real o presenta el error verificable sin mostrar secretos
+- **THEN** la app establece BLE protegido o MQTT/WS autenticado real o presenta el error verificable sin mostrar secretos
+
+#### Scenario: Android en red de confianza
+- **WHEN** se instala la app en Android y se configura `ws://IP-DEL-PC:9001/mqtt` con una cuenta autorizada
+- **THEN** puede conectar sin CA, hostname especial ni configuración del router cuando la red permite comunicación entre clientes
+- **AND** la app permite el tráfico WS necesario sin desactivar validación HTTPS
 
 ### Requirement: Estado y control coherentes con el canal
 La interfaz SHALL mostrar nodo, arranque, perfil, fase, revisión, conectividad y capacidades reales, y solicitar cambios mediante el canal disponible. No SHALL confirmar éxito hasta conocer el resultado aplicado.

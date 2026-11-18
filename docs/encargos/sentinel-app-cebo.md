@@ -41,7 +41,7 @@ Un mismo autor puede tener varios encargos en su carpeta: desarrolla uno por ram
 4. **1.4** Ejecutar npm run test:app y npm run build; verificar gráficos y estado responsive.
 ### Comprobación del incremento
 
-1. **2.1** Compilar Android y observar interacciones reales HTTP/Telnet por WSS; comprobar alerta interna e historial.
+1. **2.1** Compilar Android y observar interacciones reales HTTP/Telnet por WS; comprobar alerta interna e historial.
 2. **2.2** Caer/restaurar MQTT y un canal externo; registrar recuperación y estados reales sin duplicación.
 
 ## Cómo entregar a tu compañero

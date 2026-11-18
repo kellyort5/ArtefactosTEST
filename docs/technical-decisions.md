@@ -35,7 +35,7 @@ OLED, botón y alimentación portátil se conservan como requisitos de referenci
 
 **Decisión vigente confirmada por el usuario:** core oficial, hasta **tres teléfonos recordados**, tabla compatible con `boot_app0` y **cuatro claves**: menú, `build.partitions`, máximo4MiB y `--wrap=nvs_flash_init`. El instalador retira cinco overrides Sentinel obsoletos, con claves ajenas/respaldo/idempotencia; carga/exportación estándar. La primera carga es limpia desde el IDE; USB puede reinicializar identidad/bonds/configuración/historial sin migración. La protección del wrapper y el preflight BLE siguen evitando borrados silenciosos durante reinicios normales. Ver [tabla y motivos](persistence-policy.md).
 
-**Condiciones conservadas:** MQTT 5, CA/hostname/fechas, BLE SC autenticado/nivel4 y bonds, mismos GATT/framing y contratos; persistencia operativa según la tabla nueva aprobada. No bajar protocolos, omitir validaciones, quitar funciones o cambiar contratos para compilar. El arranque normal debe evitar borrado/formato automático de NVS y conservar identidad/bonds/configuración/historial confirmado; la reinstalación USB permite reinicialización sin migración.
+**Condiciones vigentes:** MQTT5/TCP sin CA según R-04 actualizada; BLE SC autenticado/nivel4 y bonds, mismos GATT/framing y contratos; persistencia operativa según la tabla nueva aprobada. No bajar protocolos, omitir validaciones, quitar funciones o cambiar contratos para compilar. El arranque normal debe evitar borrado/formato automático de NVS y conservar identidad/bonds/configuración/historial confirmado; la reinstalación USB permite reinicialización sin migración.
 
 **Riesgos y validación:** adaptación de transportes, configuración efectiva, inicialización y conservación de datos. Reutilizar pruebas críticas sin debilitar aserciones y acreditar el build oficial completo. El botón Verificar, subida/monitor y BLE/radio/NVS físicos mantienen sus pendientes; la falta de placa identificada no bloquea la preparación de software. Ver [plan y límites](firmware-arduino-migration.md).
 
@@ -101,15 +101,15 @@ El Escudo Pasivo no utilizará conexión STA, MQTT directo, NAT ni auditorías D
 
 La selección de una red mediante BLE no implica conectarse a ella. La implementación deberá conservar este principio y documentar cualquier interrupción temporal de la captura.
 
-### R-04. Seguridad MQTT
+### R-04. MQTT del MVP en red de confianza
 
-**Estado: Recomendación aprobada.** TLS para MQTT, WSS para mqtt.js, autenticación por identidad y ACL de mínimo privilegio. Las credenciales administrativas no deben distribuirse con el frontend.
+**Estado: Actualizada por el usuario el 2026-11-17.** MQTT5/TCP1883 y WS9001 sin TLS ni certificados para reducir complejidad y probar Android real en redes de confianza propias o autorizadas. Se conservan autenticación por identidad, permisos mínimos por nodo/rol v1/v2, secretos fuera de Git/logs y persistencia. No se exige administrar router, DNS, CA o sincronizar hora para conectar.
 
-**Alternativas evaluadas:** transporte sin cifrar del esquema inicial de puertos del PDF; TLS con usuario/clave de laboratorio; certificados de cliente como alternativa de autenticación.
+**Justificación:** conectar app/nodo usando la IP LAN del PC y APIs oficiales. Eliminar generación/distribución de CA y la dependencia TLS exclusiva de MQTT; BLE autenticado y HTTPS/DoH mantienen su seguridad.
 
-**Justificación:** proteger telemetría y comandos. La [documentación Mosquitto](https://mosquitto.org/man/mosquitto-conf-5.html) describe TLS, autenticación, ACL y listeners WebSocket. Elegir un puerto no habilita esas protecciones.
+**Riesgo aceptado:** cuentas y mensajes MQTT viajan sin cifrar. Usar cuentas exclusivas de laboratorio y no exponer los puertos a Internet. La red debe permitir comunicación entre clientes y el firewall del PC permitir el acceso. Aislamiento Wi-Fi requiere otra red o punto de acceso disponible; no se promete eludirlo. Ver [guía](../broker/README.md) y [cambio](../openspec/changes/sentinel-mqtt-mvp-lan/design.md).
 
-**Riesgos:** presupuesto TLS, certificados, aprovisionamiento y credenciales expuestas en cliente web. La base del broker separa observación y operación, y restringe cada nodo a sus topics. El despliegue LAN y ACL v2 permanecen en sentinel-broker-lan; no se añade un backend de autenticación como decisión tomada.
+**Antecedente sustituido:** TLS/WSS con CA/nombre/fechas y roles de la base. Sus informes conservan evidencia histórica, no requisitos de instalación vigentes.
 
 ### R-05. Contratos y entrega
 

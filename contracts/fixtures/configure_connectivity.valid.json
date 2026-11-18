@@ -17,10 +17,9 @@
     "args": {
       "ssid": "LAB-EXAMPLE",
       "wifi_password": "example-only",
-      "mqtt_uri": "mqtts://broker.example:8883",
+      "mqtt_uri": "mqtt://broker.example:1883",
       "mqtt_username": "node-example",
-      "mqtt_password": "example-only",
-      "ca_certificate": "-----BEGIN CERTIFICATE-----\nEXAMPLE\n-----END CERTIFICATE-----\n"
+      "mqtt_password": "example-only"
     }
   }
 }

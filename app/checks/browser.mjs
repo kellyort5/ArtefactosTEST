@@ -48,11 +48,11 @@ try{
  });
  await page.getByText('rejected',{exact:true}).waitFor();
  assert.equal(await page.locator('.profile-option.selected b').innerText(),'Escudo');
- const form=page.locator('form').filter({has:page.getByRole('button',{name:'Conectar WSS',exact:true})});
+ const form=page.locator('form').filter({has:page.getByRole('button',{name:'Conectar WS',exact:true})});
  await form.locator('[name="deviceId"]').fill(v2.device_id);
  await form.locator('[name="username"]').fill('invalid-role-for-test');
  await form.locator('[name="password"]').fill('TEST-ONLY-PRIVATE-MARKER');
- await form.getByRole('button',{name:'Conectar WSS',exact:true}).click();
+ await form.getByRole('button',{name:'Conectar WS',exact:true}).click();
  await page.getByRole('alert').filter({hasText:'La cuenta debe corresponder'}).waitFor();
  assert.equal(await form.locator('[name="password"]').inputValue(),'');
  const leaked=await page.evaluate(async()=>{const {nodeStore}=await import('/src/store.ts');return JSON.stringify(nodeStore.getState()).includes('TEST-ONLY-PRIVATE-MARKER')||JSON.stringify(localStorage).includes('TEST-ONLY-PRIVATE-MARKER');});

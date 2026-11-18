@@ -2,13 +2,13 @@
 
 ## Why
 
-El broker base usa certificados localhost y ACL v1; ESP32/teléfono y notificaciones necesitan nombres LAN y permisos concretos.
+El broker vigente ofrece TCP1883/WS9001 autenticados y ACL v1/v2. Quedan pruebas físicas LAN y rol mínimo de notificaciones.
 
 ## What Changes
 
 - Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
 - Entregar broker: lan, v2 y rol de alertas conforme a R-04.
-- Cierre observable: TLS/WSS LAN real y ACL v1/v2 por nodo, con rol mínimo de notificaciones.
+- Cierre observable: TCP/WS LAN real y ACL v1/v2 por nodo, con rol mínimo de notificaciones.
 - Dependencias de integración: `sentinel-module-contracts`.
 - Esta propuesta solo planifica. No implementa funcionalidades ajenas a la capacidad ni modifica la evidencia de la base.
 
@@ -29,4 +29,4 @@ Archivos de futura implementación bajo propiedad de este autor:
 - `broker/ (config, scripts, pruebas y README)`
 - `docs/modules/broker-lan.md`
 
-No editar carpetas de otros integrantes. Riesgos: SAN/CA y red host → comprobar teléfono/ESP en LAN; localhost de emulador no lo sustituye. ACL demasiado amplia → test cruzado por nodo y rol.
+No editar carpetas de otros integrantes. Riesgos: IP y red host → comprobar teléfono/ESP en LAN; localhost de emulador no lo sustituye. ACL demasiado amplia → test cruzado por nodo y rol.

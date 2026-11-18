@@ -1,10 +1,13 @@
 # Preparacion inicial en Windows
 
+**MQTT vigente (2026-11-17):** TCP1883/WS9001 autenticados en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
+
+
 `install-board-config.ps1` conserva cuatro claves propias: menú, `build.partitions`, máximo4MiB y `--wrap=nvs_flash_init`. Retira cinco overrides Sentinel antiguos de carga/exportación; preserva claves/comentarios ajenos, crea respaldo y es idempotente. No modifica core/SDK/compilador ni graba una placa. Carga y exportación vuelven a las recetas oficiales.
 
 Aplicar la [política vigente de persistencia y USB](../../docs/persistence-policy.md): primera carga de la nueva tabla con **Erase All Flash Before Sketch Upload: Enabled** desde el IDE; pérdida de datos anteriores y nuevo emparejamiento/configuración, sin migración. Después volver a Disabled si no se solicita borrado total; USB no garantiza conservación. Reinicios/cortes normales sí deben conservar datos confirmados. El estado del build final se registra en la [verificación vigente](../../openspec/changes/sentinel-mvp-standard-persistence/verification.md); las pruebas físicas siguen pendientes y los logs anteriores son históricos.
 
-Instalar core oficial ESP32 **3.3.12** y **ESP_SSLClient3.1.3** desde Arduino IDE. Cerrarlo y ejecutar en PowerShell, desde la raiz del repositorio:
+Instalar core oficial ESP32 **3.3.12** desde Arduino IDE (MQTT ya no requiere ESP_SSLClient). Cerrarlo y ejecutar en PowerShell, desde la raiz del repositorio:
 
 ```powershell
 .\firmware\arduino\install-wolfmqtt.ps1

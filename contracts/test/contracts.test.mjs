@@ -49,12 +49,12 @@ test('inherited and non-string message types never bypass schema lookup',()=>{
  for(const type of ['constructor','__proto__','toString',null,1,{},[]])assert.throws(()=>decodeMessage(JSON.stringify({version:1,type})),e=>e.name==='ContractError'&&e.code==='invalid_message');
 });
 
-test('invalid TLS URI/port and NUL rejected with sanitized codec error',async()=>{
+test('invalid MQTT URI/port and NUL rejected with sanitized codec error',async()=>{
  const cmd=JSON.parse(await readFile(new URL('configure_connectivity.valid.json',fixtures)));
- for(const uri of ['mqtt://broker.example','mqtts://[::::]','mqtts://broker.example:65536','mqtts://broker.example:0','mqtts://user:secret@broker.example']){
+ for(const uri of ['mqtts://broker.example','mqtt://[::::]','mqtt://broker.example:65536','mqtt://broker.example:0','mqtt://user:secret@broker.example']){
   cmd.payload.args.mqtt_uri=uri;assert.throws(()=>decodeMessage(JSON.stringify(cmd)),e=>e.name==='ContractError'&&e.code==='invalid_message'&&!e.message.includes(uri));
  }
- cmd.payload.args.mqtt_uri='mqtts://[::1]:8883';assert.equal(decodeMessage(JSON.stringify(cmd)).type,'command');
+ cmd.payload.args.mqtt_uri='mqtt://[::1]:1883';assert.equal(decodeMessage(JSON.stringify(cmd)).type,'command');
  cmd.payload.args.wifi_password='a\0b';assert.throws(()=>decodeMessage(JSON.stringify(cmd)));
 });
 

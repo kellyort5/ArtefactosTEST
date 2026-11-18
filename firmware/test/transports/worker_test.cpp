@@ -35,45 +35,25 @@ void wait_for(const std::function<bool()> &fn) {
     delay(1);
   }
 }
-MqttTransport::Config config(const std::string &root,
-                             const char *host = "sentinel.test") {
+MqttTransport::Config config(const char *host = "sentinel.test") {
   MqttTransport::Config c;
   snprintf(c.host, sizeof(c.host), "%s", host);
-  snprintf(c.ca, sizeof(c.ca), "%s", load(root).c_str());
   strcpy(c.user, "synthetic-user");
   strcpy(c.password, "synthetic-password");
   strcpy(c.client_id, "node-probe");
   strcpy(c.commands, "sentinel/v2/nodes/probe/commands");
   strcpy(c.availability, "sentinel/v2/nodes/probe/availability");
-  c.time_valid = true;
   return c;
 }
-void prepare(const std::vector<std::string> &peer) {
+void prepare() {
   assert(transport.stopped());
   join_workers();
-  reset_peer(peer);
+  reset_peer();
   ups = downs = errors = messages = 0;
   got_retained = false;
   server.no_puback = false;
-  server.omit_peer = false;
   server.inject_retained = false;
   server.gate = false;
-}
-void fail(const char *name, const std::vector<std::string> &peer,
-          const MqttTransport::Config &c, bool omit = false) {
-  prepare(peer);
-  server.omit_peer = omit;
-  assert(transport.start(c));
-  wait_for([] { return transport.stopped() || ups.load() > 0; });
-  if (!transport.stopped()) {
-    transport.request_stop();
-    wait_for([] { return transport.stopped(); });
-  }
-  join_workers();
-  assert(server.sent.empty());
-  assert(errors == 1);
-  assert(server.closes >= 1);
-  printf("%s: fail closed, ZERO MQTT/auth bytes PASS\n", name);
 }
 void save_frames(const char *name) {
   std::ofstream f(artifact_dir + name + ".hex");
@@ -86,13 +66,12 @@ void save_frames(const char *name) {
     f << '\n';
   }
 }
-void success(const char *name, const std::vector<std::string> &peer,
-             const MqttTransport::Config &c) {
-  prepare(peer);
+void success(const char *name, const MqttTransport::Config &c) {
+  prepare();
   server.inject_retained = true;
   assert(transport.start(c));
   wait_for([] { return ups == 1 && messages == 1; });
-  assert(got_retained && server.actual_host == c.host);
+  assert(got_retained && !server.actual_ip.empty());
   const char payload[] = "{\"stable_event\":\"fixture-1\"}";
   assert(transport.enqueue("sentinel/v2/nodes/probe/events", payload,
                            strlen(payload), 1, false));
@@ -108,7 +87,7 @@ void success(const char *name, const std::vector<std::string> &peer,
   join_workers();
   assert(errors == 0);
   save_frames(name);
-  printf("%s: verified before auth, MQTT5/QoS1/retained input/stop PASS\n",
+  printf("%s: TCP authenticated session, MQTT5/QoS1/retained input/stop PASS\n",
          name);
 }
 int main(int argc, char **argv) {
@@ -120,46 +99,27 @@ int main(int argc, char **argv) {
     artifact_dir = std::string(argv[2]) + "/";
   auto retained = load(r + "retained-command.bin");
   server.retained_packet.assign(retained.begin(), retained.end());
-  auto rsa = config(r + "root.pem");
-  fail("expired leaf", {f + "expired.der"}, rsa);
-  fail("future leaf", {f + "future.der"}, rsa);
-  fail("wrong DNS identity", {f + "valid.der"},
-       config(r + "root.pem", "other.test"));
-  fail("wrong CA", {f + "valid.der"}, config(r + "wrong-root.pem"));
-  fail("missing retained peer chain", {f + "valid.der"}, rsa, true);
-  auto ec = config(r + "chain-valid/root.pem");
-  success("valid-DNS-chain-EC",
-          {r + "chain-valid/leaf.der", r + "chain-valid/intermediate.der"}, ec);
-  success("valid-IPv4-chain-EC",
-          {r + "chain-valid/leaf.der", r + "chain-valid/intermediate.der"},
-          config(r + "chain-valid/root.pem", "192.0.2.1"));
-  success("valid-IPv6-chain-EC",
-          {r + "chain-valid/leaf.der", r + "chain-valid/intermediate.der"},
-          config(r + "chain-valid/root.pem", "2001:db8::1"));
-  fail("expired intermediate",
-       {r + "chain-expired/leaf.der", r + "chain-expired/intermediate.der"},
-       config(r + "chain-expired/root.pem"));
-  fail("future intermediate",
-       {r + "chain-future/leaf.der", r + "chain-future/intermediate.der"},
-       config(r + "chain-future/root.pem"));
-  fail("expired configured CA", {r + "expired-ca/leaf.der"},
-       config(r + "expired-ca/root.pem"));
-  fail("future configured CA", {r + "future-ca/leaf.der"},
-       config(r + "future-ca/root.pem"));
-  success("valid-CA-keyCertSign", {r + "valid-ca-usage/leaf.der"},
-          config(r + "valid-ca-usage/root.pem"));
-  success("valid-bundle-unused-expired-CA",
-          {r + "chain-valid/leaf.der", r + "chain-valid/intermediate.der"},
-          config(r + "mixed-ca.pem"));
-  prepare({f + "valid.der"});
-  auto unknown = rsa;
-  unknown.time_valid = false;
-  assert(!transport.start(unknown));
+  auto tcp = config();
+  success("valid-DNS", tcp);
+  success("valid-IPv4", config("192.0.2.1"));
+  success("valid-IPv6", config("2001:db8::1"));
+  prepare();
+  auto invalid = tcp; invalid.user[0] = 0;
+  assert(!transport.start(invalid));
+  invalid = tcp; invalid.password[0] = 0;
+  assert(!transport.start(invalid));
+  invalid = tcp; invalid.port = 0;
+  assert(!transport.start(invalid));
   assert(!server.entered && server.sent.empty());
-  puts("missing clock: refused before TLS/MQTT PASS");
-  prepare({f + "valid.der"});
+  puts("missing authentication/port refused before TCP PASS");
+  prepare(); server.fail_connect = true;
+  assert(transport.start(tcp));
+  wait_for([] { return transport.stopped(); }); join_workers();
+  assert(errors == 1 && server.sent.empty());
+  puts("TCP failure: no MQTT/auth bytes sent PASS");
+  prepare();
   server.gate = true;
-  assert(transport.start(rsa));
+  assert(transport.start(tcp));
   wait_for([] { return server.entered.load(); });
   transport.request_stop();
   assert(transport.stopping() && !transport.stopped());
@@ -169,9 +129,9 @@ int main(int argc, char **argv) {
   assert(server.sent.empty());
   puts("cancel during I/O: supervisor calls return, pending until worker ACK, "
        "ZERO auth PASS");
-  prepare({f + "valid.der"});
+  prepare();
   server.no_puback = true;
-  assert(transport.start(rsa));
+  assert(transport.start(tcp));
   wait_for([] { return ups == 1; });
   const char payload[] = "{\"stable_event\":\"replay-1\"}";
   assert(transport.enqueue("sentinel/v2/nodes/probe/events", payload,
@@ -183,7 +143,7 @@ int main(int argc, char **argv) {
   server.no_puback = false;
   server.incoming.clear();
   server.sent.clear();
-  assert(transport.start(rsa));
+  assert(transport.start(tcp));
   wait_for([] {
     std::lock_guard<std::mutex> l(server.lock);
     for (auto &p : server.sent)

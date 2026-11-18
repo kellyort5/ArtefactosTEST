@@ -2,18 +2,19 @@
 
 ## Purpose
 
-El broker base usa certificados localhost y ACL v1; ESP32/teléfono y notificaciones necesitan nombres LAN y permisos concretos.
+Acceso MQTT autenticado por IP en LAN de confianza para teléfono, ESP32 e integraciones, con permisos exactos v1/v2.
 
 ## ADDED Requirements
 
-### Requirement: Identidad TLS LAN
+### Requirement: Acceso MQTT LAN autenticado
 
-El broker SHALL aceptar clientes TLS/WSS de la LAN autorizada con hostname/SAN verificables y rechazar identidades inválidas.
+El broker SHALL aceptar clientes MQTT5/TCP y WS por IP en redes de confianza autorizadas sin certificados ni configuración del router, conservando autenticación y ACL.
 
-#### Scenario: Identidad TLS LAN verificable
+#### Scenario: Acceso LAN verificable
 
-- **WHEN** el teléfono/ESP conecta con CA correcta y luego con hostname incorrecto
-- **THEN** la primera conexión funciona y la segunda falla sin omitir TLS
+- **WHEN** teléfono y ESP32 conectan por IP con sus cuentas autorizadas
+- **THEN** intercambian mensajes de sus topics sin CA
+- **AND** el diagnóstico distingue aislamiento de red y firewall local de errores de cuenta
 
 ### Requirement: Permisos mínimos v2
 

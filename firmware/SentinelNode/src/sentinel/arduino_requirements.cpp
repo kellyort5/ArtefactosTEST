@@ -22,13 +22,11 @@
 #endif
 // SC-only/MITM/one connection are enforced in the BLE adapter at runtime;
 // compiled legacy support is never accepted as permission to use legacy links.
-#if !CONFIG_MBEDTLS_HAVE_TIME || !CONFIG_MBEDTLS_SSL_KEEP_PEER_CERTIFICATE ||  \
-    !CONFIG_MBEDTLS_SSL_PROTO_TLS1_2 || CONFIG_ESP_TLS_INSECURE ||             \
+// HTTPS/DoH retain certificate validation; MQTT uses TCP in the LAN MVP.
+#if !CONFIG_MBEDTLS_SSL_PROTO_TLS1_2 || CONFIG_ESP_TLS_INSECURE || \
     CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY
-#error Sentinel requires authenticated native TLS with its peer chain retained for date validation
+#error Sentinel requires verified HTTPS support for Sanitizador
 #endif
-// MQTT5 and certificate dates come from source-built maintained libraries.
-// Their guards and mandatory verification precede every MQTT authentication.
 #if !CONFIG_LWIP_IP_FORWARD || !CONFIG_LWIP_IPV4_NAPT
 #error Sentinel requires official forwarding and NAPT resources for Sanitizador
 #endif

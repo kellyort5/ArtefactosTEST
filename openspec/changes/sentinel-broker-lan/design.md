@@ -8,7 +8,7 @@ Responsable único: **Persona 4 — app, Android, broker y coordinación del lab
 
 ## Goals / Non-Goals
 
-**Goals:** TLS/WSS LAN real y ACL v1/v2 por nodo, con rol mínimo de notificaciones.
+**Goals:** TCP/WS LAN real y ACL v1/v2 por nodo, con rol mínimo de notificaciones.
 
 **Non-Goals:** implementar otros encargos, recortar funcionalidades acordadas o hacer benchmarks/campañas prolongadas. Los archivos ajenos se solicitan a su dueño. Esta planificación no aplica cambios ni autoriza operaciones Git.
 
@@ -16,7 +16,7 @@ Responsable único: **Persona 4 — app, Android, broker y coordinación del lab
 
 Los acuerdos funcionales de R-04 son confirmados. Las elecciones concretas nuevas de este diseño son **propuestas de implementación**, no acuerdos históricos. Los límites iniciales son recomendaciones ajustables ante fallos sin retirar funcionalidad. Revisar con el usuario las elecciones arquitectónicas nuevas antes de aplicar; los detalles no estructurales se resuelven durante implementación.
 
-Conservar Mosquitto2.0.22/digest, Compose, TLS8883/WSS9001 y gestión privada .secrets de la base. Extender herramienta existente de certificados con SAN configurables del host/IP LAN; no desactivar hostname verification ni usar certificados reales versionados. App y firmware confían CA local por configuración autorizada.
+Conservar Mosquitto2.0.22/digest, Compose, TCP1883/WS9001 y gestión privada .secrets. La decisión del usuario de 2026-11-17 retira TLS/CA de MQTT: usar IP LAN y cuentas/ACL, sin modificar router. TCP/WS y ACL node/operator/viewer v1/v2 se implementan en sentinel-mqtt-mvp-lan; no dar por cerradas aquí pruebas físicas ni el rol notify.
 
 ACL v2: nodo publica state/availability/metrics/events/acks y lee commands solo propio; operator lee propios y publica commands; viewer solo lee propios. Rol notify-<node> solo suscribe events/availability v2 y events históricos v1 si corresponde, sin publicar commands ni otros nodos. Mantener publicación/lectura de v1/events para replay de journal de base. Configurar IP/puertos/firewall del host para LAN autorizada sin abrir Internet; no modificar Compose de notifications ni poner HTTP/Telnet del ESP32 detrás del broker. Pruebas breves positivas/negativas con cuentas temporales propias, secretos por stdin/config local, nunca en ejemplos o logs.
 
@@ -28,7 +28,7 @@ Archivos de implementación: `broker/ (config, scripts, pruebas y README)`, `doc
 
 ## Risks / Trade-offs
 
-- SAN/CA y red host → comprobar teléfono/ESP en LAN; localhost de emulador no lo sustituye.
+- IP y red host → comprobar teléfono/ESP en LAN; localhost de emulador no lo sustituye.
 - ACL demasiado amplia → test cruzado por nodo y rol.
 
 ## Migration Plan

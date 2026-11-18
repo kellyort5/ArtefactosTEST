@@ -3,10 +3,9 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "include/mqtt_dns.h"
-#include "include/tls_verification.h"
 #include "include/transport_requirements.h"
 #include <Arduino.h>
-#include <NetworkClientSecure.h>
+#include <NetworkClient.h>
 #include <algorithm>
 #include <atomic>
 #include <cstring>
@@ -33,7 +32,7 @@ struct MqttTransport::Impl {
   MessageCallback message = nullptr;
   QueueHandle_t queue = nullptr;
   std::atomic<bool> busy{false}, cancel{false}, online{false};
-  NetworkClientSecure tls;
+  NetworkClient socket;
   MqttDns dns;
   MqttClient mqtt = {};
   MqttNet net = {};
@@ -49,27 +48,22 @@ struct MqttTransport::Impl {
     IPAddress ip;
     if (!s.dns.resolve(host, ip, s.cancel) || s.cancel)
       return MQTT_CODE_ERROR_NETWORK;
-    s.tls.setTimeout(1);
-    s.tls.setHandshakeTimeout(1);
-    // This overload keeps the original host identity while avoiding a second,
-    // blocking DNS lookup. Native TLS enforces CA and DNS/IP SAN verification.
-    if (!s.tls.connect(ip, port, host, s.config.ca, nullptr, nullptr))
-      return MQTT_CODE_ERROR_NETWORK;
-    if (s.cancel || !verify_peer_dates(s.tls, s.config.ca, time(nullptr),
-                                       s.config.time_valid)) {
-      s.tls.stop();
+    s.socket.setTimeout(1);
+    // Official Arduino TCP client; resolve once and bound connect to one second.
+    if (!s.socket.connect(ip, port, 1000) || s.cancel) {
+      s.socket.stop();
       return MQTT_CODE_ERROR_NETWORK;
     }
-    return MQTT_CODE_SUCCESS; // The external transport is already encrypted.
+    return MQTT_CODE_SUCCESS;
   }
   static int read(void *arg, byte *buf, int n, int timeout) {
     auto &s = *static_cast<Impl *>(arg);
     uint32_t end = millis() + std::min(std::max(timeout, 1), 1000);
     while (!s.cancel) {
-      int available = s.tls.available();
+      int available = s.socket.available();
       if (available > 0)
-        return s.tls.read(buf, std::min(n, available));
-      if (!s.tls.connected())
+        return s.socket.read(buf, std::min(n, available));
+      if (!s.socket.connected())
         return MQTT_CODE_ERROR_NETWORK;
       if (static_cast<int32_t>(end - millis()) <= 0)
         return MQTT_CODE_ERROR_TIMEOUT;
@@ -79,13 +73,13 @@ struct MqttTransport::Impl {
   }
   static int write(void *arg, const byte *buf, int n, int) {
     auto &s = *static_cast<Impl *>(arg);
-    if ((s.cancel && !s.closing) || !s.tls.connected())
+    if ((s.cancel && !s.closing) || !s.socket.connected())
       return MQTT_CODE_ERROR_NETWORK;
-    int sent = s.tls.write(buf, n);
+    int sent = s.socket.write(buf, n);
     return sent > 0 ? sent : MQTT_CODE_ERROR_NETWORK;
   }
   static int disconnect(void *arg) {
-    static_cast<Impl *>(arg)->tls.stop();
+    static_cast<Impl *>(arg)->socket.stop();
     return MQTT_CODE_SUCCESS;
   }
   void reset_incoming() {
@@ -139,8 +133,7 @@ struct MqttTransport::Impl {
     if (rc != MQTT_CODE_SUCCESS)
       return rc;
     mqtt.ctx = this;
-    // use_tls=0 selects the encrypted external callback, never a plain
-    // fallback.
+    // use_tls=0 selects the official TCP client for the trusted-LAN MVP.
     rc = MqttClient_NetConnect(&mqtt, config.host, config.port, 1000, 0,
                                nullptr);
     if (rc != MQTT_CODE_SUCCESS || cancel)
@@ -217,7 +210,7 @@ struct MqttTransport::Impl {
       }
     }
     online = false;
-    if (cancel && tls.connected()) {
+    if (cancel && socket.connected()) {
       closing = true;
       MqttProp expiry = {};
       expiry.type = MQTT_PROP_SESSION_EXPIRY_INTERVAL;
@@ -266,8 +259,8 @@ bool MqttTransport::init(StateCallback state, MessageCallback message) {
   return true;
 }
 bool MqttTransport::start(const Config &config) {
-  if (!impl || !config.host[0] || !config.ca[0] || !config.user[0] ||
-      !config.password[0] || !config.time_valid)
+  if (!impl || !config.host[0] || !config.port || !config.user[0] ||
+      !config.password[0])
     return false;
   bool idle = false;
   if (!impl->busy.compare_exchange_strong(idle, true))

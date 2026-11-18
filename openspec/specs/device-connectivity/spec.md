@@ -24,7 +24,7 @@ El dispositivo SHALL autorizar nuevos clientes BLE solo durante una ventana acti
 - **AND** conserva los vínculos existentes sin borrarlos automáticamente
 
 ### Requirement: Configuración privada de conectividad
-El dispositivo SHALL recibir configuración Wi-Fi y MQTT de laboratorio mediante BLE protegido, validar sus límites y persistir la configuración aceptada durante uso normal, reinicios y cortes de alimentación, y mantener los secretos fuera de mensajes públicos, historial y logs.
+El dispositivo SHALL recibir configuración Wi-Fi y MQTT de laboratorio (`mqtt://host[:puerto]`, usuario y contraseña, sin CA) mediante BLE protegido, validar sus límites y persistir la configuración aceptada durante uso normal, reinicios y cortes de alimentación, y mantener los secretos fuera de mensajes públicos, historial y logs.
 
 #### Scenario: Configuración local válida
 - **WHEN** un cliente BLE autorizado suministra parámetros de una red propia y broker confiable
@@ -46,11 +46,15 @@ El dispositivo SHALL recibir configuración Wi-Fi y MQTT de laboratorio mediante
 - **THEN** el nodo permanece sin conectividad configurada e informa el estado sin revelar datos sensibles ni borrar vínculos o historial
 
 ### Requirement: STA y MQTT seguros en el perfil Cebo
-El dispositivo SHALL conectar a la red autorizada y al broker autenticado con validación TLS de identidad del servidor; publicar estado real y aceptar comandos autorizados en Cebo. SHALL reintentar fallos sin bloquear botón, pantalla o supervisor.
+El dispositivo SHALL conectar a la red autorizada de confianza y al broker autenticado mediante MQTT5/TCP, sin TLS ni CA; publicar estado real y aceptar comandos autorizados en Cebo. SHALL reintentar fallos sin bloquear botón, pantalla o supervisor y conectar aunque UTC sea desconocido.
 
 #### Scenario: Broker o contraseña incorrectos
-- **WHEN** falla autenticación, certificado o conectividad del broker
-- **THEN** el nodo informa el fallo y reintenta de forma acotada sin recurrir a TCP sin cifrar ni omitir la validación TLS
+- **WHEN** falla autenticación o conectividad del broker
+- **THEN** el nodo informa el fallo y reintenta de forma acotada conservando autenticación y permisos
+
+#### Scenario: Reinicio sin hora sincronizada
+- **WHEN** el nodo recupera configuración válida, entra en Cebo y todavía no tiene UTC
+- **THEN** conecta a MQTT y publica tiempo monotónico con calidad desconocida sin exigir sincronización horaria
 
 ### Requirement: Escudo sin conectividad Wi-Fi activa
 El perfil Escudo SHALL conservar BLE para control sin iniciar asociación, escaneo activo, MQTT directo ni servicios de pasarela. Las funciones pasivas disponibles SHALL operar mediante el gestor compartido conforme a las especificaciones de descubrimiento, captura, detección y recuperación de Escudo.

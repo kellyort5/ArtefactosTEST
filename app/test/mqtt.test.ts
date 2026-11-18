@@ -9,7 +9,7 @@ import {makeNodeCommand,type NodeMessage,type NodeState} from '../src/protocol';
 
 const fixture=(path:string)=>JSON.parse(readFileSync(new URL(`../../contracts/fixtures/${path}`,import.meta.url),'utf8'));
 const state=fixture('v2/states/cebo.valid.json') as NodeState;
-const settings={endpoint:'wss://broker.example:9001/mqtt',deviceId:state.device_id,username:`operator-${state.device_id}`,password:'TEST-ONLY',role:'operator' as const};
+const settings={endpoint:'ws://broker.example:9001/mqtt',deviceId:state.device_id,username:`operator-${state.device_id}`,password:'TEST-ONLY',role:'operator' as const};
 class Client extends EventEmitter {
  connected=true;options:IClientOptions={};topics:string[]=[];published:{topic:string;payload:string;options:unknown}[]=[];
  constructor(private legacyOnly=false,private denied=false){super();}
@@ -54,4 +54,15 @@ test('MQTT viewer and private module operations cannot publish',async()=>{
  await transport.connect({...settings});
  await assert.rejects(()=>transport.send(makeNodeCommand(meta,{operation:'sanitizador.configure_upstream',args:{ssid:'LAB',wifi_password:'TEST-ONLY'}},'private')));
  assert.equal(client.published.length,0);await transport.disconnect();
+});
+
+
+test('MVP WS accepts a LAN IP without certificates and rejects malformed endpoints or missing accounts',async()=>{
+ const {transport,client}=setup();
+ await transport.connect({...settings,endpoint:'ws://192.0.2.10:9001/mqtt'});
+ assert.equal(client.options.protocolVersion,5);
+ assert.equal(client.options.ca,undefined);
+ await transport.disconnect();
+ for(const endpoint of ['wss://192.0.2.10:9001/mqtt','mqtt://192.0.2.10','ws://u:p@192.0.2.10','ws://192.0.2.10/mqtt?password=x','ws://192.0.2.10/mqtt#x','ws://192.0.2.10:0/mqtt'])await assert.rejects(()=>transport.connect({...settings,endpoint}));
+ await assert.rejects(()=>transport.connect({...settings,password:''}));
 });

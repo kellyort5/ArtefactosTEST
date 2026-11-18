@@ -26,7 +26,7 @@ La migración SHALL conservar descubrimiento, selección, captura, canales, cuat
 
 ### Requirement: Seguridad y datos compatibles
 
-El firmware SHALL conservar GATT/framing, contratos v2 e históricos v1, MQTT5/TLS, SC-only, persistencia operativa NVS de identidad/bonds/configuración/historial confirmado según sentinel-mvp-standard-persistence (USB puede reinicializar sin migración); validar comandos, resultados y datos con los esquemas existentes.
+El firmware SHALL conservar GATT/framing, contratos v2 e históricos v1, MQTT5/TCP autenticado en LAN sin certificados según sentinel-mqtt-mvp-lan, SC-only, persistencia operativa NVS de identidad/bonds/configuración/historial confirmado según sentinel-mvp-standard-persistence (USB puede reinicializar sin migración); validar comandos, resultados y datos con los esquemas existentes.
 
 #### Scenario: Reconstrucción y recuperación
 

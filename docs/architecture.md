@@ -1,5 +1,8 @@
 # Sentinel Node: arquitectura propuesta
 
+**MQTT vigente (2026-11-17):** TCP1883/WS9001 autenticados en LAN de confianza, sin certificados ni ESP_SSLClient. [Cambio y verificación](../openspec/changes/sentinel-mqtt-mvp-lan/verification.md). Los builds anteriores con TLS son históricos.
+
+
 **Política aprobada vigente:** [persistencia operativa y USB](persistence-policy.md), definida en [sentinel-mvp-standard-persistence](../openspec/changes/sentinel-mvp-standard-persistence/design.md). Conservar identidad, bonds, configuración e historial confirmado en uso normal/reinicio/corte; USB permite reinicialización sin migración. Arduino oficial primero; justificar cada excepción mínima. La tabla nueva/cuatro claves/configuración persistente se verifican en la [verificación vigente](../openspec/changes/sentinel-mvp-standard-persistence/verification.md); los builds anteriores son históricos y no cierran pruebas físicas.
 
 ## Estado y fuentes
@@ -85,12 +88,12 @@ Sin asociacion Wi-Fi ni MQTT directo en Escudo.
 CEBO DE RED LOCAL
 [Clientes LAN] --> [ESP32-S3: HTTP / Telnet ficticios]
                                       ^
-                                      | MQTT/TLS
+                                      | MQTT/TCP
                                       v
                                  [Mosquitto]
                                   ^       |
                                   |       v
-                           MQTT/WSS  [Notificaciones]
+                           MQTT/WS  [Notificaciones]
                                   |       |
                                   v       +--> [Webhook]
                             [App Android]       |
@@ -102,7 +105,7 @@ CEBO DE RED LOCAL
 [Simulador] <-- MQTT --> [Mosquitto]   (apoyo separado)
 ```
 
-**Decisiones confirmadas:** BLE para descubrir redes, seleccionar objetivo, controlar y recibir resultados del Escudo; MQTT para Cebo. TLS/WSS, identidades y ACL según R-04; autorización BLE según R-03/R-07. GATT/framing y MQTT están documentados en [conectividad](connectivity.md) y [contratos](../contracts/module-protocol.md); las credenciales de laboratorio se suministran fuera del repositorio y los logs.
+**Decisiones confirmadas:** BLE para descubrir redes, seleccionar objetivo, controlar y recibir resultados del Escudo; MQTT para Cebo. MQTT/TCP y WS sin TLS, identidades y ACL según R-04; autorización BLE según R-03/R-07. GATT/framing y MQTT están documentados en [conectividad](connectivity.md) y [contratos](../contracts/module-protocol.md); las credenciales de laboratorio se suministran fuera del repositorio y los logs.
 
 El control remoto utiliza el canal disponible. En Escudo no se enviarán órdenes al nodo por MQTT ni se lo asociará a una red para recuperar ese canal. Al pasar a Cebo se establece la conexión autorizada y MQTT; al volver a Escudo se detienen servicios y conexión Wi-Fi. La app reconcilia el resultado de una transición si se interrumpe el canal que la inició.
 

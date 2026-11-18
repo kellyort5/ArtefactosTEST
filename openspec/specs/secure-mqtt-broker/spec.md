@@ -2,21 +2,26 @@
 
 ## Purpose
 
-Proporcionar un intermediario MQTT reproducible para dispositivo y aplicación, con cifrado, autenticación y aislamiento de permisos sin exponer credenciales administrativas.
+Proporcionar un intermediario MQTT reproducible para dispositivo y aplicación, con autenticación y aislamiento de permisos sin exponer credenciales administrativas.
 
 ## Requirements
 
-### Requirement: Listeners cifrados sin acceso anónimo
-El broker SHALL ofrecer MQTT/TLS y MQTT sobre WSS con TLS 1.2 o superior, autenticación obligatoria y certificados verificables. No SHALL habilitar listeners de acceso sin cifrar o anónimo como alternativa de desarrollo.
+### Requirement: Listeners LAN autenticados sin certificados
+El broker SHALL ofrecer MQTT5/TCP en 1883 y MQTT5/WS en 9001 para redes de confianza autorizadas, con autenticación obligatoria y sin certificados. SHALL permitir acceso LAN sin cambios de router y documentar que el tráfico no está cifrado.
 
 #### Scenario: Arranque con configuración privada
-- **WHEN** se inicia el broker con certificados y credenciales locales válidos
-- **THEN** el nodo y la app pueden conectar mediante sus listeners cifrados
+- **WHEN** se inicia el broker con credenciales locales válidas
+- **THEN** el nodo y la app pueden conectar mediante TCP y WS sin CA
 - **AND** una conexión anónima o con contraseña incorrecta se rechaza
 
 #### Scenario: Material privado ausente
-- **WHEN** faltan certificados, claves o archivo de usuarios
-- **THEN** el arranque falla con instrucciones de configuración sin generar credenciales públicas ni habilitar acceso inseguro
+- **WHEN** falta el archivo de usuarios o ACL
+- **THEN** el arranque falla con instrucciones de configuración sin generar credenciales públicas ni habilitar acceso anónimo
+
+#### Scenario: Acceso desde teléfono
+- **WHEN** el teléfono y el PC pueden comunicarse en una red de confianza
+- **THEN** la app accede al broker usando la IP LAN del PC sin instalar certificados ni configurar DNS o el router
+- **AND** las instrucciones distinguen firewall local y aislamiento de clientes de fallos de autenticación
 
 ### Requirement: Permisos separados por identidad y nodo
 El broker SHALL restringir cada nodo a publicar su estado, métricas, eventos y confirmaciones y a recibir sus órdenes. Los observadores SHALL ser de solo lectura y los operadores solo SHALL ordenar sobre nodos autorizados.
@@ -26,7 +31,7 @@ El broker SHALL restringir cada nodo a publicar su estado, métricas, eventos y 
 - **THEN** el broker deniega la operación y no entrega el mensaje a otros clientes
 
 ### Requirement: Configuración y datos privados fuera del repositorio
-El despliegue SHALL separar configuración fuente, datos persistentes y secretos locales; generar usuarios y certificados de laboratorio sin guardar contraseñas, claves privadas o contenido sensible en Git o logs.
+El despliegue SHALL separar configuración fuente, datos persistentes y secretos locales; generar usuarios de laboratorio sin requerir certificados, sin guardar contraseñas, claves privadas o contenido sensible en Git o logs.
 
 #### Scenario: Preparación de un entorno
 - **WHEN** el equipo sigue las instrucciones de configuración

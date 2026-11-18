@@ -11,7 +11,7 @@ Responsable único de todas las casillas: **Persona 4**. Estado inicial: todo pe
 
 ## 2. Comprobación del incremento
 
-- [ ] 2.1 Compilar Android y observar interacciones reales HTTP/Telnet por WSS; comprobar alerta interna e historial.
+- [ ] 2.1 Compilar Android y observar interacciones reales HTTP/Telnet por WS; comprobar alerta interna e historial.
 - [ ] 2.2 Caer/restaurar MQTT y un canal externo; registrar recuperación y estados reales sin duplicación.
 
 ## Workflow follow-up

@@ -62,7 +62,7 @@ Una rama `feat/<nombre completo del cambio>` y un PR por encargo. No abrir dos i
 
 [Ficha, diseño, spec y tareas](sentinel-alertas-webhook.md). Requiere contratos, broker LAN y eventos Cebo.
 
-1. Crear componente Node mínimo con package/lockfile y Compose propios. Consumir MQTT TLS con rol de lectura limitado a nodos autorizados; pedir ACL a P4.
+1. Crear componente Node mínimo con package/lockfile y Compose propios. Consumir MQTT TCP con rol de lectura limitado a nodos autorizados; pedir ACL a P4.
 2. Implementar enrutado, dedup y outbox persistente acotada con reintentos/vencimiento. No convertirlo en una plataforma histórica adicional.
 3. Integrar webhook HTTPS con destinos/cuentas propios configurados fuera de Git. Mantener la gestión de fallos del webhook separada del futuro canal push.
 4. Implementar estado por HTTPS con autenticación por nodo y CORS explícito conforme al contrato; no devolver tokens/destinos privados.
@@ -121,7 +121,7 @@ No exponer HTTP/Telnet a Internet ni abrir puertos del router. Limitar recursos 
 | --- | --- |
 | P1 | Recibir hooks/journal; solicitar cambios globales. Entregar registro Cebo y evidencia de parada, replay y límites. |
 | P2 | Acordar turnos de ESP32; no modificar Sanitizador ni ejecutar ambos modos a la vez en una placa. |
-| P4 | Recibir broker TLS/WSS y rol mínimo; entregar API de estado/registro y servidor push. Él implementa la UI, registro Android y recepción/tap. |
+| P4 | Recibir broker TCP/WS y rol mínimo; entregar API de estado/registro y servidor push. Él implementa la UI, registro Android y recepción/tap. |
 
 Tu cierre requiere servicios reales, eventos válidos, persistencia/replay sin secretos, webhook recibidos y envío push real con evidencia coordinada de recepción Android. Entregar por número de tarea, comandos y resultados; P4 consolida y Jefry mantiene OpenSpec. Usa el [formato de entrega](guia-equipo.md#6-rutina-por-tarea-y-entrega) y conserva pendientes físicos como PENDIENTE.
 

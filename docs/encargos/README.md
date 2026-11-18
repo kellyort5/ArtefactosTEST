@@ -158,7 +158,7 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 | MQTT real, historial/incidentes/métricas/gráficos/alertas internas    | P3 cebo-eventos-historial                       | P4 app-cebo + broker-lan                                      |
 | Webhooks, dedup y control de saturación                     | P3 alertas-webhook                     | P4 app-cebo consulta estado                                   |
 | Push móvil incluso app cerrada                                        | P3 alertas-push-servidor                        | P4 app-push; teléfono real obligatorio                        |
-| TLS/WSS, BLE autenticado, contratos/ACK/replay                        | P1 contratos + API + base                       | P4 broker-lan + P1 app-protocolo-v2                              |
+| TCP/WS, BLE autenticado, contratos/ACK/replay                        | P1 contratos + API + base                       | P4 broker-lan + P1 app-protocolo-v2                              |
 | OLED con alertas recientes/botón, supervisor, cambios seguros y errores | P1 firmware-module-api + integracion-tres-modos (alertas OLED: tarea 1.5) | P4 pantallas reflejan estado, laboratorio recoge evidencia    |
 | Datos sensibles, límites y uso solo autorizado                        | Cada autor en su componente                     | P4 laboratorio verifica; no se guardan credenciales recibidas |
 
@@ -173,7 +173,7 @@ Las dependencias son entregas revisadas; no se asume ningún merge realizado. De
 
 ## Qué queda pendiente y qué se difiere
 
-**Pendiente durante implementación:** verificación física de la base; revisión/implementación de API de módulos y sus consumidores; captura/BLE, NAT+DoH conjunto, detectores y persistencia; cuentas propias de integraciones; CA/SAN LAN y recepción push cerrada. El contrato está aprobado, pero los diseños no acreditan hardware ni sustituyen pruebas reales.
+**Pendiente durante implementación:** verificación física de la base; revisión/implementación de API de módulos y sus consumidores; captura/BLE, NAT+DoH conjunto, detectores y persistencia; cuentas propias de integraciones; IP LAN y permisos y recepción push cerrada. El contrato está aprobado, pero los diseños no acreditan hardware ni sustituyen pruebas reales.
 
 **Después de la entrega funcional completa:** benchmarks, autonomía, carga prolongada, resistencia flash y campañas extensas de compatibilidad/estabilidad. Ningún detector, servicio, canal de alerta o función del Sanitizador se mueve aquí para declarar éxito antes.
 

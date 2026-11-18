@@ -152,7 +152,7 @@ npm install -g npm@11.8.0
 
 Abrir Arduino IDE Windows y el sketch `firmware/SentinelNode/SentinelNode.ino` desde el checkout completo. La simplificación usa el core oficial ESP32 **3.3.12**, instalado en este equipo junto al SDK estándar, separado de la plataforma Sentinel anterior.
 
-Seguir la [instalación inicial](firmware.md#instalación-inicial): instalar el core oficial **3.3.12** y **ESP_SSLClient 3.1.3** desde el IDE; cerrarlo y ejecutar estos dos comandos en **PowerShell, desde la raíz del repositorio**:
+Seguir la [instalación inicial](firmware.md#instalación-inicial): instalar el core oficial **3.3.12** desde el IDE (sin ESP_SSLClient para MQTT); cerrarlo y ejecutar estos dos comandos en **PowerShell, desde la raíz del repositorio**:
 
 ```powershell
 .\firmware\arduino\install-wolfmqtt.ps1
@@ -205,7 +205,7 @@ Para ver la interfaz en Windows, mantener esta terminal abierta:
 npm run dev
 ```
 
-Abrir la URL que indique Vite (normalmente `http://localhost:5173`). Sin nodo, debe mostrar **Esperando un dispositivo**, sin redes ni incidentes inventados. El navegador sirve para UI/WSS; **Buscar y conectar BLE** explica que requiere Android. Cerrar Vite con `Ctrl+C` cuando termines. En WSL sobre `/mnt/c`, si no refleja una edición, reiniciar Vite antes de probar otra vez.
+Abrir la URL que indique Vite (normalmente `http://localhost:5173`). Sin nodo, debe mostrar **Esperando un dispositivo**, sin redes ni incidentes inventados. El navegador sirve para UI/WS; **Buscar y conectar BLE** explica que requiere Android. Cerrar Vite con `Ctrl+C` cuando termines. En WSL sobre `/mnt/c`, si no refleja una edición, reiniciar Vite antes de probar otra vez.
 
 ## 6. Verificar firmware y mantenimiento opcional
 
@@ -388,7 +388,7 @@ El framing y las lecturas protegidas los realiza la app. No pegar JSON directame
 | **Historial de eventos** | IDs, cursor, perfil, hora/calidad, boot, diagnóstico y origen **Real/Simulado**; v1 indica origen no informado. |
 | **Recuperar por cursor** | Solicita páginas desde el cursor confirmado; no permite escribir un cursor arbitrario. |
 
-En esta sesión dejar sin configurar **MQTT sobre WSS** y **Conectividad del dispositivo**. Escudo no se asocia a tu AP y no requiere su contraseña, un broker ni aprovisionamiento MQTT. La sección común tampoco tiene botones de scan, selección o start/stop de captura: llegan en `sentinel-app-escudo`.
+En esta sesión dejar sin configurar **MQTT sobre WS** y **Conectividad del dispositivo**. Escudo no se asocia a tu AP y no requiere su contraseña, un broker ni aprovisionamiento MQTT. La sección común tampoco tiene botones de scan, selección o start/stop de captura: llegan en `sentinel-app-escudo`.
 
 **Punto de control C:** la app lee y muestra datos del nodo v2 real. Puedes seguir con T03, T14 y T15. Las demás pruebas de firmware mantienen sus requisitos de cliente específico.
 
@@ -508,7 +508,7 @@ No necesitas ejecutar herramientas de desautenticación o un AP Karma para comen
 
 ### Prueba T14 — Reconexión de la app común (se puede probar ahora)
 
-1. Completar T03 con BLE conectado, sin WSS, y anotar perfil, boot y una orden aplicada.
+1. Completar T03 con BLE conectado, sin WS, y anotar perfil, boot y una orden aplicada.
 2. Pulsar **Desconectar BLE** en la app. La ESP32 debe conservar su modo; la app debe mostrar canal desconectado y **Estado antiguo**. El último snapshot puede seguir visible, identificado como antiguo; no es un estado vivo ni debe borrarse simulando un reinicio.
 3. Comprobar que **Consultar estado** y el cambio de perfiles quedan deshabilitados sin canal. Las órdenes ya aplicadas conservan ese resultado; desconectar después no las convierte retroactivamente en pendientes.
 4. Reconectar con **Buscar y conectar BLE**; abrir la ventana física si hace falta. Sin RESET, comprobar mismo nodo/boot y modo conservado. La consulta automática o **Consultar estado** debe devolver datos vivos otra vez.
@@ -558,7 +558,7 @@ Ejemplo de primera sincronización, o de una app que aún no confirmó ningún c
 2. Pulsar RESET. Reconectar por BLE y leer metadata.
 3. Confirmar mismo device, nuevo boot e Idle sin asociación Wi-Fi ni arranque de módulos; el vínculo BLE autorizado debe seguir disponible. Recuperar el historial pronto, antes de sobrescribirlo.
 4. El evento anterior mantiene sus bytes/identidad/tiempo originales, aunque el ACK de recuperación use el nuevo boot. No inventar una fecha si su calidad original era unknown.
-5. Si se había configurado Wi-Fi/MQTT por BLE protegido y se recibió confirmación aplicada después de commit, comprobar configuración validada restaurada sin volver a enviarla ni revelar secretos. Renovar referencia UTC antes de TLS; el reloj anterior no se considera vigente. Si faltan Cebo/UI/cliente para probar conexión, registrar ese alcance pendiente.
+5. Si se había configurado Wi-Fi/MQTT por BLE protegido y se recibió confirmación aplicada después de commit, comprobar configuración validada restaurada sin volver a enviarla ni revelar secretos. MQTT no necesita UTC; renovar referencia UTC para fechas de eventos; el reloj anterior no se considera vigente. Si faltan Cebo/UI/cliente para probar conexión, registrar ese alcance pendiente.
 6. Repetir el caso cortando alimentación después de persistencia confirmada, sin subir firmware entre medias. Comprobar identidad, bonds, configuración, objetivo anterior de Escudo e historial retenidos; verificar el objetivo siguiendo el paso 7 también después de este corte. No confundirlo con reinstalación USB, que permite pérdida.
 7. Después de cada reinicio/corte, entrar explícitamente en Escudo y consultar `get_state` antes de explorar o seleccionar: debe mostrar exactamente la tupla guardada, `capture_status:"stopped"`, `scan_status:"idle"` y `scan_id:null`, sin catálogo ni evidencia temporal recuperados. Iniciar captura mediante `escudo.capture_start` sobre ese objetivo, sin volver a seleccionarlo, y repetir control/métricas para demostrar que las funciones siguen disponibles y usan observaciones nuevas. Pasar a Idle y volver a Escudo también debe conservar el objetivo y dejar captura detenida. Una exploración nueva es opcional después de verificar esta recuperación; no puede sustituirla.
 
@@ -588,7 +588,7 @@ Detalles: [recuperación](modules/escudo-recovery.md). Los resultados del host n
 
 Cuando estén integradas, recorrer Idle → Escudo → Sanitizador → Cebo → Idle; comprobar recursos de cada modo, errores y comandos viejos, canales disponibles, journal y recuperaciones. Probar OLED con ausencia de alertas, nueva alerta y sustitución por otra, origen/tipo/tiempo disponible, funcionamiento sin teléfono y prioridad del emparejamiento. Los campos/señales reales se verifican en la [spec de integración](../openspec/changes/sentinel-integracion-tres-modos/specs/system-integration/spec.md).
 
-Con los componentes actuales no se puede dar por aprobado ese recorrido ni MQTT/NAT/HTTP/Telnet/push. La app común ya suscribe/publica la versión negociada, pero la plantilla actual de ACL del broker solo concede v1; MQTT v2 requiere la entrega `sentinel-broker-lan` de P4 y Cebo real de P3. Broker/TLS y canales externos se preparan con sus dueños según [broker](../broker/README.md) y [conectividad](connectivity.md), usando los contratos v2 actuales. Un estado MQTT retenido aislado no cuenta como nodo vivo ni confirma órdenes.
+Con los componentes actuales no se puede dar por aprobado ese recorrido ni MQTT/NAT/HTTP/Telnet/push. La app común ya suscribe/publica la versión negociada, y la plantilla actual del broker concede v1/v2; el recorrido físico MQTT requiere Cebo real de P3 y comprobar acceso LAN. Broker/TCP y canales externos se preparan con sus dueños según [broker](../broker/README.md) y [conectividad](connectivity.md), usando los contratos v2 actuales. Un estado MQTT retenido aislado no cuenta como nodo vivo ni confirma órdenes.
 
 ## 19. Mapa de pruebas a tus specs
 
@@ -602,7 +602,7 @@ Con los componentes actuales no se puede dar por aprobado ese recorrido ni MQTT/
 | [escudo-recuperacion](../openspec/changes/archive/2026-11-12-sentinel-escudo-recuperacion/tasks.md) | Persistencia/identidad/gap por host. | 1.3: T13; 2.1: T09/T10/T11; 2.2: funciones tras T11. |
 | [app-protocolo-v2](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/tasks.md) | Tests/build web y Android aprobados; 5/6 tareas. | 2.1: paso 5 + instalación/pairing + T03 real. T14/T15 aportan reconexión/historial; permisos/BLE de 2.2 siguen pendientes pese a su alternativa documentada. |
 | [integracion-tres-modos](../openspec/changes/sentinel-integracion-tres-modos/tasks.md) | Pendiente de implementación e integración. | Paso 18; las siete tareas conservan sus criterios completos. |
-| [core-foundation](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/tasks.md) | Base histórica reutilizada. | T01/T02/BLE aportan evidencia parcial; MQTT/TLS/app completa y demás pendientes se comprueban con sus componentes reales. |
+| [core-foundation](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/tasks.md) | Base histórica reutilizada. | T01/T02/BLE aportan evidencia parcial; MQTT/TCP/app completa y demás pendientes se comprueban con sus componentes reales. |
 
 No marcar una casilla solo porque una parte pasó. El archivo de una spec tampoco convierte sus pendientes físicos en pruebas realizadas.
 
