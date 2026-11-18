@@ -4,6 +4,8 @@
 
 Antes de comenzar, leer [acuerdos vigentes del MVP](../mvp-policy.md), [guía común](guia-equipo.md) y la guía personal de abajo. MQTT usa TCP1883/WS9001 anónimos por IP en la LAN del equipo. No hay gestión de cuentas, roles, ACL ni certificados MQTT. Se conservan BLE protegido, permisos Android y HTTPS/DoH; las claves propias de integraciones se configuran fuera de Git.
 
+Para preparar el equipo, seguir el [mini setup de Windows con Arduino IDE](../mini-setup.md).
+
 ## Estado real de la entrega compartida
 
 P1 ya entregó **contratos v2, API/núcleo, los cuatro incrementos de Escudo, app común v2, diagnóstico BLE y salida serie sin OLED**, además de las correcciones de memoria/pila BLE y del broker anónimo. No rehacer esas entregas como requisito previo de P2/P3/P4. Consultar [verificación integrada vigente](../../openspec/changes/sentinel-mvp-sin-cuentas/verification.md).
