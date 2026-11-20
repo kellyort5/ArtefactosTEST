@@ -48,3 +48,7 @@ Para cumplir el apartado USB se extienden únicamente `app/src/journal.ts` y `ap
 ## Retirada del diagnóstico P1
 
 Por instrucción posterior del usuario se elimina el componente, flag, presets y APIs `sendDiagnostic`/`replayDiagnostic`; el controller conserva solo el envío normal validado y el observador usado por Escudo. Las pruebas negativas quedan en suites host. La salida serie del firmware es independiente y se conserva. La guía no pide escribir JSON ni instalar un APK diagnóstico; los JSON de contrato solo son referencias.
+
+## Ajuste de experiencia tras la primera prueba de usuario
+
+La confirmación del objetivo debe estar también junto a la red elegida, no solo en la tarjeta superior: progreso inmediato, error/rechazo local, marca y estilo de selección basados en el objetivo del estado confirmado. La misma tarjeta ofrece el siguiente paso de iniciar monitoreo explícitamente y refleja captura activa. No se inicia captura al seleccionar ni se anticipa éxito. El intento local se invalida al cambiar nodo, boot, enlace o escaneo.

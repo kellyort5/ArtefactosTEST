@@ -14,7 +14,7 @@ try{
   const {nodeStore}=await import('/src/store.ts'),{controller}=await import('/src/controller.ts');
   state.payload.capabilities.capture=true;state.payload.capabilities.detectors=true;state.payload.module.target=null;state.payload.module.scan_status='idle';state.payload.module.scan_id=null;
   nodeStore.getState().select(state.device_id);nodeStore.getState().setLink('ble','connected');
-  nodeStore.getState().receive(state,'ble',false,performance.now());
+  nodeStore.getState().receive(structuredClone(state),'ble',false,performance.now());
   const meta={version:2,device_id:state.device_id,boot_id:state.boot_id,revision:state.payload.revision,uptime_ms:1000,max_message_bytes:2048};
   controller.ble.readMetadata=async()=>meta;window.escudoSent=[];window.rejectSelection=false;
   controller.ble.send=async command=>{
@@ -35,12 +35,13 @@ try{
    state.payload.revision=meta.revision;state.uptime_ms=meta.uptime_ms;
    if(op==='get_state')result={kind:'state',state:structuredClone(state.payload)};
    const ack={...catalog,message_id:'ack-'+window.escudoSent.length,uptime_ms:meta.uptime_ms,seq:window.escudoSent.length,payload:{command_id:command.payload.command_id,status:error?'rejected':'applied',revision:meta.revision,error,result}};
+   if(op==='escudo.select_target'&&window.holdSelection&&!error){window.finishSelection=()=>controller.receive(ack,'ble');return;}
    await controller.receive(ack,'ble');
   };
  },{state:fixture('states/escudo'),catalog:fixture('acks/escudo.networks')});
  await page.getByRole('navigation',{name:'Secciones de módulos'}).getByRole('button',{name:'Escudo Pasivo',exact:true}).click();
  const panel=page.getByRole('region',{name:'Escudo Pasivo',exact:true});
- assert.equal(await panel.getByRole('button',{name:'Iniciar monitoreo'}).isDisabled(),true);
+ assert.equal(await panel.getByRole('button',{name:'Iniciar monitoreo',exact:true}).isDisabled(),true);
  await panel.getByRole('button',{name:'Escanear redes',exact:true}).click();
  await panel.getByText('Completado',{exact:true}).waitFor();
  await panel.getByRole('button',{name:'Ver redes detectadas'}).click();
@@ -50,12 +51,22 @@ try{
  await page.evaluate(()=>{window.rejectSelection=true;});
  await panel.getByRole('button',{name:'Seleccionar 02:00:00:00:00:02'}).click();
  await panel.getByText(/Rechazada por el nodo/).waitFor();
- assert.equal(await panel.getByRole('button',{name:'Iniciar monitoreo'}).isDisabled(),true);
- await page.evaluate(()=>{window.rejectSelection=false;});
+ assert.equal(await panel.getByRole('button',{name:'Iniciar monitoreo',exact:true}).isDisabled(),true);
+ const targetCard=panel.getByRole('article',{name:'Red SSID hexadecimal: ff · 02:00:00:00:00:02'});
+ await targetCard.getByText(/La ESP32 rechazó esta selección/).waitFor();
+ assert.equal(await targetCard.getByText('✓ Seleccionada',{exact:true}).count(),0);
+ await page.evaluate(()=>{window.rejectSelection=false;window.holdSelection=true;});
  await panel.getByRole('button',{name:'Seleccionar 02:00:00:00:00:02'}).click();
- await panel.getByText(/SSID hexadecimal: ff · 02:00:00:00:00:02 · canal 6/).waitFor();
- await panel.getByRole('button',{name:'Iniciar monitoreo'}).click();
+ await targetCard.getByText(/Seleccionando red… Esperando confirmación/).waitFor();
+ assert.equal(await targetCard.getByText('✓ Seleccionada',{exact:true}).count(),0);
+ assert.equal(await panel.getByRole('button',{name:'Iniciar monitoreo',exact:true}).isDisabled(),true);
+ await page.evaluate(async()=>{window.holdSelection=false;await window.finishSelection();});
+ await targetCard.getByText('✓ Seleccionada',{exact:true}).waitFor();
+ await targetCard.getByText(/Siguiente paso: iniciar monitoreo/).waitFor();
+ await page.screenshot({path:'/tmp/escudo-selection-mobile.png',fullPage:true});
+ await targetCard.getByRole('button',{name:'Iniciar monitoreo de esta red',exact:true}).click();
  await panel.getByText('En ejecución',{exact:true}).waitFor();
+ await targetCard.getByText(/Monitoreo activo en esta red/).waitFor();
  await page.evaluate(async({metric,events})=>{const {controller}=await import('/src/controller.ts');metric.uptime_ms=5000;await controller.receive(metric,'ble');for(const [i,e]of events.entries()){e.payload.journal_seq=i+1;await controller.receive(e,'ble');await controller.receive(e,'ble');}},{metric:fixture('metrics/escudo'),events:['deauth_burst','suspicious_disconnect','evil_twin','karma_indication','same-ssid-benign'].map(n=>fixture('events/escudo.'+n))});
  await panel.getByRole('img',{name:/Tramas acumuladas/}).waitFor();
  assert.equal(await panel.locator('tbody tr').count(),4);
@@ -68,5 +79,5 @@ try{
  assert.equal(await panel.locator('tbody tr').count(),4);
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/sentinel-escudo-mobile.png',fullPage:true});
  assert.deepEqual(failures,[]);
- console.log('PASS Escudo: default product screen, scan/pagination, hidden/hex SSID, rejected/applied target, capture, metrics, four detectors, benign duplicate, offline history and mobile/desktop width. Simulated BLE boundary; no physical claim.');
+ console.log('PASS Escudo: default product screen, scan/pagination, hidden/hex SSID, inline pending/rejected/confirmed target and next action, capture, metrics, four detectors, benign duplicate, offline history and mobile/desktop width. Simulated BLE boundary; no physical claim.');
 }finally{await browser.close();}
