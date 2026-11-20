@@ -11,7 +11,7 @@ Este documento resume las últimas decisiones confirmadas por el usuario. Se apl
 | Configuración del nodo | configure_connectivity v1/v2 recibe únicamente ssid, wifi_password y mqtt_uri. NVS versión3; formatos anteriores se rechazan y requieren reaprovisionamiento BLE o carga USB limpia permitida. No borrar NVS automáticamente. |
 | BLE | Ventana física 120 s, botón 3 s, SC/MITM/cifrado y bonds persistentes de hasta tres teléfonos. Conservar permisos Android necesarios. |
 | Pruebas sin OLED | Opción SENTINEL_SERIAL_TEST_DISPLAY=1, UART0/115200/USB CDC On Boot Disabled. Por defecto0. Estado y código BLE temporal local, sin fingir OLED presente. Botón obligatorio; no guardar passkey en evidencia. |
-| App P1 | Base v2 y panel VITE_SENTINEL_P1_TOOLS=1 ya entregados en software; opción desactivada por defecto. P4 reutiliza la base para UX final, gráficos e incidentes. |
+| App P1 | Base v2 y pantalla Escudo entregadas por software; aceptación física pendiente. Panel temporal P1 retirado por petición del usuario. P4 reutiliza la base para las demás pantallas. |
 | Sanitizador y alertas | HTTPS/DoH siguen con validación TLS. Credenciales Wi-Fi y claves propias de proveedores/webhooks/push siguen siendo necesarias y privadas. No hay login o roles MQTT nuevos en esos servicios. |
 
 **Riesgo aceptado:** cualquier cliente que alcance el broker puede leer/publicar todos los topics, suplantar telemetría y enviar órdenes Cebo. ID de nodo, topic, schema, boot/revisión/TTL y deduplicación no autentican al emisor. Usar LAN propia/autorizada de confianza y no exponer MQTT a Internet. El aislamiento Wi-Fi/firewall puede impedir conexión; no se promete eludirlo.

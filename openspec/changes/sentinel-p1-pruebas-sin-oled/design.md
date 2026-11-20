@@ -1,5 +1,7 @@
 # Design
 
+> Actualización 2026-11-20: el panel temporal P1 fue retirado por petición del usuario en `sentinel-app-escudo`. Sus tareas y resultados siguientes son evidencia histórica, no instrucciones para reinstalarlo. Se retiró su delta mobile-control para que un archivado posterior no lo restaure. La salida serie, las correcciones BLE y los pendientes físicos de firmware se conservan.
+
 ## Context
 
 El usuario autoriza la visualización serie temporal y un panel P1 BLE. Se trabaja en checkout aislado desde b1f8729 para preservar MQTT LAN concurrente. Ver propuesta y deltas; no cambiar protocolo, modelo de modos ni políticas de NVS/MQTT.

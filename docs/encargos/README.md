@@ -12,10 +12,10 @@ P1 ya entregó **contratos v2, API/núcleo, los cuatro incrementos de Escudo, ap
 
 | Entrega compartida adicional | Responsable | Seguimiento |
 | --- | --- | --- |
-| [Diagnóstico P1 sin OLED](../../openspec/changes/sentinel-p1-pruebas-sin-oled/tasks.md) | P1 | 8/9 tareas; **4.3 física pendiente** sobre la imagen final. [Guía de pruebas](../guia-pruebas-persona-1.md). |
+| [Pruebas P1 sin OLED (panel retirado)](../../openspec/changes/sentinel-p1-pruebas-sin-oled/tasks.md) | P1 | 8/9 tareas; **4.3 física pendiente** sobre la imagen final. [Guía de pruebas](../guia-pruebas-persona-1.md). |
 | [MVP con MQTT anónimo](../../openspec/changes/sentinel-mvp-sin-cuentas/tasks.md) | P1 | 5/5 tareas de software; no acredita los pendientes físicos de otros cambios. |
 
-**Pendiente de implementar:** Sanitizador, Cebo/servidor de alertas, pantallas finales/push y la integración completa de tres modos, según sus fichas. El panel diagnóstico no completa las pantallas de P4. OLED y sus alertas recientes siguen siendo obligatorias en la integración P1, tarea **1.5**; la salida serie permite adelantar pruebas, no acredita la OLED física.
+**Pendiente de implementar:** Sanitizador, Cebo/servidor de alertas, pantallas Sanitizador/Cebo/push y la integración completa de tres modos, según sus fichas. La pantalla Escudo está implementada por software en su rama, con aceptación física pendiente; el panel diagnóstico temporal fue retirado por petición del usuario. OLED y sus alertas recientes siguen siendo obligatorias en la integración P1, tarea **1.5**; la salida serie permite adelantar pruebas, no acredita la OLED física.
 
 La persistencia de identidad, bonds, configuración aceptada e historial confirmado durante uso/reinicio/corte se conserva; USB puede reinicializar datos sin migración. Ver [política](../persistence-policy.md). Firmware: **Arduino IDE Windows, core oficial ESP32 3.3.12, ESP32S3 Dev Module N16R8**, sketch único `firmware/SentinelNode/SentinelNode.ino`; seguir [preparación](../firmware.md). El SDK propio/PlatformIO de algunos archivos archivados es histórico.
 
@@ -68,7 +68,7 @@ Las elecciones aún propuestas de implementación (por ejemplo proveedor FCM/plu
 1. **P1:** ejecutar las pruebas físicas pendientes de API/Escudo/app y de la imagen final BLE con la [guía P1](../guia-pruebas-persona-1.md). Mantener la integración completa preparada para las entregas de los demás.
 2. **P2:** empezar `sentinel-sanitizador-auditoria`, después pasarela → DNS → DoH. La API ya está disponible; validar NAT/DoH durante sus incrementos, con los componentes oficiales primero.
 3. **P3:** empezar `sentinel-cebo-http`, después Telnet → eventos/historial → webhook → push servidor. Reutilizar broker anónimo y journal del núcleo.
-4. **P4:** verificar broker en la LAN del equipo y preparar laboratorio; desarrollar pantallas Escudo → Sanitizador → Cebo y recepción push. Escudo y app común ya permiten empezar su integración. Las otras pantallas pueden prepararse con fixtures mientras llega el módulo correspondiente; cerrar requiere datos reales.
+4. **P4:** verificar broker en la LAN del equipo y preparar laboratorio; consumir/revisar la pantalla Escudo implementada por P1 por autorización específica; desarrollar pantallas Sanitizador → Cebo y recepción push. Escudo y app común ya permiten empezar su integración. Las otras pantallas pueden prepararse con fixtures mientras llega el módulo correspondiente; cerrar requiere datos reales.
 5. Cada autor integra por PR revisado. Las dependencias de abajo son necesarias para el cierre, no una prohibición de preparar lógica o vistas. No mantener ramas simultáneas que editen el mismo archivo.
 6. P1 completa `sentinel-integracion-tres-modos` con recursos, transiciones, OLED/botón y alertas recientes. P4 consolida evidencia; cada dueño corrige su módulo. El cierre exige Escudo, Sanitizador y Cebo completos, webhook y push con app cerrada.
 
@@ -115,7 +115,7 @@ Las dependencias comunes de P1 ya están integradas en develop. La tabla disting
 | [sentinel-alertas-webhook](sentinel-alertas-webhook.md) | P3 | 0/7 · activo | `module-contracts`, `broker-lan`, `cebo-eventos-historial`                                                                    |
 | [sentinel-alertas-push-servidor](sentinel-alertas-push-servidor.md) | P3 | 0/6 · activo | `alertas-webhook`                                                                                                    |
 | [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md) | P1 | 5/6 · archivado | `module-contracts`                                                                                                            |
-| [sentinel-app-escudo](sentinel-app-escudo.md) | P4 | 0/6 · activo | `app-protocolo-v2`, `escudo-descubrimiento`, `escudo-detectores`, `escudo-recuperacion`                                       |
+| [sentinel-app-escudo](sentinel-app-escudo.md) | P1 (excepción autorizada) | 5/7 · software; 2.1/2.2 físicas pendientes | `app-protocolo-v2`, `escudo-descubrimiento`, `escudo-detectores`, `escudo-recuperacion`                                       |
 | [sentinel-app-sanitizador](sentinel-app-sanitizador.md) | P4 | 0/6 · activo | `app-protocolo-v2`, `sanitizador-auditoria`, `sanitizador-doh`                                                                |
 | [sentinel-app-cebo](sentinel-app-cebo.md) | P4 | 0/6 · activo | `app-protocolo-v2`, `cebo-eventos-historial`, `alertas-webhook`                                                      |
 | [sentinel-app-push](sentinel-app-push.md) | P4 | 0/6 · activo | `app-protocolo-v2`, `app-cebo`, `alertas-push-servidor`                                                                       |
@@ -146,12 +146,12 @@ Las dependencias comunes de P1 ya están integradas en develop. La tabla disting
 
 | Funcionalidad                                                         | Entrega del dispositivo/servidor                | Pantalla o integración                                        |
 | --------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------- |
-| Escaneo pasivo, SSID/BSSID/canal/RSSI/seguridad y objetivo            | P1 escudo-descubrimiento                        | P4 app-escudo                                                 |
-| Inicio/detención/cambio de red por BLE                                | P1 escudo-descubrimiento + captura              | P4 app-escudo                                                 |
-| Beacon, Deauth, Disassoc, prioridad objetivo y recorrido              | P1 escudo-captura                               | P4 app-escudo                                                 |
-| Ráfagas, desconexiones, Evil Twin contextual e indicios Karma pasivos | P1 escudo-detectores                            | P4 app-escudo, evidencia y límites                            |
-| Eventos/métricas/alertas BLE, gráficos y tabla red/canal/tiempo       | P1 detectores + contrato                        | P4 app-escudo                                                 |
-| Escudo offline/persistencia/sync/dedup/cobertura                      | P1 escudo-recuperacion + journal base           | P1 app-protocolo-v2 + P4 app-escudo                              |
+| Escaneo pasivo, SSID/BSSID/canal/RSSI/seguridad y objetivo            | P1 escudo-descubrimiento                        | P1 app-escudo (excepción)                                                 |
+| Inicio/detención/cambio de red por BLE                                | P1 escudo-descubrimiento + captura              | P1 app-escudo (excepción)                                                 |
+| Beacon, Deauth, Disassoc, prioridad objetivo y recorrido              | P1 escudo-captura                               | P1 app-escudo (excepción)                                                 |
+| Ráfagas, desconexiones, Evil Twin contextual e indicios Karma pasivos | P1 escudo-detectores                            | P1 app-escudo (excepción), evidencia y límites                            |
+| Eventos/métricas/alertas BLE, gráficos y tabla red/canal/tiempo       | P1 detectores + contrato                        | P1 app-escudo (excepción)                                                 |
+| Escudo offline/persistencia/sync/dedup/cobertura                      | P1 escudo-recuperacion + journal base           | P1 app-protocolo-v2 + P1 app-escudo (excepción)                              |
 | Diagnóstico DNS/HTTPS/certificados/portal                             | P2 sanitizador-auditoria                        | P4 app-sanitizador                                            |
 | STA+AP autenticado, DHCP, NAT IPv4/subred separada                    | P2 sanitizador-pasarela                         | P4 app-sanitizador                                            |
 | Clientes, RSSI/calidad, subida/bajada                                 | P2 sanitizador-pasarela                         | P4 app-sanitizador                                            |

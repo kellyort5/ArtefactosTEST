@@ -1,5 +1,7 @@
 # Proposal
 
+> Actualización 2026-11-20: el panel temporal P1 fue retirado por petición del usuario en `sentinel-app-escudo`. Sus tareas y resultados siguientes son evidencia histórica, no instrucciones para reinstalarlo. Se retiró su delta mobile-control para que un archivado posterior no lo restaure. La salida serie, las correcciones BLE y los pendientes físicos de firmware se conservan.
+
 ## Why
 
 Persona1 necesita ejecutar su guía física sin disponer todavía de OLED. El firmware bloquea nuevos vínculos sin pantalla y la app común no ofrece las órdenes específicas necesarias para las pruebas del Escudo. El usuario autoriza salida serie temporal y un panel diagnóstico BLE.
@@ -21,7 +23,7 @@ Ninguna.
 
 - `device-runtime`: visualización serie de pruebas y diagnóstico coherente sin simular OLED.
 - `device-connectivity`: excepción explícita local para mostrar passkey temporal por serie en modo de pruebas, sin cambiar seguridad BLE.
-- `mobile-control`: herramientas P1 optativas, órdenes por BLE y resultados reales, sin sustituir pantallas de producto.
+- El delta histórico `mobile-control` del panel fue sustituido por su retirada en `sentinel-app-escudo`; no se vuelve a sincronizar desde este cambio.
 
 ## Impact
 

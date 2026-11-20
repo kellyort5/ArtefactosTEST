@@ -4,9 +4,9 @@
 
 **Política vigente:** [persistencia y USB](persistence-policy.md). La primera carga de la tabla nueva requiere **Erase All Flash Before Sketch Upload: Enabled** y elimina datos previos; emparejar/configurar de nuevo. El estado del build final integrado se registra en la [verificación vigente](../openspec/changes/sentinel-mvp-sin-cuentas/verification.md); los builds/logs anteriores no prueban esta tabla.
 
-Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `sentinel-p1-pruebas-sin-oled`. La fuente se mantiene con opciones de pruebas desactivadas; activarlas según 0.1. La [verificación de esta adaptación](../openspec/changes/sentinel-mvp-sin-cuentas/verification.md) identifica builds, APK y pendientes. Esta guía describe un procedimiento; no acredita pruebas físicas realizadas.
+Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `sentinel-p1-pruebas-sin-oled`. La salida serie del firmware se activa según 0.1; la app utiliza la pantalla normal Escudo, sin panel diagnóstico. La [verificación de esta adaptación](../openspec/changes/sentinel-mvp-sin-cuentas/verification.md) identifica builds, APK y pendientes. Esta guía describe un procedimiento; no acredita pruebas físicas realizadas.
 
-**Primera sesión:** cargar firmware con visualización serie, conectar el botón externo, instalar APK diagnóstico, emparejar por BLE y ejecutar T01–T15 con las condiciones de cada caso. Se añaden controles de diagnóstico para probar el firmware existente; las pantallas finales de P4, OLED real, ensayos RF de ataques y los módulos de los compañeros conservan sus entregas y comprobaciones pendientes.
+**Primera sesión:** cargar firmware con visualización serie, conectar el botón externo, instalar el APK normal, emparejar por BLE y ejecutar T01–T15 con las condiciones de cada caso. La pantalla Escudo ya ofrece los controles funcionales. OLED real, ensayos RF, las demás pantallas y los módulos de los compañeros conservan sus comprobaciones pendientes.
 
 ## 0. Lee esto antes de copiar comandos
 
@@ -17,7 +17,7 @@ Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `senti
 - `COM_REAL` y los ejemplos de redes son marcadores: reemplazarlos antes de ejecutar. No asumir que la placa tendrá un nombre de puerto específico.
 - Compilar genera archivos en la computadora. **Upload/grabar** transfiere el firmware a la ESP32. **Monitor** muestra su consola. **RESET/EN** reinicia; **BOOT** sirve para programación; el **botón externo GPIO4** controla Sentinel.
 
-### 0.1. Activar las dos opciones de pruebas
+### 0.1. Activar la salida serie sin OLED
 
 1. En la copia del sketch que abrirás en Arduino, abre `SentinelConfig.h` y cambia únicamente:
 
@@ -26,9 +26,9 @@ Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `senti
    ```
 
    El valor de Git es `0`; activar `1` en el sketch que realmente vas a cargar. La copia opcional Windows del build integrado ya usa `1`. No cambies seguridad BLE ni flags de módulos. Selecciona **USB CDC On Boot: Disabled**, usa el conector **USB-UART** y abre **Monitor serie a 115200** antes de abrir la ventana BLE. El modo de pruebas acepta ausencia de OLED, pero sigue informando `peripherals.oled:false`.
-2. Construye el APK con `VITE_SENTINEL_P1_TOOLS=1` según paso 11. Verifica que aparece **Diagnóstico P1**. El navegador permite revisar la interfaz pero las órdenes BLE requieren Android real.
+2. Construye el APK normal según paso 11. Con BLE v2 conectado, abre **Escudo Pasivo**. El navegador permite revisar la interfaz pero las órdenes BLE requieren Android real.
 3. El passkey se muestra como `[P1 PAIR CODE]` únicamente durante un intento real dentro de la ventana física. Introduce las seis cifras, incluidos ceros iniciales, en Android. **No guardes consola/capturas con ese código ni las adjuntes al repositorio.** UART confirma entrega al controlador, no que una persona haya abierto el monitor: mantenlo abierto antes de emparejar. Si pasó el código, cancela y repite el intento; no se reproduce automáticamente.
-4. Al recibir OLED, vuelve a `SENTINEL_SERIAL_TEST_DISPLAY=0`, recompila/carga y genera APK sin la variable de diagnóstico. La pantalla del producto y su prueba física siguen siendo obligatorias. No hace falta borrar flash para RESET ni para probar persistencia.
+4. Al recibir OLED, vuelve a `SENTINEL_SERIAL_TEST_DISPLAY=0`, recompila/carga; no necesitas cambiar el APK por instalar la OLED. La pantalla del producto y su prueba física siguen siendo obligatorias. No hace falta borrar flash para RESET ni para probar persistencia.
 
 ### Qué está disponible en esta referencia
 
@@ -38,7 +38,7 @@ Guía desde cero para Persona 1, con app v2 y adaptación **sin OLED** en `senti
 | Escudo: descubrimiento, captura y cuatro detectores | Implementados en firmware, con control/eventos v2 por BLE. |
 | Recuperación | Journal compartido conectado y comprobado por software; coexistencia y pruebas físicas pendientes. |
 | App común v2, de P1 | Admite nodos v1/v2, BLE protegido, estado, modos disponibles, navegación común e historial paginado/deduplicado. Se puede probar con el firmware v2 actual. |
-| Panel diagnóstico P1 | Disponible al compilar con `VITE_SENTINEL_P1_TOOLS=1`; scan, catálogo, selección, captura, estado, historial y negativos por BLE real. No sustituye la pantalla final. |
+| Pantalla Escudo | Incluida en el APK normal: scan, catálogo, selección, captura, gráficos, incidentes e historial por BLE. Panel temporal P1 retirado; negativos de protocolo en software. |
 | Pantalla Escudo completa, de P4 | Siguen pendientes catálogo/selección, controles de captura, gráficos y detalle de incidentes. La navegación común no los implementa. |
 | Cebo y Sanitizador | No registrados en los defaults actuales. No se espera que funcionen ni que el botón entre en ellos. |
 | Alertas recientes en OLED e integración de tres modos | Trabajo pendiente de `sentinel-integracion-tres-modos`. La pantalla de estado actual no acredita ese resumen. |
@@ -53,7 +53,7 @@ Para firmware basta Arduino IDE Windows con la integración oficial entregada; N
 2. Completar pasos 7–10: cableado, USB, grabación y T01/T02.
 3. Seguir pasos 11–13: instalar APK, conectar por BLE y ejecutar T03 desde los botones reales.
 4. Ejecutar T14/T15 del paso 17: reconexión e historial básico, sin necesitar iniciar captura.
-5. Activar **Diagnóstico P1** y ejecutar T04–T13 según las instrucciones de esta guía. T07/T12 tienen comprobaciones host; ataques reales, OLED y futuras integraciones siguen pendientes cuando falte su equipo o entrega.
+5. Abrir **Escudo Pasivo** y ejecutar T04–T13 según las instrucciones de esta guía. T07/T12 tienen comprobaciones host; ataques reales, OLED y futuras integraciones siguen pendientes cuando falte su equipo o entrega.
 
 No necesitas broker, Wi-Fi del teléfono ni contraseña de tu AP para el recorrido BLE básico. No es necesario conectar el teléfono por USB para usar BLE: ese cable y ADB solo son opcionales para instalar/diagnosticar Android; el USB de la ESP32 sí se utiliza aquí para programar y observar la consola.
 
@@ -66,7 +66,7 @@ No necesitas broker, Wi-Fi del teléfono ni contraseña de tu AP para el recorri
 | OLED SSD1306 I2C de **128×32**, dirección inicial `0x3C` | Opcional para esta sesión: monitor serie sustituye temporalmente estado y código BLE con la opción de pruebas habilitada. OLED física se prueba después. |
 | Botón pulsador externo, cables Dupont y protoboard | Conectar GPIO4 a GND únicamente al presionar. |
 | PC Windows con Arduino IDE 2 y core oficial ESP32 3.3.12 | Firmware nativo Windows; dos bibliotecas y configuración inicial documentadas en el paso4.2. WSL/Node se usan solo si haces mantenimiento host o compilas la app allí. |
-| Teléfono Android con BLE | Emparejar y probar estado/modos/historial con tu app v2; el APK diagnóstico incluye controles de prueba del Escudo. |
+| Teléfono Android con BLE | Emparejar y probar estado/modos/historial con tu app v2; el APK normal incluye la pantalla Escudo. |
 | Red propia de **2.4 GHz** | Objetivo de observación. Escudo no se conecta ni necesita su contraseña. |
 
 Para probar dos redes/canales necesitas otra red propia de 2.4 GHz, por ejemplo otro AP o un hotspot configurado a esa banda. Si no está disponible, esa parte queda pendiente; no inventar un resultado.
@@ -331,23 +331,23 @@ Si falta PSRAM o su tipo no coincide, ESP-IDF puede detenerse antes de la línea
 
 ## 11. Generar e instalar tu APK v2
 
-La app de esta adaptación es v2 y añade el panel optativo P1. Para esta primera sesión **no necesitas esperar otro APK de P4**. Sí necesitas reconstruir/instalar el APK de la referencia que vas a probar; una instalación anterior no se actualiza al editar el repositorio.
+La app es v2 e incluye la pantalla Escudo de producto. Para esta primera sesión **no necesitas esperar otro APK de P4**. Sí necesitas reconstruir/instalar el APK de la referencia que vas a probar; una instalación anterior no se actualiza al editar el repositorio.
 
 ### 11.1. Generar el APK
 
 Si todavía no tienes JDK 21 y SDK Android Linux configurados, completar primero el **anexo A**. Volver a la raíz en Ubuntu, con Node y ese entorno cargados:
 
 ```sh
-VITE_SENTINEL_P1_TOOLS=1 npm run android:sync
+npm run android:sync
 npm run android:assemble
 ls -lh app/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-`android:sync` primero compila web y copia sus assets al proyecto Android; `android:assemble` empaqueta esos assets. Repetir ambos tras cambiar la app. Esperar a `BUILD SUCCESSFUL`. Si falla, no instalar un APK antiguo como si fuera el nuevo.
+`android:sync` primero compila web y copia sus assets al proyecto Android; `android:assemble` empaqueta esos assets. Repetir ambos tras cambiar la app. Esperar a `BUILD SUCCESSFUL`. Si falla, no instalar un APK antiguo como si fuera el nuevo. Si el error es `compressDebugAssets`, ejecutar desde la raíz WSL `(cd app/android && ./gradlew :app:clean assembleDebug)` y esperar `BUILD SUCCESSFUL`.
 
 ### 11.2. Instalar copiando el archivo (opción sencilla)
 
-1. Para la copia ya generada de esta adaptación, abrir `C:\Users\Jefry\Documents\Arduino\ArtefactosProyecto\.cache` y usar **sentinel-mvp-integrated-debug.apk**. Si acabas de reconstruir, usa `app/android/app/build/outputs/apk/debug/app-debug.apk` del checkout integrado del paso3. No uses los APK anteriores con TLS/cuentas.
+1. Usa `app/android/app/build/outputs/apk/debug/app-debug.apk` del checkout que acabas de compilar. No uses las copias antiguas de `.cache`: pueden contener el panel retirado o carecer de la pantalla final.
 2. Conectar el teléfono por USB en modo transferencia de archivos y copiar ese APK a Descargas. También puedes transferirlo por otro medio propio.
 3. Abrir el APK desde el gestor de archivos del teléfono y permitir la instalación desde esa fuente si Android lo solicita. Instalar/actualizar **Sentinel Node**.
 4. No desinstalar ni borrar datos como paso rutinario: perderías el historial local que queremos comprobar. Ante un conflicto de firma, conservar primero la evidencia y resolver qué APK/referencia corresponde.
@@ -403,9 +403,9 @@ El framing y las lecturas protegidas los realiza la app. No pegar JSON directame
 | **Historial de eventos** | IDs, cursor, perfil, hora/calidad, boot, diagnóstico y origen **Real/Simulado**; v1 indica origen no informado. |
 | **Recuperar por cursor** | Solicita páginas desde el cursor confirmado; no permite escribir un cursor arbitrario. |
 
-En esta sesión dejar sin configurar **MQTT sobre WS** y **Conectividad del dispositivo**. Escudo no se asocia a tu AP y no requiere su contraseña, un broker ni aprovisionamiento MQTT. La sección común tampoco tiene botones de scan, selección o start/stop de captura: llegan en `sentinel-app-escudo`.
+En esta sesión dejar sin configurar **MQTT sobre WS** y **Conectividad del dispositivo**. Escudo no se asocia a tu AP y no requiere su contraseña, un broker ni aprovisionamiento MQTT. La pestaña **Escudo Pasivo** incorpora scan, catálogo, selección y start/stop en el APK normal; sigue el [recorrido de pantalla](modules/app-escudo.md). Los negativos y reenvíos exactos de esta guía se comprueban en software; no hay un panel para enviarlos desde el APK.
 
-**Punto de control C:** la app lee y muestra datos del nodo v2 real. Puedes seguir con T03, T14 y T15. Para T04–T13 usa el panel **Diagnóstico P1** descrito a continuación.
+**Punto de control C:** la app lee y muestra datos del nodo v2 real. Puedes seguir con T03, T14 y T15. Para T04–T13 usa la pantalla **Escudo Pasivo** y distingue los casos físicos de los ensayos host descritos a continuación.
 
 ## 13. Pruebas de API y control v2 desde tu app
 
@@ -418,53 +418,26 @@ En esta sesión dejar sin configurar **MQTT sobre WS** y **Conectividad del disp
 5. Abrir la pestaña **Escudo Pasivo**: tras una primera carga limpia sin selección aceptada debe mostrar objetivo sin seleccionar y captura detenida. Si ya hay una selección guardada, debe mostrar la misma tupla SSID/BSSID/canal con captura detenida, sin catálogo recuperado ni exploración automática. Consultar de nuevo **General**: Wi-Fi/MQTT del nodo deben estar desconectados. No se inicia captura al entrar en el modo.
 6. Regresar a **General** y pulsar **Reposo** en perfiles. Esperar `applied`, perfil `idle` y recursos de radio liberados. La pestaña Escudo puede seguir disponible por capacidad; eso no significa que siga activo.
 7. Volver a Escudo y pulsar **Sincronizar hora por BLE**, con el teléfono en hora correcta. Esperar aplicación y comprobar hora/calidad reportada; los eventos antiguos con hora desconocida no se reescriben con una fecha inventada.
-8. Confirmar que Cebo/Sanitizador ausentes figuran no disponibles y no pueden activarse desde los controles normales. Su rechazo `not_implemented` se prueba desde Diagnóstico P1 con los presets **Cebo ausente (negativo)** y **Sanitizador ausente (negativo)**; no se habilitan los servicios.
+8. Confirmar que Cebo/Sanitizador ausentes figuran no disponibles y no pueden activarse desde los controles normales. Su rechazo `not_implemented` se comprueba en pruebas de software; no se habilitan los servicios desde la app.
 
 **Evidencia mínima para la parte real de la tarea 2.1 de app v2:** referencia del firmware y app/APK, teléfono/Android, permisos y pairing usados, mismo `device_id` entre consola y app, `get_state` aplicado y recorrido Reposo → Escudo → Reposo con ID/ACK/revisión/estado observados. Adjuntar también resultados de tests/build/arranque web del paso 5. No cerrar 2.1 solo por instalar o conectar el APK; informar el resultado al coordinador antes de actualizar OpenSpec.
 
-Los casos de comandos viejos, duplicados, conflictos de ID, capacidad ausente y parada con timeout tienen pruebas de software. Diagnóstico P1 permite boot/revisión/caducidad incorrectos, reenvío exacto y modo ausente; conflicto de ID con contenido distinto y timeout inducido conservan sus casos host y requieren instrumentación específica si se ensayan físicamente. La app normal construye órdenes vigentes. Un rechazo debe mantener el estado real y mostrarse como `rejected`; la app consulta estado por el canal disponible. Si no se pudo provocar ese caso, registrarlo pendiente.
+Los casos de comandos viejos, duplicados, conflictos de ID, capacidad ausente y parada con timeout conservan pruebas de software. La app normal construye órdenes vigentes y ya no ofrece un panel de sobres inválidos/reenvío exacto. Un rechazo real conserva el estado y se muestra como `rejected`. Los ensayos físicos negativos no ejecutados siguen pendientes; los tests host no los acreditan.
 
 ### Antes de continuar con T04–T13
 
-Los JSON de los siguientes pasos describen **operación y argumentos**, no mensajes GATT ni comandos de terminal. En **Diagnóstico P1**:
-
-1. Conecta BLE y comprueba versión 2. El panel queda deshabilitado sin BLE; no utiliza MQTT.
-2. Elige el preset correspondiente. Edita solo **Argumentos públicos (JSON)** con el objeto `args` del ejemplo; no pegues el sobre completo. Pulsa **Enviar por BLE**.
-3. Espera la respuesta del nodo en **Últimas 20 respuestas BLE**, buscando `payload.command_id` en la tabla de órdenes. Un ID/enviado o `accepted` no acredita aplicación. Comprueba `applied`/`rejected` y el estado real. Consulta **Estado** para refrescar el snapshot completo; la sección expandible también muestra métricas recibidas.
-4. Para páginas de catálogo, copia exactamente `payload.result.next` del ACK como `after` y conserva `limit:4`. Repite hasta `more:false`. El panel no inventa cursores.
-5. Para objetivo copia juntos `ssid`, `bssid` y `channel` de una entrada real. SSID suele ser texto; si el catálogo usa `{ "encoding":"hex", "value":"..." }`, copia ese objeto sin convertirlo.
-6. Para negativos de sobre elige **Boot incorrecto**, **Revisión incorrecta** o **Caducado** con una operación de modificación como seleccionar objetivo o cambiar modo. Comprueba rechazo y estado intacto; vuelve a **Normal**. **Reenviar última orden exacta** conserva ID y contenido, no genera una modificación nueva; úsalo dentro del mismo arranque y sus 30 s de validez. Nunca se reintenta automáticamente. Conflictos de ID con contenido distinto y timeout inducido siguen cubiertos por pruebas host; no inventar ejecución física de esos casos.
-7. Para T10 elige **Historial** y fija explícitamente `after_cursor` anterior con un comando **nuevo**; esto prueba replay de página y deduplicación local sin depender de que expire el comando original. La recuperación usa el journal habitual.
-
-El panel conserva como máximo 20 respuestas en memoria y las borra al cambiar nodo/arranque/desconectar. El historial confirmado permanece en IndexedDB. No admite aprovisionamiento ni contraseñas. No reemplaza gráficos/UX finales de P4.
+Conecta BLE y entra en **Escudo Pasivo**. Sus botones generan contratos v2 sin escribir JSON. Espera **Aplicada por el nodo** y el estado confirmado; enviado o aceptado no es aplicado. La sección **General → Órdenes de esta sesión** permite consultar IDs/resultados. El [recorrido de pantalla](modules/app-escudo.md) explica gráficos, incidentes e historial. Cuando se cite una operación de protocolo en esta guía es una referencia, no un comando que debas pegar en el APK.
 
 ## 14. Probar descubrimiento y selección
 
 ### Prueba T04 — Catálogo real de 2.4 GHz
 
-1. Tener una red propia de 2.4 GHz encendida. Entrar en Escudo y solicitar:
-
-```json
-{"operation":"escudo.scan","args":{}}
-```
-
-2. El ACK aplicado devuelve un job. Esperar `scan_status:"complete"` en estado o el evento de redes. El scan puede tardar; un ACK de inicio no es todavía una lista de resultados.
-3. Consultar catálogo:
-
-```json
-{"operation":"escudo.networks","args":{"after":null,"limit":4}}
-```
-
-4. Comprobar SSID/BSSID/canal/RSSI/seguridad de tu AP. Si `more:true`, la app usa exactamente el cursor `next` para continuar; no fabricar cursores.
-5. Elegir una entrada real. Ejemplo ilustrativo, reemplazar los tres campos juntos por los del catálogo:
-
-```json
-{"operation":"escudo.select_target","args":{"ssid":"LAB","bssid":"02:00:00:00:00:01","channel":6}}
-```
-
-6. Esperar resultado `escudo.target` y verificar que el objetivo del estado coincide.
-7. Con cliente de diagnóstico, solicitar una tupla inconsistente con la instantánea: debe rechazarse y conservarse el objetivo anterior.
-8. Comprobar estado con Wi-Fi/MQTT desconectados y que el router no lista al nodo como cliente asociado. Para afirmar ausencia de probes en aire hace falta observación de tráfico autorizada; la lista de clientes por sí sola no prueba ese punto.
+1. Tener una red propia de 2.4 GHz encendida. Abre **Escudo Pasivo**, activa el modo y pulsa **Escanear redes**.
+2. Espera **Completado**: el ACK de inicio no es todavía una lista de resultados.
+3. Pulsa **Ver redes detectadas**. Comprueba SSID/BSSID/canal/RSSI/seguridad de tu AP. **Cargar más redes** utiliza el cursor real de la página anterior, de cuatro redes por página.
+4. Pulsa **Seleccionar …** en una entrada real; la app conserva juntos SSID/BSSID/canal, incluidos SSID ocultos o hexadecimales.
+5. Espera confirmación y verifica **Objetivo confirmado**. Los rechazos de tuplas inconsistentes se verifican en la suite de software; la pantalla no permite escribir una tupla arbitraria.
+6. Desde General comprueba Wi-Fi/MQTT desconectados y que el router no lista al nodo como cliente asociado. Para afirmar ausencia de probes en aire hace falta observación de tráfico autorizada; la lista de clientes no la demuestra.
 
 ### Prueba T05 — Salida durante scan
 
@@ -479,28 +452,14 @@ Guardar IDs de comando/job/scan, resultado y estado. Detalles: [descubrimiento](
 
 ### Prueba T06 — Captura real, métricas y control
 
-1. Con objetivo real seleccionado:
+1. Con objetivo confirmado, pulsa **Iniciar monitoreo** y espera **En ejecución**.
+2. Observa crecimiento de Beacon en **Actividad de radio**, canal y cobertura. Deauth/Disassoc pueden permanecer en cero en una red tranquila.
+3. Si tienes otra red propia en otro canal permitido, observa el recorrido. El scheduler inicial prioriza el objetivo con 800 ms y dedica 200 ms al alternativo; las métricas no son un listado de cada trama/BSSID.
+4. Pulsa **Detener monitoreo**, espera **Detenida** y drena mensajes pendientes. Los contadores de tramas deben estabilizarse mientras BLE/estado siguen disponibles.
+5. Inicia otra vez y comprueba actividad. Para cambiar de red, detén captura, selecciona otra entrada y vuelve a iniciar; verifica objetivo/canal confirmados.
+6. Pulsa **Volver a reposo**. No debe quedar captura activa ni asociación/MQTT. La ausencia de transmisión Wi-Fi requiere evidencia de tráfico además del estado.
 
-```json
-{"operation":"escudo.capture_start","args":{}}
-```
-
-2. Confirmar ACK y `capture_status:"running"`.
-3. Durante una comprobación breve, observar crecimiento de Beacons en métricas Escudo y recepción de cobertura. Deauth/Disassoc pueden permanecer en cero en una red tranquila.
-4. Si tienes otra red propia en otro canal permitido, observar el recorrido. El scheduler inicial prioriza el objetivo con 800 ms y dedica 200 ms al alternativo; las métricas no son un listado de cada trama/BSSID.
-5. Detener:
-
-```json
-{"operation":"escudo.capture_stop","args":{}}
-```
-
-6. Confirmar captura detenida. Esperar que se vacíen mensajes ya pendientes; después los contadores de tramas deben estabilizarse. BLE/estado siguen disponibles.
-7. Iniciar de nuevo; los contadores acumulados del mismo boot no se reinician. Cambiar a otra tupla observada y confirmar nuevo objetivo/canal, sin mezclar generaciones cerradas.
-8. Salir a Idle; no debe quedar captura activa ni asociación/MQTT. La ausencia de transmisión Wi-Fi requiere evidencia de tráfico además del estado.
-
-Los eventos de cobertura pueden seguir llegando con captura detenida: no son nuevas tramas capturadas. `coverage_ms` tampoco demuestra recepción RF continua.
-
-Detalles y límites: [captura](modules/escudo-capture.md).
+Los eventos de cobertura pueden seguir llegando con captura detenida: no son nuevas tramas capturadas. `coverage_ms` tampoco demuestra recepción RF continua. Detalles y límites: [captura](modules/escudo-capture.md).
 
 ## 16. Probar los cuatro detectores
 
@@ -550,7 +509,7 @@ Esto prueba desconexión/control de la app sin captura. La coexistencia con capt
 
 La app conserva hasta **256 eventos por nodo**; el dispositivo retiene **64 registros**. Esta prueba usa eventos del núcleo y no cierra por sí sola la recuperación del Escudo mientras captura ni la disponibilidad de sus detectores después de recuperar.
 
-### Pruebas con captura activa: usar Diagnóstico P1
+### Pruebas con captura activa: usar Escudo Pasivo
 
 ### Prueba T09 — BLE desconectado, captura activa
 
@@ -559,21 +518,14 @@ La app conserva hasta **256 eventos por nodo**; el dispositivo retiene **64 regi
 3. Dejar transcurrir unos segundos, suficientes para un evento periódico de cobertura; el journal tiene retención limitada, así que no dejar pasar una sesión larga innecesaria.
 4. Reconectar, leer metadata y estado actuales, y recuperar desde el cursor confirmado.
 
-Ejemplo de primera sincronización, o de una app que aún no confirmó ningún cursor:
-
-```json
-{"operation":"read_events","args":{"after_cursor":0,"limit":2}}
-```
-
-5. Recibir eventos y después el ACK de página. Con `more:true`, seguir desde `next_cursor`.
-6. Comprobar que hubo eventos producidos durante la desconexión y que captura/objetivo siguen activos. Leer historial no debe detener el Escudo.
+5. Pulsa **Sincronizar historial por BLE**. La app usa el cursor confirmado y recorre automáticamente las páginas hasta terminar. Observa estado de recuperación, cursor e incidentes; los eventos generales siguen disponibles en General.
+6. Comprueba que hubo eventos producidos durante la desconexión y que captura/objetivo siguen activos. Leer historial no debe detener el Escudo.
 
 ### Prueba T10 — Repetición sin duplicados
 
-1. Conservar una página recibida y sus identidades.
-2. Repetir desde el mismo cursor anterior con comando nuevo vigente, usando el cliente de diagnóstico si la UI no permite elegirlo.
-3. Las reentregas conservan `message_id`, `boot_id`, `journal_seq`, tiempo y contenido.
-4. En el historial de la app debe existir una sola entrada por identidad. El cursor durable solo avanza después de guardar la página completa.
+1. Conserva IDs de eventos recuperados y pulsa de nuevo **Sincronizar historial por BLE**. Ninguna identidad debe aparecer dos veces.
+2. La app normal recupera desde su cursor confirmado y no ofrece elegir uno anterior. El replay deliberado de la misma página se prueba con `npm run test:app`, `npm run check:contracts` y las pruebas de firmware; no se acredita replay físico con una segunda sincronización sin reentregas.
+3. Si se producen reentregas reales al reconectar, verifica sus IDs/boot/tiempo y una sola entrada por identidad. Si no se producen, conserva esa parte física pendiente.
 
 ### Prueba T11 — Reinicio después del commit
 
@@ -627,7 +579,7 @@ Con los componentes actuales no se puede aprobar todavía el recorrido conjunto 
 | [integracion-tres-modos](../openspec/changes/sentinel-integracion-tres-modos/tasks.md) | Pendiente de implementación e integración. | Paso 18; las siete tareas conservan sus criterios completos. |
 | [core-foundation](../openspec/changes/archive/2026-11-10-sentinel-core-foundation/tasks.md) | Base histórica reutilizada. | T01/T02/BLE aportan evidencia parcial; MQTT/TCP/app completa y demás pendientes se comprueban con sus componentes reales. |
 
-**Sin OLED:** T01/T02 comprueban visualización local por serie y botón; la prueba de la pantalla física sigue pendiente. El panel habilita T04–T06 y T08–T13 con hardware real; T07 y el ring reducido de T12 son host. Detectar ataques reales y descartar probes en aire requieren laboratorio autorizado. El paso 18 depende de entregas P2/P3/P4.
+**Sin OLED:** T01/T02 comprueban visualización local por serie y botón; la prueba de la pantalla física sigue pendiente. La pantalla Escudo permite T04–T06 y T08–T13 con las limitaciones indicadas; el replay deliberado de T10, T07 y el ring reducido de T12 tienen comprobaciones host. Detectar ataques reales y descartar probes en aire requieren laboratorio autorizado. El paso 18 depende de entregas P2/P3/P4.
 
 La spec [pruebas P1 sin OLED](../openspec/changes/sentinel-p1-pruebas-sin-oled/tasks.md) conserva **4.3 pendiente**: cargar la imagen integrada con la corrección de pila, emparejar Android, consultar estado/ACK y comprobar ausencia de reinicios. La prueba intermedia de botón/código no la cierra.
 
@@ -676,7 +628,7 @@ Dependencia o siguiente acción:
 | BLE no empareja | OLED o modo serie con monitor abierto a 115200, ventana física de 120 s, permisos y ausencia de otro cliente. No usar Just Works ni quitar seguridad. |
 | App no entiende metadata / `unsupported_version` | Reconstruir e instalar el APK de tu app v2, no el antiguo de base. Confirmar referencia y cabecera tras conectar; no bajar el firmware para fingir integración. |
 | ADB no muestra el teléfono | USB de datos, teléfono desbloqueado, depuración y autorización; ADB no es necesario si instalas copiando el APK. |
-| App conectada pero no veo scan/start/stop | Es la UI común v2; esos controles siguen en `sentinel-app-escudo` de P4. No confundir la pestaña con activar el modo. |
+| App conectada pero no veo scan/start/stop | Recompila e instala el APK de `sentinel-app-escudo` y abre Escudo Pasivo. No requiere flag P1; la pestaña y la activación del modo son acciones distintas. |
 | Historial vacío al abrir app | Conectar/seleccionar el mismo nodo y recuperar; el historial es por nodo. No asumir que abrir app restablece automáticamente el canal. |
 | `revision_conflict`, `wrong_boot` o `expired` | Leer metadata/estado y construir una orden nueva con esos datos actuales. |
 | `busy` | Esperar a que termine el trabajo/transferencia, consultar estado y reintentar de forma controlada. |
@@ -685,7 +637,7 @@ Dependencia o siguiente acción:
 | Historial con gap | Registrar pérdida/rango y continuar por cursor; no es motivo para borrar flash. |
 | Cebo/Sanitizador no disponibles | Es la expectativa actual hasta integrar los módulos de tus compañeros. |
 
-**Primera sesión práctica tras entregar el flujo oficial:** completar pasos 1–13 y T14/T15 del paso 17; el mantenimiento Node/WSL es opcional para firmware. Guardar resultados T01/T02/T03, método de pairing sin passkey, referencia del APK y resultados de software. Después ejecutar las pruebas específicas con Diagnóstico P1; el paso 18 espera las entregas del equipo y tu última spec. Actualizar documentación no marca como realizadas las pruebas físicas.
+**Primera sesión práctica tras entregar el flujo oficial:** completar pasos 1–13 y T14/T15 del paso 17; el mantenimiento Node/WSL es opcional para firmware. Guardar resultados T01/T02/T03, método de pairing sin passkey, referencia del APK y resultados de software. Después ejecutar las pruebas específicas con la pantalla Escudo y las suites host; el paso 18 espera las entregas del equipo y tu última spec. Actualizar documentación no marca como realizadas las pruebas físicas.
 
 ## Anexo A. Preparar la compilación Android v2 en WSL
 
@@ -734,7 +686,7 @@ Leer/aceptar las licencias que correspondan. Si la distribución descargada sust
 
 ```sh
 npm ci
-VITE_SENTINEL_P1_TOOLS=1 npm run android:sync
+npm run android:sync
 npm run android:assemble
 ```
 
@@ -746,7 +698,7 @@ sha256sum app/android/app/build/outputs/apk/debug/app-debug.apk
 
 Repetir la configuración del entorno al abrir otra terminal. El SDK, APK, cachés y `local.properties` privados no se versionan.
 
-Este anexo prepara la compilación de tu app común; las pantallas específicas de P4 conservan su propio encargo. Un emulador puede ayudar con arranque/UI, pero no sustituye ESP32/teléfono en T03 ni acredita BLE físico.
+Este anexo prepara la compilación de tu app común; Escudo está incluida y las demás pantallas de P4 conservan su propio encargo. Un emulador puede ayudar con arranque/UI, pero no sustituye ESP32/teléfono en T03 ni acredita BLE físico.
 
 ## Anexo B. Diagnóstico BLE opcional sin la app
 

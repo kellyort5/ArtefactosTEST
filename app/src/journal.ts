@@ -1,6 +1,7 @@
 import {decodeAnyMessage,eventIdentity,type PageResult} from '@sentinel/contracts';
 import type {NodeEvent as EventMessage} from './protocol';
 export type JournalSnapshot={events:EventMessage[];cursor:number;gap:PageResult|null};
+export type ArchivedHistory=JournalSnapshot&{id:string;device_id:string;archived_at:string};
 const request=<T>(r:IDBRequest<T>)=>new Promise<T>((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(new Error('No se pudo leer el historial local.'));});
 const completed=(t:IDBTransaction)=>new Promise<void>((resolve,reject)=>{t.oncomplete=()=>resolve();t.onabort=()=>reject(new Error('No se pudo guardar el historial local.'));t.onerror=()=>reject(new Error('No se pudo guardar el historial local.'));});
 export class EventJournal {
@@ -8,10 +9,25 @@ export class EventJournal {
  constructor(private name='sentinel-journal-v1'){}
  private open(){
   return this.database??=new Promise<IDBDatabase>((resolve,reject)=>{
-   const r=indexedDB.open(this.name,1);
-   r.onupgradeneeded=()=>{const db=r.result;const events=db.createObjectStore('events',{keyPath:['device_id','message_id']});events.createIndex('node','device_id');db.createObjectStore('cursors',{keyPath:'device_id'});};
+   const r=indexedDB.open(this.name,2);
+   r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('events')){const events=db.createObjectStore('events',{keyPath:['device_id','message_id']});events.createIndex('node','device_id');db.createObjectStore('cursors',{keyPath:'device_id'});}if(!db.objectStoreNames.contains('archives'))db.createObjectStore('archives',{keyPath:'id'}).createIndex('node','device_id');};
    r.onsuccess=()=>{const db=r.result;db.onversionchange=()=>{db.close();this.database=undefined;};resolve(db);};r.onerror=()=>{this.database=undefined;reject(new Error('IndexedDB no disponible. Revisa almacenamiento de la app.'));};
   });
+ }
+ async archives(deviceId:string):Promise<ArchivedHistory[]>{
+  const db=await this.open(),tx=db.transaction('archives','readonly'),done=completed(tx);
+  const records=await request(tx.objectStore('archives').index('node').getAll(deviceId));await done;
+  return records.sort((a:ArchivedHistory,b:ArchivedHistory)=>b.archived_at.localeCompare(a.archived_at));
+ }
+ // Explicit USB reinitialization only. Archive and cursor reset are one transaction;
+ // normal reconnections and reboots never call this method.
+ async archiveAfterUsb(deviceId:string){
+  const db=await this.open(),tx=db.transaction(['events','cursors','archives'],'readwrite'),done=completed(tx);
+  const eventsStore=tx.objectStore('events'),cursors=tx.objectStore('cursors');
+  const [events,meta]=await Promise.all([request(eventsStore.index('node').getAll(deviceId)),request(cursors.get(deviceId))]);
+  if(events.length||meta)tx.objectStore('archives').put({id:crypto.randomUUID(),device_id:deviceId,archived_at:new Date().toISOString(),events,cursor:meta?.cursor??0,gap:meta?.gap??null});
+  for(const event of events)eventsStore.delete([deviceId,event.message_id]);
+  cursors.delete(deviceId);await done;
  }
  async append(event:EventMessage){
   // Only validated, public event envelopes ever enter IndexedDB.

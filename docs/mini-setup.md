@@ -99,15 +99,13 @@ Después de `npm ci`, con JDK21 y SDK36 disponibles, ejecuta desde la raíz. La 
 
 ```powershell
 $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-$env:VITE_SENTINEL_P1_TOOLS = "1"
 npm run android:sync
-Remove-Item Env:VITE_SENTINEL_P1_TOOLS
 Push-Location app/android
 .\gradlew.bat assembleDebug
 Pop-Location
 ```
 
-El flag incorpora **Diagnóstico P1** al APK para probar Escudo. Para generar después un APK sin ese panel, repite `android:sync` y el ensamblado sin establecer la variable.
+El APK incorpora la pantalla **Escudo Pasivo** para escanear, seleccionar red y controlar captura. No necesita flags de pruebas; el panel temporal P1 fue retirado.
 
 Copia `app\android\app\build\outputs\apk\debug\app-debug.apk` al teléfono, instálalo y autoriza los permisos Android que solicite. Es una app empaquetada: no necesitas dejar Vite ejecutándose para usarla.
 
@@ -115,6 +113,6 @@ Copia `app\android\app\build\outputs\apk\debug\app-debug.apk` al teléfono, inst
 
 1. Activa Bluetooth y abre la app. Mantén el botón externo de la ESP32 **3 segundos**: abre la ventana BLE de **120 segundos**.
 2. Pulsa **Buscar y conectar BLE** e introduce las seis cifras de OLED o `[P1 PAIR CODE]` del monitor serie cuando Android las solicite.
-3. Comprueba estado **Reposo (Idle)**, entra en **Escudo** y usa **Diagnóstico P1** para escanear redes propias de 2.4 GHz, elegir un objetivo e iniciar/detener captura. Revisa ACK y estado confirmado.
+3. Comprueba estado **Reposo (Idle)**, abre **Escudo Pasivo**, pulsa **Activar Escudo** y usa sus botones para escanear redes propias de 2.4 GHz, elegir un objetivo e iniciar/detener captura. Revisa ACK y estado confirmado.
 
 Esto permite comenzar las pruebas de la base/Escudo. Cebo, Sanitizador, pantallas finales y push siguen en los [encargos del equipo](encargos/README.md); no aparecerán operativos solo por levantar Docker y la app. Para el recorrido completo y registrar pendientes físicos sigue la [guía de pruebas P1](guia-pruebas-persona-1.md).

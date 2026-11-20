@@ -7,17 +7,12 @@ import type {Channel,Transport,TransportSink} from './transports/types';
 import {makeNodeCommand,bleOnly,operationAvailable,eventPage,validateMessage,type NodeRequest,type NodeMessage,type NodeMetadata} from './protocol';
 type BleConnection=Transport & {connect():Promise<NodeMetadata>;readMetadata():Promise<NodeMetadata>;startPolling(refresh:()=>Promise<void>):void};
 type MqttConnection=Transport & {connect(settings:MqttSettings):Promise<void>};
-export type DiagnosticFault='normal'|'boot'|'revision'|'expired';
-const diagnosticOperations=new Set(['get_state','set_mode','read_events','escudo.scan','escudo.networks','escudo.select_target','escudo.capture_start','escudo.capture_stop']);
-function checkDiagnostic(request:NodeRequest,enabled:boolean){
- if(!enabled||!diagnosticOperations.has(request.operation))throw new Error('Operación de diagnóstico no permitida.');
-}
 type Factory=(sink:TransportSink)=>{ble:BleConnection;mqtt:MqttConnection};
 export class NodeController {
  readonly ble:BleConnection;readonly mqtt:MqttConnection;
  private observers=new Set<(m:NodeMessage,c:Channel)=>void>();
  observeMessages(listener:(m:NodeMessage,c:Channel)=>void){this.observers.add(listener);return()=>{this.observers.delete(listener);};}
- private notify(message:NodeMessage,channel:Channel){for(const listener of this.observers)try{listener(message,channel);}catch{/* Diagnostics must never interrupt production delivery. */}}
+ private notify(message:NodeMessage,channel:Channel){for(const listener of this.observers)try{listener(message,channel);}catch{/* View observers must never interrupt production delivery. */}}
  private receiveQueue=Promise.resolve();private serial:Promise<unknown>=Promise.resolve();private sessionSeq=0;
  constructor(readonly store:StoreApi<NodeStore>,readonly journal:EventJournal,
   factory:Factory=sink=>({ble:new BleTransport(sink),mqtt:new MqttTransport(sink)}),private now=()=>performance.now()){
@@ -73,26 +68,7 @@ export class NodeController {
   this.store.getState().select(settings.deviceId);await this.loadHistory();await this.mqtt.connect(settings);
  }
  send(request:NodeRequest,preferred?:Channel):Promise<string>{return this.dispatch(request,preferred);}
- sendDiagnostic(request:NodeRequest,fault:DiagnosticFault,enabled:boolean):Promise<string>{
-  try{checkDiagnostic(request,enabled);}catch{return Promise.reject(new Error('Operación de diagnóstico no permitida.'));}
-  return this.dispatch(request,'ble',fault);
- }
- replayDiagnostic(command:import('./protocol').NodeCommand,enabled:boolean):Promise<string>{
-  const operation=this.serial.then(async()=>{
-   checkDiagnostic(command.payload as NodeRequest,enabled);
-   const message=validateMessage(command);
-   if(message.type!=='command'||message.version!==2)throw new Error('Se requiere una orden pública v2.');
-   const state=this.store.getState();
-   if(state.links.ble!=='connected'||state.deviceId!==message.device_id)throw new Error('Conecta BLE protegido al nodo de la orden.');
-   const meta=await this.ble.readMetadata();
-   if(this.store.getState().deviceId!==state.deviceId||meta.device_id!==state.deviceId||meta.boot_id!==message.boot_id||
-      meta.version!==2||meta.uptime_ms>=message.payload.expires_at_uptime_ms)throw new Error('La orden ya no pertenece al arranque/plazo actual. Envía una nueva.');
-   // Keep the original ID, sequence, envelope and args. Do not retrack duplicates.
-   await this.ble.send(message);return message.payload.command_id;
-  });
-  this.serial=operation.catch(()=>{});return operation;
- }
- private dispatch(request:NodeRequest,preferred?:Channel,diagnostic?:DiagnosticFault):Promise<string>{
+ private dispatch(request:NodeRequest,preferred?:Channel):Promise<string>{
   const requestedNode=this.store.getState().deviceId;
   const requestedBoot=this.store.getState().metadata?.boot_id;
   const operation=this.serial.then(async()=>{
@@ -109,17 +85,10 @@ export class NodeController {
    }else if(s.stale||s.snapshot?.payload.profile!=='cebo')throw new Error('Espera un estado vivo de Cebo antes de enviar por MQTT.');
    if(!metadata)throw new Error('Consulta el estado del nodo antes de enviar órdenes.');
    if(requestedBoot&&metadata.boot_id!==requestedBoot&&!['get_state','read_events'].includes(request.operation))throw new Error('El nodo reinició; confirma su estado y repite la operación.');
-   if(diagnostic===undefined&&!['get_state','read_events','set_time','configure_connectivity'].includes(request.operation)&&
+   if(!['get_state','read_events','set_time','configure_connectivity'].includes(request.operation)&&
       (s.snapshot?.boot_id!==metadata.boot_id||s.snapshot?.version!==metadata.version))throw new Error('Consulta el estado del arranque actual antes de controlar el módulo.');
-   if(diagnostic===undefined&&!operationAvailable(s.snapshot,request))throw new Error('Esta función no está disponible en el estado/capacidades actuales.');
+   if(!operationAvailable(s.snapshot,request))throw new Error('Esta función no está disponible en el estado/capacidades actuales.');
    const message=makeNodeCommand(metadata,request,crypto.randomUUID(),Math.floor(this.now()-metadataAt));message.seq=++this.sessionSeq;
-   if(diagnostic!==undefined){
-    if(message.version!==2)throw new Error('El diagnóstico P1 requiere contrato v2.');
-    if(diagnostic==='boot'){message.boot_id='boot-p1-invalid';message.payload.target_boot_id='boot-p1-invalid';}
-    if(diagnostic==='revision')message.payload.expected_revision=metadata.revision+1;
-    if(diagnostic==='expired'){message.uptime_ms=0;message.payload.expires_at_uptime_ms=1;}
-    validateMessage(message);
-   }
    this.store.getState().track(message,this.now());
    try{await (channel==='ble'?this.ble:this.mqtt).send(message);this.store.getState().sent(message.payload.command_id);}
    catch{
@@ -133,6 +102,14 @@ export class NodeController {
   this.serial=operation.catch(()=>{});return operation;
  }
  async recover(channel?:Channel){await this.send({operation:'read_events',args:{after_cursor:this.store.getState().cursor,limit:8}},channel);}
+ async restartHistoryAfterUsb(){
+  const id=this.store.getState().deviceId;
+  const disconnected=()=>id&&this.store.getState().deviceId===id&&!Object.values(this.store.getState().links).some(s=>s==='connected'||s==='connecting');
+  if(!disconnected())throw new Error('Desconecta BLE y MQTT antes de registrar una reinstalación USB.');
+  await this.serial;await this.receiveQueue;
+  if(!disconnected())throw new Error('La conexión cambió; desconecta y vuelve a intentarlo.');
+  await this.journal.archiveAfterUsb(id!);await this.loadHistory();
+ }
  async disconnectAll(){await Promise.all([this.ble.disconnect(),this.mqtt.disconnect()]);this.store.getState().setError(null);}
 }
 export const controller=new NodeController(nodeStore,new EventJournal());

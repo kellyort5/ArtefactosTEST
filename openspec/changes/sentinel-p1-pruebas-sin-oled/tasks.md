@@ -1,5 +1,7 @@
 # Tasks
 
+> Actualización 2026-11-20: el panel temporal P1 fue retirado por petición del usuario en `sentinel-app-escudo`. Sus tareas y resultados siguientes son evidencia histórica, no instrucciones para reinstalarlo. Se retiró su delta mobile-control para que un archivado posterior no lo restaure. La salida serie, las correcciones BLE y los pendientes físicos de firmware se conservan.
+
 ## 1. Visualización local de pruebas
 
 - [x] 1.1 Implementar la opción serie desactivada por defecto y su integración con estado, ventana física y passkey BLE; verificar con pruebas focalizadas entrega fallida, ventana cerrada, código temporal y OLED ausente sin presencia ficticia.
