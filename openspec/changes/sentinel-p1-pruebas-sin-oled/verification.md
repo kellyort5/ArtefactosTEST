@@ -1,5 +1,7 @@
 # Verificación — pruebas P1 sin OLED
 
+> Actualización 2026-11-20: el panel temporal P1 fue retirado por petición del usuario en `sentinel-app-escudo`. Sus tareas y resultados siguientes son evidencia histórica, no instrucciones para reinstalarlo. Se retiró su delta mobile-control para que un archivado posterior no lo restaure. La salida serie, las correcciones BLE y los pendientes físicos de firmware se conservan.
+
 > Evidencia de la entrega P1 anterior a la integración MQTT anónima. Conservar resultados/pendientes; para firmware/APK actual consultar [verificación integrada](../sentinel-mvp-sin-cuentas/verification.md).
 
 **Corrección posterior comprobada por software:** ver [fallos físicos de memoria/pila y versión final](ble-stack-verification.md). Los builds iniciales de este documento se conservan como antecedente; la última corrección sigue pendiente de cargar porque el usuario ya no dispone de la placa.

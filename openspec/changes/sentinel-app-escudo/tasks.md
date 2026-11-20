@@ -1,13 +1,15 @@
 # Tasks
 
-Responsable único de todas las casillas: **Persona 4**. Estado inicial: todo pendiente; propuesta lista para revisión, sin implementación.
+Responsable de este incremento: **Persona 1**, por autorización expresa del usuario para implementar esta spec originalmente asignada a P4. Los demás encargos de P4 no cambian. Software implementado; aceptación física 2.1/2.2 pendiente. Ver [verificación](verification.md).
 
 ## 1. Pantalla Escudo
 
-- [ ] 1.1 Implementar catálogo paginado y selección/controles BLE; verificar estados vacío, oculto, pendiente, rechazo y objetivo aplicado.
-- [ ] 1.2 Implementar gráficos, tabla y detalle de cuatro detectores; comprobar fixtures benignos/sospechosos y lenguaje de indicio.
-- [ ] 1.3 Integrar cobertura/historial y sincronización; probar dedup/gap y documentar flujo en docs/modules/app-escudo.md.
-- [ ] 1.4 Ejecutar npm run test:app y npm run build; comprobar vista responsive y acciones con contratos.
+- [x] 1.1 Implementar catálogo paginado y selección/controles BLE; verificar estados vacío, oculto, pendiente, rechazo y objetivo aplicado.
+- [x] 1.2 Implementar gráficos, tabla y detalle de cuatro detectores; comprobar fixtures benignos/sospechosos y lenguaje de indicio.
+- [x] 1.3 Integrar cobertura/historial y sincronización; probar dedup/gap y documentar flujo en docs/modules/app-escudo.md.
+- [x] 1.4 Ejecutar npm run test:app y npm run build; comprobar vista responsive y acciones con contratos.
+
+- [x] 1.5 Retirar panel, flag y APIs de diagnóstico P1; adaptar guía, conservar pruebas negativas host y comprobar que la variable antigua no reactiva el panel.
 
 ## 2. Comprobación del incremento
 

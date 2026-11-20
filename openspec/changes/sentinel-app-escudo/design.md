@@ -6,7 +6,7 @@
 
 Ver [motivación](proposal.md). La referencia de integración es `develop`: contratos v2, API de módulos, Escudo y app común/diagnóstico P1 ya están entregados por software. Consultar [estado y límites vigentes](../../../docs/mvp-policy.md) y [verificación integrada](../sentinel-mvp-sin-cuentas/verification.md). La base y los incrementos archivados conservan sus comprobaciones físicas pendientes; este cambio no las acredita. Fuente de verdad: [decisiones](../../../docs/technical-decisions.md), [arquitectura](../../../docs/architecture.md) y [encargos](../../../docs/encargos/README.md).
 
-Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Dependencias para integrar: `sentinel-app-protocolo-v2`, `sentinel-escudo-descubrimiento`, `sentinel-escudo-detectores`, `sentinel-escudo-recuperacion`. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
+Responsable único: **Persona 1, por autorización expresa para implementar este encargo originalmente de P4**. Dependencias para integrar: `sentinel-app-protocolo-v2`, `sentinel-escudo-descubrimiento`, `sentinel-escudo-detectores`, `sentinel-escudo-recuperacion`. Cada módulo puede preparar lógica y fixtures desde el contrato revisado; las comprobaciones reales esperan su dependencia pertinente, no toda la campaña de base.
 
 ## Goals / Non-Goals
 
@@ -37,4 +37,14 @@ Trabajar en rama `feat/sentinel-app-escudo`, incorporar dependencias revisadas m
 
 ## Persistencia al implementar este encargo
 
-P4 debe contemplar que reinstalar/actualizar por USB puede reiniciar identidad, bonds e historial/cursores. Si ocurre, retirar vínculos/caché obsoletos del teléfono, volver a emparejar/configurar y reconciliar desde metadata/estado nuevos; no reutilizar el cursor anterior frente a un historial reinicializado, aunque el device_id derivado de MAC siga igual. No prometer migración de datos entre versiones. Conservar resultados históricos por separado y no presentar mensajes antiguos como actuales. En reinicios sin upload sí se exige recuperar datos confirmados. Esta documentación no declara implementada una UI nueva.
+La implementación debe contemplar que reinstalar/actualizar por USB puede reiniciar identidad, bonds e historial/cursores. Si ocurre, retirar vínculos/caché obsoletos del teléfono, volver a emparejar/configurar y reconciliar desde metadata/estado nuevos; no reutilizar el cursor anterior frente a un historial reinicializado, aunque el device_id derivado de MAC siga igual. No prometer migración de datos entre versiones. Conservar resultados históricos por separado y no presentar mensajes antiguos como actuales. En reinicios sin upload sí se exige recuperar datos confirmados. La implementación y sus límites se registran en [verification.md](verification.md); la aceptación física permanece pendiente.
+
+## Concreción de esta implementación
+
+La pantalla usa una proyección Zustand acotada del controller existente: catálogo por ACK correlacionado y scan_id, invalidación al cambiar nodo/arranque/enlace/escaneo y hasta 60 muestras BLE por arranque. No se añade transporte ni dependencia. Los gráficos SVG muestran contadores acumulados. Las operaciones quedan pendientes hasta confirmación; tras 15 s se permite reintentar sin declarar éxito.
+
+Para cumplir el apartado USB se extienden únicamente `app/src/journal.ts` y `app/src/controller.ts`: IndexedDB v2 añade un almacén de copias anteriores, conserva datos existentes y permite archivar/resetear el cursor explícitamente con ambos canales desconectados. La operación es atómica y no se ejecuta automáticamente en arranque/reconexión. La interfaz permite consultar esas copias separadas. Esta extensión del journal evita mezclar secuencias de instalaciones distintas sin cambiar el contrato de firmware.
+
+## Retirada del diagnóstico P1
+
+Por instrucción posterior del usuario se elimina el componente, flag, presets y APIs `sendDiagnostic`/`replayDiagnostic`; el controller conserva solo el envío normal validado y el observador usado por Escudo. Las pruebas negativas quedan en suites host. La salida serie del firmware es independiente y se conserva. La guía no pide escribir JSON ni instalar un APK diagnóstico; los JSON de contrato solo son referencias.

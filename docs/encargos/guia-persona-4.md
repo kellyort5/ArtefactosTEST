@@ -8,7 +8,7 @@ P4 debe contemplar que reinstalar/actualizar por USB puede reiniciar identidad, 
 
 Tu entrega es la aplicación de los tres módulos, su integración Android/BLE/WS/push, el broker accesible en LAN y la consolidación de evidencia del equipo. Los otros tres autores implementan firmware y P3 envía alertas desde servidor. Tú consumes esas entregas; no programas sus detectores, NAT o servicios Cebo.
 
-P1 entrega la app común v2 y el diagnóstico sin OLED, incluidas las correcciones BLE; su prueba física4.3 sigue pendiente. Tú consumes esa entrega y el panel diagnóstico P1, y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
+P1 entrega la app común v2 y el diagnóstico sin OLED, incluidas las correcciones BLE; su prueba física4.3 sigue pendiente. Tú consumes esa entrega y la pantalla Escudo de P1; el panel diagnóstico temporal fue retirado, y conservas las demás specs de app, broker y laboratorio. Adelantar broker y procedimientos de laboratorio permite integrar cada módulo conforme llega. Reutilizar navegación, tablas, gráficos y estados comunes; no rehacer el transporte para cada pantalla.
 
 La clave técnica de la API HTTPS sigue el [contrato de notificaciones](../../contracts/notifications.md); no implica crear usuarios, roles o permisos de aplicación. P3 entrega URL y configuración privada a P4. No reutilizar esa clave como credencial MQTT ni gestionar una CA del broker. Los permisos Android son del sistema operativo.
 
@@ -39,7 +39,7 @@ Las ramas previstas son `feat/<nombre completo del cambio>`. Sigue un encargo po
 | --- | --- | --- |
 | Temprano | [sentinel-broker-lan](sentinel-broker-lan.md) | Contratos; desbloquea integración MQTT y servidor de alertas. |
 | Preparar temprano, cerrar al final | [sentinel-laboratorio-pruebas](sentinel-laboratorio-pruebas.md) | Contratos para fixtures; evidencia real de todos para el cierre. |
-| Según llegada de firmware | [sentinel-app-escudo](sentinel-app-escudo.md) | App común y descubrimiento/detectores/recuperación Escudo. |
+| Consumir entrega de P1; revisar evidencia | [sentinel-app-escudo](sentinel-app-escudo.md) | App común y descubrimiento/detectores/recuperación Escudo. |
 | Según llegada de firmware | [sentinel-app-sanitizador](sentinel-app-sanitizador.md) | App común, auditoría y ruta completa DNS/DoH. |
 | Según llegada de firmware/servidor | [sentinel-app-cebo](sentinel-app-cebo.md) | App común, eventos/historial Cebo y estado de alertas P3. |
 | Después de Cebo y servidor push | [sentinel-app-push](sentinel-app-push.md) | App común, app Cebo y envío push de P3. |
@@ -70,7 +70,9 @@ Esta secuencia concreta el reparto, sin poner fechas ni cambiar sus dependencias
 
 No hace falta generar ataques en el aire para probar parsers/heurísticas con fixtures y demostrar que reciben observaciones físicas. Eso tampoco acredita haber detectado un ataque real: el informe debe distinguir ambas cosas. La ejecución de cada módulo sigue siendo responsabilidad de su autor; tú organizas y consolidas.
 
-### D. UI Escudo: sentinel-app-escudo
+### D. Consumir y revisar UI Escudo: sentinel-app-escudo
+
+Esta spec se implementa por P1 por autorización expresa; no iniciar una segunda implementación. Software disponible, aceptación física 2.1/2.2 pendiente. Consultar [guía de pantalla](../modules/app-escudo.md) y [evidencia](../../openspec/changes/sentinel-app-escudo/verification.md). Los puntos siguientes describen el alcance que debes revisar/consumir.
 
 1. Catálogo paginado de redes con SSID/BSSID/canal/RSSI/seguridad, selección y controles BLE de inicio/detención/cambio.
 2. Gráficos de actividad/volumen, tabla de incidentes y detalle para los cuatro detectores, con lenguaje de indicio. Un SSID duplicado aislado no se presenta como atacante confirmado.

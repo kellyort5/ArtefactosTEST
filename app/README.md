@@ -1,6 +1,6 @@
 # Aplicación Sentinel Node
 
-App real React19/Vite7/Tailwind4/Zustand5/TypeScript5, mqtt.js5 por WS y Capacitor8/BLE8 para Android. Estado, comandos y eventos pasan por los contratos AJV de `@sentinel/contracts`. No contiene respuestas de nodo simuladas ni credenciales de laboratorio. El adaptador común reconoce base v1 y módulos v2, con navegación, estado, comandos e historial comunes. Los catálogos/controles específicos, gráficos, formularios Sanitizador y notificaciones siguen en sus encargos independientes; este cambio no los sustituye.
+App real React19/Vite7/Tailwind4/Zustand5/TypeScript5, mqtt.js5 por WS y Capacitor8/BLE8 para Android. Estado, comandos y eventos pasan por los contratos AJV de `@sentinel/contracts`. No contiene respuestas de nodo simuladas ni credenciales de laboratorio. El adaptador común reconoce base v1 y módulos v2, con navegación, estado, comandos e historial comunes. La pantalla Escudo incluye catálogo, selección/captura por BLE, gráficos, incidentes y recuperación; ver [uso y pruebas](../docs/modules/app-escudo.md). Las pantallas Sanitizador/Cebo y notificaciones conservan sus encargos independientes.
 
 ## Compilar sin dispositivo
 
@@ -56,7 +56,7 @@ No confirmar aplicación por PUBACK o por resolución de publishAsync. El store 
 
 MQTT suscribe `sentinel/v{1,2}/nodes/<id>/{state,availability,metrics,events,acks}` y publica commands en la versión negociada. Conserva negociación y mensajes históricos v1 sin ACL. **Integración:** broker anónimo TCP1883/WS9001 y topics v1/v2 ya entregados. P4 comprueba LAN física/notificaciones; no implementa cuentas/ACL. MQTT de control requiere estado vivo de Cebo y operaciones públicas; Escudo conserva BLE exclusivo.
 
-La navegación General/Escudo/Sanitizador/Cebo usa `modeAvailable`; cada módulo muestra el estado confirmado del mismo arranque y sus capacidades. Un nodo v1 conserva los controles de recursos de base, sin presentar módulos v2 como funcionales. Un módulo ausente queda no disponible. La sección común no implementa catálogo Escudo, reglas DNS, gráficos ni controles específicos: corresponden a `sentinel-app-escudo`, `sentinel-app-sanitizador` y `sentinel-app-cebo` de P4.
+La navegación General/Escudo/Sanitizador/Cebo usa `modeAvailable`; cada módulo muestra el estado confirmado del mismo arranque y sus capacidades. Un nodo v1 conserva los controles de recursos de base, sin presentar módulos v2 como funcionales. Un módulo ausente queda no disponible. La pantalla Escudo ya implementa su catálogo, gráficos y controles. Sanitizador y Cebo conservan sus entregas específicas de P4.
 
 Para esas pantallas, reutilizar `send(NodeRequest, canal?)`, `recover`, `nodeStore` y `eventSummary`; no crear transportes o formatos nuevos. `send` selecciona codec y revisa capacidades/canal; devolver un ID indica entrega pendiente, nunca éxito. Las operaciones `escudo.*`, `sanitizador.*`, `configure_connectivity` y `set_time` requieren BLE protegido. El estado mantiene solo correlación pública; las configuraciones privadas no conservan argumentos en el historial. Los resultados ACK tipados se correlacionan con la operación original: solo `kind:events` completa una página. Métricas de arranques anteriores no reemplazan las actuales.
 
@@ -77,8 +77,8 @@ npm run check:browser:mqtt -w app
 
 Los tests focalizados comprueban negociación, retención/boot/revisión, ACK rechazados o de tipo incorrecto, pérdida de transporte, páginas incompletas, historial v1/v2 de tres módulos y limpieza de credenciales de sesión. Chromium comprueba UI inicial, diagnóstico BLE web, navegación v2 y rechazo sin cambio optimista con fixtures de prueba, responsive e IndexedDB real tras recarga. WS comprueba el adaptador anónimo y la entrega de comandos contra Mosquitto real; usa un comando de prueba sin ESP32 y no acredita aplicación en placa. [evidence.md](evidence.md) conserva la evidencia de la base; la [verificación de app v2](../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) registra este incremento y sus pruebas físicas pendientes. API de transporte/formatos exactos en [contracts/README.md](../contracts/README.md). Los fixtures solo existen en tests; nunca alimentan la UI de producto.
 
-## Diagnóstico optativo de Persona 1
+## Pantalla Escudo y pruebas de protocolo
 
-Para probar firmware Escudo antes de las pantallas finales: `VITE_SENTINEL_P1_TOOLS=1 npm run android:sync` desde la raíz y después `npm run android:assemble`. El panel usa el mismo BLE protegido, metadatos frescos, contratos v2 y journal; permite catálogo paginado, objetivo, captura, estado, historial y negativos públicos explícitos. Sin BLE permanece deshabilitado. Enviar no significa aplicado: revisar ACK correlacionado. No introducir credenciales en el panel. Su memoria de respuestas es acotada y temporal.
+El APK normal contiene catálogo, selección/captura, gráficos e incidentes del Escudo. No hay panel Diagnóstico P1 ni flag para habilitarlo. Sigue la [guía de pantalla](../docs/modules/app-escudo.md); para usar la ESP32 sin OLED se conserva la salida serie del firmware descrita en la [guía P1](../docs/guia-pruebas-persona-1.md).
 
-El valor por defecto está desactivado; para un APK de producto ejecutar `npm run android:sync` sin esa variable y ensamblar de nuevo. El flag se incorpora durante build web, no es una opción que pueda activarse en el teléfono. La [guía P1](../docs/guia-pruebas-persona-1.md) explica salida serie temporal sin OLED y el recorrido completo; no acredita OLED, ataques en aire ni módulos ausentes.
+Las pruebas negativas de boot, revisión, caducidad, reentrega y deduplicación se ejecutan en las suites de contratos, firmware y app. No se envían sobres deliberadamente incorrectos desde la interfaz de producto.

@@ -18,7 +18,7 @@ Coordina la retirada transversal MQTT de usuarios/roles/ACL/TLS y comparte endpo
 
 Para tu primer montaje y prueba, seguir la [guía desde cero de software, hardware y specs de Persona 1](../guia-pruebas-persona-1.md), actualizada para tu app común v2: instalación, pairing, estado, Reposo ↔ Escudo, reconexión e historial. Distingue esos controles de las pantallas específicas pendientes del equipo.
 
-La [verificación](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) y el [README de app](../../app/README.md) registran el incremento v2 y sus pendientes físicos. La sesión actual permite recorrer T01–T15 según condiciones usando Diagnóstico P1 para catálogo/selección/captura; P4 sigue implementando la UX final, gráficos e incidentes de sentinel-app-escudo. Publicar o actualizar la guía no acredita esas pruebas ni cambia sus casillas OpenSpec.
+La [verificación](../../openspec/changes/archive/2026-11-12-sentinel-app-protocolo-v2/verification.md) y el [README de app](../../app/README.md) registran el incremento v2 y sus pendientes físicos. La sesión actual permite recorrer T01–T15 según condiciones usando la pantalla Escudo para catálogo/selección/captura, gráficos e incidentes; los negativos de protocolo se verifican por software. Publicar o actualizar la guía no acredita esas pruebas ni cambia sus casillas OpenSpec.
 
 Leer la [guía del equipo](guia-equipo.md), el [reparto](README.md), la [arquitectura](../architecture.md), [R-02 a R-07 y R-11, con H-01 a H-08](../technical-decisions.md) y el [roadmap](../roadmap.md).
 
@@ -41,7 +41,7 @@ Cada enlace abre una ficha con diseño, specs y tareas oficiales. La rama previs
 | 6b — software archivado; física pendiente | [sentinel-app-protocolo-v2](sentinel-app-protocolo-v2.md) | Adaptación común v1/v2, navegación, comandos, historial y limpieza de secretos; entrega de P1 antes de las pantallas de P4. | Control/estado e historial comunes; faltan pantallas específicas y comprobación física. |
 | 7 | [sentinel-integracion-tres-modos](sentinel-integracion-tres-modos.md) | Registrar módulos entregados, verificar parada/exclusión, OLED/botón y resumen de la alerta más reciente, reconciliación de estado/transportes/journal y recorrido final de tres modos. | Entrega conjunta de ESP32/app/alertas con evidencia de todos. |
 
-Solo `sentinel-app-protocolo-v2` pasa de P4 a P1 por instrucción expresa. P4 conserva sus demás encargos. Coordinar el traspaso de controller/store/transportes antes de que P4 añada pantallas.
+`sentinel-app-protocolo-v2` y, por una autorización posterior específica, `sentinel-app-escudo` pasan de P4 a P1. La pantalla Escudo está implementada por software con aceptación física pendiente; ver su [guía de uso](../modules/app-escudo.md). P4 conserva sus demás encargos. Coordinar el traspaso de controller/store/transportes antes de que P4 añada pantallas.
 
 El encargo 7 espera las dependencias enumeradas en su ficha. No es una autorización para programar las pantallas o reparar el código Sanitizador/Cebo de otro autor.
 
@@ -64,7 +64,7 @@ Eres autor de `contracts/`, núcleo `src/sentinel/`, API `src/sentinel_api/`, sk
 - En callbacks, copiar datos a colas acotadas; evitar flash o trabajo bloqueante. Respetar lifetime y parada antes de conceder recursos al siguiente modo.
 - Escudo nunca se asocia a la red auditada ni usa MQTT directo. BLE sigue siendo su control y salida.
 - SSID duplicado no es prueba de malicia. Los cuatro detectores publican indicios, evidencia y límites; no prometen certeza o cobertura continua no demostrada.
-- P1 implementa el adaptador común `sentinel-app-protocolo-v2`; P4 controla las demás specs de `app/`, `broker/`, simulador y lockfile raíz. P3 controla `notifications/`; P2 controla Sanitizador. Solicitar cambios a su dueño.
+- P1 implementa el adaptador común `sentinel-app-protocolo-v2` y la pantalla `sentinel-app-escudo`; P4 controla las demás specs de `app/`, `broker/`, simulador y lockfile raíz. P3 controla `notifications/`; P2 controla Sanitizador. Solicitar cambios a su dueño.
 
 ## 5. Cómo usar OpenSpec en tu día a día
 

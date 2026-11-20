@@ -8,7 +8,8 @@ El usuario necesita seleccionar redes y ver todos los detectores/cobertura del E
 
 ## What Changes
 
-- Responsable único: **Persona 4 — app, Android, broker y coordinación del laboratorio**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
+- Responsable único: **Persona 1, por autorización expresa para implementar este encargo originalmente de P4**. Los demás revisan y consumen su entrega, sin compartir autoría del cambio.
+- Retirar por petición del usuario el panel temporal Diagnóstico P1, su flag y sus APIs; las pruebas negativas continúan en software y la salida serie de firmware se conserva.
 - Entregar app: escudo completo conforme a R-03, R-06 y H-08.
 - Cierre observable: Pantalla Escudo completa integrada por BLE, con control, gráficos, incidentes y recuperación reales.
 - Dependencias de integración: `sentinel-app-protocolo-v2`, `sentinel-escudo-descubrimiento`, `sentinel-escudo-detectores`, `sentinel-escudo-recuperacion`.
@@ -22,7 +23,7 @@ El usuario necesita seleccionar redes y ver todos los detectores/cobertura del E
 
 ### Modified Capabilities
 
-No se modifica una capacidad principal existente. Las capacidades consolidadas están en openspec/specs/; los cierres archivados conservan sus comprobaciones pendientes aceptadas. Este cambio añade una capacidad complementaria, sin reducir R-03/R-08/R-10.
+Se retira de `mobile-control` el requisito de diagnóstico P1 optativo, sustituido por la pantalla normal. Las capacidades consolidadas están en openspec/specs/; los cierres archivados conservan sus comprobaciones pendientes aceptadas. Este cambio añade una capacidad complementaria, sin reducir R-03/R-08/R-10.
 
 ## Impact
 

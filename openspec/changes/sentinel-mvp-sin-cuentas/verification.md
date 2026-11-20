@@ -1,5 +1,7 @@
 # Verificación integrada del MVP sin cuentas
 
+> Nota posterior (2026-11-20): los resultados siguientes documentan esa entrega. El APK/panel P1 de esta evidencia fue sustituido por la pantalla normal de `sentinel-app-escudo`; el panel, su flag y su runner fueron retirados por petición del usuario. Para compilar/probar ahora, seguir [la guía de pantalla](../../../docs/modules/app-escudo.md).
+
 Fecha local: 2026-11-17 (Guatemala/UTC−6); builds nativos terminados el 2026-11-18 UTC. Rama de entrega: feat/sentinel-mvp-integration. Base origin/develop bb2ee4a; incluye P1 b63772a, checkpoint MQTT01f6050 y resolución explícita de conflictos de documentación/app. No se archivan cambios ni se cierran pruebas físicas por integrar.
 
 ## Cambios revisados

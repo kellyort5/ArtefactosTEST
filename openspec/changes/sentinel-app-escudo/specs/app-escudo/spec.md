@@ -32,3 +32,13 @@ La app SHALL recuperar pendientes BLE y mostrar pausas y huecos de retención si
 
 - **WHEN** se desconecta y reconecta al Escudo
 - **THEN** recupera eventos por cursor y muestra pérdida/cobertura si existe
+
+### Requirement: Interfaz de producto sin panel temporal
+
+La app SHALL ofrecer las funciones del Escudo desde su pantalla normal, sin panel Diagnóstico P1, flag de compilación ni API de envío de sobres deliberadamente inválidos o replay diagnóstico en el controller de producto. SHALL conservar las comprobaciones negativas de protocolo como pruebas de software.
+
+#### Scenario: APK normal y configuración antigua
+
+- **WHEN** se compila el APK, incluso si el entorno conserva la antigua variable de diagnóstico
+- **THEN** solo se ofrecen los controles normales y no reaparece el panel ni sus acciones de prueba
+- **AND** el emparejamiento BLE protegido y la salida serie local de firmware sin OLED conservan su comportamiento
