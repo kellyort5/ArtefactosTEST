@@ -1,6 +1,6 @@
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {useStore} from 'zustand';
-import type {V2DetectionEvidence,V2Detector} from '@sentinel/contracts';
+import type {V2DetectionEvidence,V2Detector,V2Network,V2Ssid} from '@sentinel/contracts';
 import {nodeStore} from '../../store';
 import {controller} from '../../controller';
 import type {NodeRequest} from '../../protocol';
@@ -13,6 +13,8 @@ const scanLabels={idle:'Sin escanear',running:'Escaneando',complete:'Completado'
 const pauseLabels={none:'Sin pausa',ble_sync:'Sincronización BLE',channel_hop:'Recorrido de canales',target_change:'Cambio de objetivo',resource_error:'Error de recursos',stopped:'Captura detenida'};
 const evidenceLabels:Record<V2DetectionEvidence[number],string>={deauth_rate:'Frecuencia de desautenticación',disassoc_rate:'Frecuencia de desasociación',disconnect_sequence:'Secuencia de desconexiones',same_ssid:'Mismo SSID',different_bssid:'BSSID diferente',channel_change:'Cambio de canal',rssi_change:'Cambio de señal',security_downgrade:'Seguridad reducida',pmf_change:'Cambio de PMF',unsolicited_probe_response:'Respuesta probe no solicitada',multiple_ssids:'Varios SSID',passive_only:'Observación exclusivamente pasiva'};
 const statusLabels={sending:'Enviando',pending:'Pendiente de confirmación',accepted:'Aceptada; esperando aplicación',applied:'Aplicada por el nodo',rejected:'Rechazada por el nodo'};
+type SelectionAttempt={bssid:string;id:string|null;sending:boolean;error:string|null;at:number};
+const sameSsid=(a:V2Ssid,b:V2Ssid)=>typeof a==='string'?a===b:typeof b!=='string'&&a.value===b.value;
 function ActivityChart({samples}:{samples:Sample[]}){
  const max=Math.max(1,...samples.flatMap(s=>[s.values.beacons,s.values.deauth,s.values.disassoc]));
  const colors={beacons:'#087f8c',deauth:'#b74b00',disassoc:'#6554c0'};
@@ -23,6 +25,9 @@ export default function EscudoScreen(){
  const [sending,setSending]=useState(false),[lastId,setLastId]=useState<string|null>(null),[filter,setFilter]=useState<V2Detector|'all'>('all');
  const p=state.snapshot?.version===2?state.snapshot.payload:null,mod=p?.profile==='escudo'?p.module:null;
  const live=state.links.ble==='connected'&&!state.stale&&state.snapshot?.boot_id===state.metadata?.boot_id;
+ const [selection,setSelection]=useState<SelectionAttempt|null>(null);
+ useEffect(()=>setSelection(null),[state.deviceId,state.metadata?.boot_id,state.links.ble,mod?.scan_id]);
+ const selectionCommand=state.commands.find(c=>c.id===selection?.id);
  const last=state.commands.find(c=>c.id===lastId);
  const pending=state.commands.some(c=>c.boot===state.metadata?.boot_id&&(c.operation.startsWith('escudo.')||c.operation==='set_mode')&&performance.now()-c.at<15000&&['sending','pending','accepted'].includes(c.status));
  const recovery=[...state.commands].reverse().find(c=>c.operation==='read_events'&&c.boot===state.metadata?.boot_id);
@@ -31,6 +36,17 @@ export default function EscudoScreen(){
  const incidents=detections(state.events);
  const metric=view.samples.at(-1),values=metric?.values;
  async function run(request:NodeRequest){setSending(true);state.setError(null);try{setLastId(await controller.send(request,'ble'));}catch(e){state.setError(e instanceof Error?e.message:'No se pudo enviar por BLE.');}finally{setSending(false);}}
+ async function selectNetwork(network:V2Network){
+  const attempt:SelectionAttempt={bssid:network.bssid,id:null,sending:true,error:null,at:performance.now()};
+  setSelection(attempt);setSending(true);state.setError(null);
+  try{
+   const id=await controller.send({operation:'escudo.select_target',args:{ssid:network.ssid,bssid:network.bssid,channel:network.channel}},'ble');
+   setLastId(id);setSelection(current=>current===attempt?{...attempt,id,sending:false}:current);
+  }catch(e){
+   const error=e instanceof Error?e.message:'No se pudo confirmar la selección. Actualiza el estado antes de reintentar.';
+   state.setError(error);setSelection(current=>current===attempt?{...attempt,sending:false,error}:current);
+  }finally{setSending(false);}
+ }
  return <section className="escudo-screen" aria-label="Escudo Pasivo">
   <section className="card"><div className="section-top"><div><p className="eyebrow">OBSERVACIÓN PASIVA · BLE</p><h2>Escudo Pasivo</h2></div><span className={'badge '+(live?'good':'warning')}>{live?'BLE · estado actual':'Sin estado BLE actual'}</span></div>
    <p>Descubre redes de 2.4 GHz y monitorea un objetivo autorizado. El nodo no se conecta a la red observada ni utiliza MQTT en este modo. Para conectar BLE o sincronizar la hora, abre la sección General.</p>
@@ -47,7 +63,32 @@ export default function EscudoScreen(){
    <button className="subtle" disabled={!ready||mod?.scan_status!=='complete'} onClick={()=>void run({operation:'escudo.networks',args:{after:null,limit:4}})}>Ver redes detectadas</button>
    {!view.loaded&&<p className="empty-line">{mod?.scan_status==='running'?'Escaneo en curso. Espera a que termine.':'Escanea y pulsa «Ver redes detectadas» para consultar el catálogo por BLE.'}</p>}
    {view.loaded&&view.networks.length===0&&<p className="empty-line">El escaneo no encontró redes. Puedes volver a escanear.</p>}
-   <div className="escudo-networks">{view.networks.map(n=><article className="escudo-network" key={n.bssid}><h3>{ssidLabel(n.ssid)}</h3><p>{n.bssid} · canal {n.channel} · {n.rssi} dBm</p><p className="muted">Seguridad: {n.auth} · cifrado: {n.cipher} · PMF: {n.pmf}</p><button disabled={!ready} onClick={()=>void run({operation:'escudo.select_target',args:{ssid:n.ssid,bssid:n.bssid,channel:n.channel}})}>Seleccionar {n.bssid}</button></article>)}</div>
+   <div className="escudo-networks">{view.networks.map(n=>{
+    const selected=!!mod?.target&&mod.target.bssid===n.bssid&&mod.target.channel===n.channel&&sameSsid(mod.target.ssid,n.ssid);
+    const attempt=selection?.bssid===n.bssid?selection:null;
+    const rejected=!!attempt&&selectionCommand?.status==='rejected';
+    const waiting=!!attempt&&!selected&&!attempt.error&&!rejected;
+    const delayed=waiting&&performance.now()-attempt.at>=15000;
+    const active=selected&&mod?.capture_status==='running';
+    const feedback=selected
+     ? !live?'Objetivo de la última actualización. Reconecta BLE para consultar su estado.'
+      :active?'Monitoreo activo en esta red. Puedes revisar la actividad de radio más abajo.'
+      :mod?.capture_status==='paused'?'Red seleccionada. El monitoreo está en pausa; consulta la cobertura.'
+      :mod?.capture_status==='starting'?'Red seleccionada. El nodo está iniciando el monitoreo.'
+      :'Red seleccionada y confirmada por la ESP32. Siguiente paso: iniciar monitoreo.'
+     :attempt?.error?attempt.error
+     :rejected?`La ESP32 rechazó esta selección (${selectionCommand?.error??'sin detalle'}). El objetivo anterior se conserva.`
+     :delayed?'Aún no hay confirmación. Actualiza el estado o reconecta BLE antes de reintentar.'
+     :waiting?selectionCommand?.status==='applied'?'Orden aplicada; esperando el estado del nodo.':'Seleccionando red… Esperando confirmación de la ESP32.'
+     :null;
+    return <article className={'escudo-network'+(selected?' is-selected':'')+(waiting?' is-pending':'')} key={n.bssid} aria-label={`Red ${ssidLabel(n.ssid)} · ${n.bssid}`} aria-busy={waiting&&!delayed}>
+     <div className="section-top"><h3>{ssidLabel(n.ssid)}</h3>{selected&&<span className={'badge '+(live?'good':'warning')}>{live?'✓ Seleccionada':'Selección anterior'}</span>}</div>
+     <p>{n.bssid} · canal {n.channel} · {n.rssi} dBm</p><p className="muted">Seguridad: {n.auth} · cifrado: {n.cipher} · PMF: {n.pmf}</p>
+     <button disabled={!ready||selected} aria-label={selected?`Red seleccionada ${n.bssid}`:`Seleccionar ${n.bssid}`} onClick={()=>void selectNetwork(n)}>{selected?'Red seleccionada':waiting&&!delayed?'Seleccionando…':attempt?'Reintentar selección':'Seleccionar red'}</button>
+     {feedback&&<p className={'escudo-selection-feedback '+(selected?'confirmed':rejected||attempt?.error?'failed':'')} role="status" aria-live="polite">{feedback}</p>}
+     {selected&&live&&['stopped','error'].includes(mod!.capture_status)&&<button className="escudo-next-action" disabled={!ready||!p?.capabilities.capture} onClick={()=>void run({operation:'escudo.capture_start',args:{}})}>Iniciar monitoreo de esta red</button>}
+    </article>;
+   })}</div>
    {view.next&&<button disabled={!ready} onClick={()=>void run({operation:'escudo.networks',args:{after:view.next,limit:4}})}>Cargar más redes</button>}
   </section>
   <div className="dashboard-grid"><section className="card"><h2>Actividad de radio</h2>{values?<><p>Beacon: {values.beacons} · Deauth: {values.deauth} · Disassoc: {values.disassoc}</p><ActivityChart samples={view.samples}/><p className="muted">Última muestra: uptime {metric!.uptime/1000} s · intervalo declarado {metric!.interval/1000} s. {live?'':'Datos anteriores; sin enlace actual.'}</p></>:<p>Esperando métricas BLE del arranque actual.</p>}</section>

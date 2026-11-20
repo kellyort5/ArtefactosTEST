@@ -37,3 +37,11 @@ Se eliminaron P1Diagnostics, el flag, el runner exclusivo del panel y las APIs d
 Se sincronizaron las especificaciones principales `app-escudo` y `mobile-control`; se retiró el delta anterior del panel para impedir que su archivado posterior lo vuelva a exigir. La evidencia antigua se conserva identificada como histórica.
 
 APK final sin diagnóstico: `app/android/app/build/outputs/apk/debug/app-debug.apk` (no versionado). SHA-256: `be208d32d3e45425e69c453ccb858ee9ca1f8fa2f878dbd2422183a3f7a0c310`. Assets contrastados con `app/dist`; sin panel ni flag de diagnóstico en el bundle. `./gradlew :app:clean assembleDebug`: **BUILD SUCCESSFUL**.
+
+## Corrección de experiencia de selección
+
+El usuario informó que seleccionar y luego iniciar monitoreo funcionó en su ESP32 y produjo actividad de radio, pero no percibió confirmación al elegir la red. Esto aporta una comprobación funcional parcial de la versión anterior; no cierra por sí solo las tareas físicas 2.1/2.2 ni valida esta corrección visual.
+
+Se añade feedback en la tarjeta elegida: espera, rechazo/error, selección confirmada y siguiente acción. El runner de navegador retrasa deliberadamente la respuesta para comprobar que la marca no aparece antes de confirmación, y luego inicia captura desde la propia tarjeta. El transporte del runner sigue siendo simulado.
+
+Validación de la corrección: Chromium móvil/escritorio PASS (espera, rechazo, confirmación junto a red e inicio local), TypeScript/Vite PASS y `:app:clean assembleDebug` PASS. Assets del APK contrastados con `app/dist`. APK local actualizado, SHA-256 `041b9ccf248ab729e157af67353c2667af687aebcb4eecb5a9cb79c549b57659`. El usuario solicitó integrar esta corrección desde `fix/escudo-seleccion-visible` hacia `develop` mediante PR; no modifica firmware.

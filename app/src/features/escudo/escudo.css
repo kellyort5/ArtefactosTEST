@@ -2,3 +2,5 @@
 
 .escudo-screen .escudo-usb{max-width:100%;margin-top:20px}.escudo-usb input{width:auto}.escudo-usb pre{white-space:pre-wrap;overflow-wrap:anywhere}.escudo-usb details{max-width:100%;min-width:0}
 .escudo-screen table{min-width:820px}.escudo-screen table th,.escudo-screen table td{min-width:160px}.escudo-screen table td:last-child{min-width:260px}
+
+.escudo-network.is-selected{border:2px solid #168254;background:#f2fbf6}.escudo-network.is-pending{border-color:#215fe4}.escudo-selection-feedback{margin:14px 0 0;padding:12px;border-radius:8px;background:#edf3ff;color:#234873}.escudo-selection-feedback.confirmed{background:#def3e5;color:#145a39}.escudo-selection-feedback.failed{background:#fff0eb;color:#9c351c}.escudo-next-action{margin-top:12px;width:100%}.escudo-network .section-top{gap:8px;flex-wrap:wrap}.escudo-network .section-top h3{margin:0}
