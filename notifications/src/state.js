@@ -13,6 +13,7 @@ export const LIMITS = Object.freeze({
 });
 export const CHANNELS = Object.freeze(['webhook', 'push']);
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
+const MAX_ID = 200; // identidad de evento (129) más la instalación en el canal push (#id de 64)
 const COUNTER_MAX = Number.MAX_SAFE_INTEGER;
 
 const ID = /^[A-Za-z0-9._:-]{1,64}$/;
@@ -42,7 +43,7 @@ function sanitize(raw, now) {
     const items = raw.outbox?.[channel];
     if (Array.isArray(items))
       for (const item of items.slice(-4 * LIMITS.outbox)) { // recorrido acotado; luego se conservan las más recientes
-        const valid = item && typeof item === 'object' && typeof item.id === 'string' && item.id.length <= 140 &&
+        const valid = item && typeof item === 'object' && typeof item.id === 'string' && item.id.length <= MAX_ID &&
           Number.isSafeInteger(item.created) && Number.isSafeInteger(item.attempts) && item.attempts >= 0 &&
           item.alert && typeof item.alert === 'object' && now - item.created < LIMITS.outboxTtlMs;
         if (valid) state.outbox[channel].push({id: item.id, created: item.created, attempts: item.attempts, alert: item.alert});
@@ -63,6 +64,14 @@ function sanitize(raw, now) {
       }
   }
   return state;
+}
+
+/** Escritura atómica y síncrona: temporal 0600 + fsync + renombrado. Lanza si falla. */
+export function atomicWriteSync(file, text) {
+  const temp = `${file}.tmp`;
+  const fd = openSync(temp, 'w', 0o600);
+  try { writeSync(fd, text); fsyncSync(fd); } finally { closeSync(fd); }
+  renameSync(temp, file);
 }
 
 export class StateStore {
@@ -106,11 +115,8 @@ export class StateStore {
   save() {
     this.prune();
     const text = JSON.stringify(this.data);
-    const temp = `${this.file}.tmp`;
     try {
-      const fd = openSync(temp, 'w', 0o600);
-      try { writeSync(fd, text); fsyncSync(fd); } finally { closeSync(fd); }
-      renameSync(temp, this.file);
+      atomicWriteSync(this.file, text);
       this.saveFailures = 0;
       this.dirty = false;
       return true;

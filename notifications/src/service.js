@@ -8,8 +8,11 @@
 // pérdida; la deduplicación absorbe el duplicado.
 import mqtt from 'mqtt';
 import {Channel} from './channel.js';
+import {createFcmProvider, credentialPermissionWarning} from './fcm.js';
 import {createStatusApi} from './http-api.js';
 import {eventTopics, ingest} from './ingest.js';
+import {PushChannel, createPushSender} from './push.js';
+import {RegistrationStore} from './registry.js';
 import {Router} from './router.js';
 import {StateStore} from './state.js';
 import {createWebhook} from './webhook.js';
@@ -28,15 +31,26 @@ export function createService(config, deps = {}) {
   const store = new StateStore({dir: config.stateDir, now, log});
   const loaded = store.load();
   const sender = config.webhook ? (deps.webhook ?? createWebhook(config.webhook)) : null;
+  // Instalaciones push (tokens en un archivo privado) y proveedor FCM, solo si hay credencial configurada.
+  const registry = new RegistrationStore({dir: config.stateDir, now, log});
+  registry.load();
+  const provider = config.push ? (deps.pushProvider ?? createFcmProvider({credentialFile: config.push.credentialFile,
+    ttlMs: config.push.ttlMs})) : null;
+  if (config.push && provider && !provider.configured)
+    log({level: 'error', msg: 'push_credential_unusable', detail: provider.problem});
+  const permissions = config.push && !deps.pushProvider ? credentialPermissionWarning(config.push.credentialFile) : null;
+  if (permissions) log({level: 'warn', msg: 'push_credential_permissions', detail: permissions});
+  const pushSender = provider?.configured ? createPushSender({registry, provider, log}) : null;
   const channels = {
     webhook: new Channel({name: 'webhook', store, sender, now, log}),
-    // El envío push se añade en su propio cambio: hoy el canal existe, sin configurar.
-    push: new Channel({name: 'push', store, sender: null, now, log}),
+    push: new PushChannel({registry, store, sender: pushSender, now, log}),
   };
   const router = new Router({store, channels, config: config.alerts, now, log});
   const allowed = new Set(config.nodes.map(node => node.deviceId));
   const counters = {events: 0, ignored: 0, invalid: 0, foreign: 0, errors: 0};
-  const api = createStatusApi({config: config.statusApi, nodes: config.nodes, statusFor});
+  const registrations = {configured: Boolean(pushSender), register: (d, i, t) => registry.register(d, i, t),
+    remove: (d, i) => registry.remove(d, i), save: () => registry.save()};
+  const api = createStatusApi({config: config.statusApi, nodes: config.nodes, statusFor, registrations});
   let client = null, server = null, timer = null, delivering = false, mqttState = 'stopped';
 
   function statusFor(device) {
@@ -78,8 +92,8 @@ export function createService(config, deps = {}) {
   }
 
   return {
-    store, channels, router, counters, statusFor,
-    health: () => ({mqtt: mqttState, counters: {...counters}, router: {...router.counters},
+    store, registry, channels, router, counters, statusFor,
+    health: () => ({mqtt: mqttState, push: {configured: Boolean(pushSender), problem: provider?.problem ?? null}, counters: {...counters}, router: {...router.counters},
       state: loaded, save_failures: store.saveFailures}),
     onMessage, deliver,
 
@@ -107,7 +121,10 @@ export function createService(config, deps = {}) {
       // Los errores de mqtt.js pueden citar la URL: solo se registra que ocurrió.
       mine.on('error', () => log({level: 'warn', msg: 'mqtt_error'}));
       mine.on('message', (topic, payload) => { if (mqttState !== 'stopped') onMessage(topic, payload); });
-      timer = setInterval(() => { deliver().catch(() => counters.errors++); }, TICK_MS);
+      timer = setInterval(() => {
+        if (registry.purge()) registry.save(); // retira las instalaciones vencidas (30 días)
+        deliver().catch(() => counters.errors++);
+      }, TICK_MS);
       deliver().catch(() => counters.errors++); // reanuda lo que quedó pendiente en el estado
       return {port: server.address().port};
     },
