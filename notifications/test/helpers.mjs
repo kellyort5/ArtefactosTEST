@@ -29,7 +29,7 @@ export function clock(start = Date.UTC(2026, 10, 24, 12, 0, 0)) {
 }
 
 /** Configuración válida de pruebas; `webhookPort` apunta al receptor local. */
-export function makeConfig({webhookPort = 1, stateDir, overrides = {}, env = {}} = {}) {
+export function makeConfig({webhookPort = 1, stateDir, overrides = {}, env = {}, push} = {}) {
   return parseConfig({
     mqtt: {url: 'mqtt://127.0.0.1:1883'},
     nodes: [{device_id: NODE_A, token_sha256: sha256hex(TOKEN_A)}, {device_id: NODE_B, token_sha256: sha256hex(TOKEN_B)}],
@@ -38,6 +38,7 @@ export function makeConfig({webhookPort = 1, stateDir, overrides = {}, env = {}}
       auth_header: {name: 'Authorization', value: `Bearer ${WEBHOOK_SECRET}`}},
     status_api: {host: '127.0.0.1', port: 8443, allow_insecure_loopback: true, cors_origins: ['https://localhost']},
     state_dir: stateDir ?? tmpdir(),
+    ...(push ? {push} : {}),
     ...overrides,
   }, {env});
 }
@@ -98,4 +99,17 @@ export function recordingLog() {
   const log = entry => entries.push(entry);
   log.entries = entries;
   return log;
+}
+
+export const TOKEN_ANDROID_1 = 'FICTIONAL-ANDROID-TOKEN-ONE-NOT-USABLE';
+export const TOKEN_ANDROID_2 = 'FICTIONAL-ANDROID-TOKEN-TWO-NOT-USABLE';
+
+/** Proveedor push de pruebas: registra lo que recibe y devuelve resultados guionizados. */
+export function fakeProvider({results = []} = {}) {
+  const sent = [];
+  return {configured: true, problem: null, sent, results,
+    async send({token, push}) {
+      sent.push({token, push});
+      return results.length ? results.shift() : {ok: true};
+    }};
 }

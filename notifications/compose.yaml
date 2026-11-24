@@ -6,8 +6,9 @@
 #   cp notifications/config/notifications.example.json notifications/config/notifications.json   # y editarlo
 #   docker compose -f notifications/compose.yaml up -d --build
 #
-# La configuración, los certificados TLS y los secretos están en notifications/config/,
-# ignorado por Git. No ejecutar `down -v`: borraría la deduplicación y la cola.
+# La configuración, los certificados TLS, la credencial de Firebase
+# (fcm-service-account.json, solo si se usa el push) y los secretos están en
+# notifications/config/, ignorado por Git. No ejecutar `down -v`: borraría la deduplicación y la cola.
 name: sentinel-notifications
 
 services:

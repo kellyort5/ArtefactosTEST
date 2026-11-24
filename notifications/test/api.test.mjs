@@ -141,15 +141,17 @@ test('GET no admite cuerpo: 400 si lo trae y 413 si supera 4096 bytes', async ()
   await r.close();
 });
 
-test('rutas y métodos desconocidos se rechazan; el registro push llega en su propio cambio', async () => {
+test('rutas y métodos desconocidos se rechazan', async () => {
   const r = await rig();
-  for (const path of ['/', '/v1', '/v1/statusx', '/V1/status', '/v1/status/', '/v1/registrations', '/v1/registrations/x', '/admin'])
+  for (const path of ['/', '/v1', '/v1/statusx', '/V1/status', '/v1/status/', '/v1/registrations/', '/v1/registrations/a/b', '/v1/registrations/a%20b', '/admin'])
     assert.equal((await call(r.port, {path, headers: bearer(TOKEN_A)})).status, 404, path);
-  for (const method of ['POST', 'PUT', 'DELETE', 'PATCH']) {
-    const res = await call(r.port, {method, path: `/v1/status?device_id=${NODE_A}`, headers: bearer(TOKEN_A)});
-    assert.equal(res.status, 405, method);
-    assert.equal(res.headers.allow, 'GET, OPTIONS');
-  }
+  for (const [path, allowed, wrong] of [[`/v1/status?device_id=${NODE_A}`, 'GET', ['POST', 'PUT', 'DELETE', 'PATCH']],
+    ['/v1/registrations', 'POST', ['GET', 'PUT', 'DELETE']], ['/v1/registrations/inst-1', 'DELETE', ['GET', 'POST', 'PUT']]])
+    for (const method of wrong) {
+      const res = await call(r.port, {method, path, headers: bearer(TOKEN_A)});
+      assert.equal(res.status, 405, `${method} ${path}`);
+      assert.equal(res.headers.allow, `${allowed}, OPTIONS`);
+    }
   await r.close();
 });
 
@@ -168,8 +170,8 @@ test('CORS: solo los orígenes configurados, sin comodín', async () => {
     headers: {origin: 'https://localhost', 'access-control-request-method': 'GET', 'access-control-request-headers': 'authorization'}});
   assert.equal(preflight.status, 204);
   assert.equal(preflight.headers['access-control-allow-origin'], 'https://localhost');
-  assert.equal(preflight.headers['access-control-allow-methods'], 'GET, OPTIONS');
-  assert.equal(preflight.headers['access-control-allow-headers'], 'Authorization');
+  assert.equal(preflight.headers['access-control-allow-methods'], 'GET, POST, DELETE, OPTIONS');
+  assert.equal(preflight.headers['access-control-allow-headers'], 'Authorization, Content-Type');
   assert.equal(preflight.headers['access-control-max-age'], '600');
   assert.equal(preflight.body, '');
   const denied = await call(r.port, {method: 'OPTIONS', path: '/v1/status', headers: {origin: 'https://evil.example.invalid'}});

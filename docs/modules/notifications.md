@@ -2,7 +2,7 @@
 
 Responsable: Persona 3. Cambio: [sentinel-alertas-webhook](../../openspec/changes/sentinel-alertas-webhook/proposal.md) ([ficha](../encargos/sentinel-alertas-webhook.md), [diseño](../../openspec/changes/sentinel-alertas-webhook/design.md), [spec](../../openspec/changes/sentinel-alertas-webhook/specs/notification-dispatch/spec.md), [tareas](../../openspec/changes/sentinel-alertas-webhook/tasks.md)). Rama: `feat/sentinel-alertas-webhook`, sobre `develop`. El código, el paquete, el lockfile y el Compose están en [`notifications/`](../../notifications/README.md), cuyo README es la referencia de configuración y arranque.
 
-MQTT y una app cerrada no envían por sí solos las alertas externas obligatorias de R-10. Este componente cierra el primer canal: toma los eventos de interacción de Cebo que el nodo ya publica por MQTT y los entrega a un **webhook HTTPS** propio, y expone su estado a la app por una API HTTPS autenticada. El **envío push** es el siguiente cambio ([push servidor](../encargos/sentinel-alertas-push-servidor.md)) y se apoyará en este componente: hoy su canal existe en el estado y se informa como no configurado.
+MQTT y una app cerrada no envían por sí solos las alertas externas obligatorias de R-10. Este componente cierra el primer canal: toma los eventos de interacción de Cebo que el nodo ya publica por MQTT y los entrega a un **webhook HTTPS** propio, y expone su estado a la app por una API HTTPS autenticada. El **envío push** se añade sobre el mismo enrutador y la misma cola en [push-server.md](push-server.md).
 
 ## Flujo
 
@@ -26,7 +26,7 @@ El diseño marca estas elecciones como propuestas de implementación; se aplican
 | Bearer por nodo guardado solo como hash SHA-256, comparado en tiempo constante | La API no necesita conocer la credencial, y el bearer determina el nodo, no el cuerpo ni la consulta |
 | Estado, contadores y último resultado **por nodo** | Con un único webhook y varios nodos, un nodo nunca ve eventos ni contadores de otro |
 | Un único destino de webhook | «Lista fija de destino» del diseño; ampliarla es una extensión, no una necesidad del MVP |
-| API de estado solo `GET /v1/status`; sin registro push | Registro, baja y TTL de instalaciones pertenecen al cambio del envío push |
+| API de estado `GET /v1/status`; el registro de instalaciones se documenta aparte | Ver [push-server.md](push-server.md) |
 
 ## Límites y retención
 
@@ -57,7 +57,7 @@ npm ci && npm run build -w contracts
 cd notifications && npm ci && npm test
 ```
 
-Las 72 pruebas incluyen un broker MQTT real en proceso y un receptor de webhook local, y cubren: configuración (rechazo de campos desconocidos, HTTP no local, credenciales en la URL, valores que no deben aparecer en los errores, el archivo de ejemplo); deduplicación y retransmisión; umbrales, ventanas y escalada; cola, reintentos, vencimiento, desbordamiento, reinicio y recuperación; estado atómico, corrupto o manipulado; HTTPS real con certificado autofirmado (se rechaza sin su CA y con nombre distinto); redirecciones no seguidas; API de estado (401, 403, 400, 413, 404, 405, CORS, aislamiento entre nodos, ausencia de secretos, respuesta validada con el contrato); persistencia antes de devolver el control al cliente MQTT; sesión persistente del broker con el componente caído; y el proceso real arrancado desde un archivo de configuración. Se comprobó además que 21 defectos introducidos a propósito (deduplicación, escalada, umbrales, espera de reintentos, límites, autenticación, CORS, verificación TLS, persistencia antes del ACK, etc.) hacen fallar la suite. Los eventos de las pruebas son los fixtures del contrato: son ficticios y **no** acreditan un incidente real del ESP32.
+Las 117 pruebas (72 de este canal) incluyen un broker MQTT real en proceso y un receptor de webhook local, y cubren: configuración (rechazo de campos desconocidos, HTTP no local, credenciales en la URL, valores que no deben aparecer en los errores, el archivo de ejemplo); deduplicación y retransmisión; umbrales, ventanas y escalada; cola, reintentos, vencimiento, desbordamiento, reinicio y recuperación; estado atómico, corrupto o manipulado; HTTPS real con certificado autofirmado (se rechaza sin su CA y con nombre distinto); redirecciones no seguidas; API de estado (401, 403, 400, 413, 404, 405, CORS, aislamiento entre nodos, ausencia de secretos, respuesta validada con el contrato); persistencia antes de devolver el control al cliente MQTT; sesión persistente del broker con el componente caído; y el proceso real arrancado desde un archivo de configuración. Se comprobó además que 21 defectos introducidos a propósito (deduplicación, escalada, umbrales, espera de reintentos, límites, autenticación, CORS, verificación TLS, persistencia antes del ACK, etc.) hacen fallar la suite. Los eventos de las pruebas son los fixtures del contrato: son ficticios y **no** acreditan un incidente real del ESP32.
 
 ## Comprobación física pendiente (tareas 2.1 y 2.2)
 
@@ -71,7 +71,7 @@ Requiere el ESP32 con el Cebo del cambio [eventos e historial](../encargos/senti
 
 | Comprobación | Resultado |
 | --- | --- |
-| Pruebas del paquete (72) con broker MQTT en proceso y receptor local | PASS (Windows, Node 24) |
+| Pruebas del paquete (117; 1 se omite en Windows por ser de permisos POSIX) con broker MQTT en proceso y receptor local | PASS (Windows, Node 24) |
 | 21 defectos introducidos a propósito | Todos detectados |
 | HTTPS del webhook y de la API con certificado autofirmado (OpenSSL 3.5) | PASS |
 | `docker compose config` del Compose propio | PASS (sintaxis) |
@@ -82,6 +82,6 @@ Requiere el ESP32 con el Cebo del cambio [eventos e historial](../encargos/senti
 
 ## Puntos para coordinar
 
-- **P4 (app, broker):** el endpoint es `https://IP-DEL-PC:8443/v1/status?device_id=<id>` con `Authorization: Bearer <credencial>`; P3 entrega la URL y la credencial por un canal privado. La app debe confiar en el certificado configurado y estar entre los `cors_origins`. El registro push (`/v1/registrations`) no existe todavía. El broker debe ser alcanzable desde el contenedor (`host.docker.internal` en el ejemplo) y no se usa ninguna credencial MQTT.
+- **P4 (app, broker):** el endpoint es `https://IP-DEL-PC:8443/v1/status?device_id=<id>` con `Authorization: Bearer <credencial>`; P3 entrega la URL y la credencial por un canal privado. La app debe confiar en el certificado configurado y estar entre los `cors_origins`. El registro y la baja push (`/v1/registrations`) están descritos en [push-server.md](push-server.md). El broker debe ser alcanzable desde el contenedor (`host.docker.internal` en el ejemplo) y no se usa ninguna credencial MQTT.
 - **P1 (contratos):** no se pide ningún cambio. `NotificationStatusResponse` y los helpers se usan tal cual; el estado final expone únicamente `channels:{webhook,push}`.
-- **Siguiente cambio:** el envío push añade registros, TTL, FCM y su propio estado sobre el mismo enrutador y la misma cola; no cambia el contrato de este componente.
+- **Push:** registros, TTL, FCM y su propio estado se apoyan en el mismo enrutador y la misma cola; ver [push-server.md](push-server.md).

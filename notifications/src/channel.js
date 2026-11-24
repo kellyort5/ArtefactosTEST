@@ -8,6 +8,7 @@
 //    canal entero (no de cada alerta), de modo que un destino caído no se
 //    martillea. Un éxito la reinicia.
 //  - Un único intento en vuelo por canal y orden de llegada.
+//  - Un envío puede devolver `drop: true` para un fallo definitivo: la alerta se retira sin reintentos.
 import {LIMITS} from './state.js';
 
 export const BACKOFF_MIN_MS = 1000;
@@ -107,6 +108,13 @@ export class Channel {
           this.stats.accepted++;
           delivered++;
           this.record(item.alert, 'provider_accepted');
+        } else if (result.drop) {
+          // Fallo definitivo (p. ej. la instalación ya no existe): no se reintenta ni frena el canal.
+          this.queue.shift();
+          this.store.touch();
+          this.stats.dropped++;
+          this.record(item.alert, 'failed', result.error);
+          this.log({level: 'warn', msg: 'delivery_dropped', channel: this.name, event_id: item.alert.event_id, error: result.error});
         } else {
           this.failures++;
           this.stats.failed++;

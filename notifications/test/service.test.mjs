@@ -3,7 +3,7 @@
 // de estado. Los eventos son los fixtures del contrato: son ficticios y no
 // acreditan un incidente real del ESP32 (eso es la comprobación física 2.1).
 import assert from 'node:assert/strict';
-import {existsSync, readFileSync} from 'node:fs';
+import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import http from 'node:http';
 import net from 'node:net';
 import {join} from 'node:path';
@@ -11,8 +11,8 @@ import {after, test} from 'node:test';
 import {Aedes} from 'aedes';
 import mqtt from 'mqtt';
 import {createService} from '../src/service.js';
-import {NODE_A, NODE_B, TOKEN_A, TOKEN_B, WEBHOOK_SECRET, bytes, ceboEvent, clock, fixture, makeConfig, noLog,
-  recordingLog, tempDir, topicFor, until, webhookServer} from './helpers.mjs';
+import {NODE_A, NODE_B, TOKEN_A, TOKEN_B, TOKEN_ANDROID_1, TOKEN_ANDROID_2, WEBHOOK_SECRET, bytes, ceboEvent, clock, fakeProvider,
+  fixture, makeConfig, noLog, recordingLog, tempDir, topicFor, until, webhookServer} from './helpers.mjs';
 
 const cleanups = [];
 after(async () => { for (const fn of cleanups.reverse()) await fn().catch(() => {}); });
@@ -35,14 +35,15 @@ async function publisher(url) {
   return {publish: (topic, payload) => client.publishAsync(topic, payload, {qos: 1})};
 }
 
-async function setup({respond, c = clock(), stateDir, log = noLog, clientId = 'notify-test', brokerHandle} = {}) {
+async function setup({respond, c = clock(), stateDir, log = noLog, clientId = 'notify-test', brokerHandle, provider, push} = {}) {
   const t = stateDir ? null : tempDir();
   const dir = stateDir ?? t.dir;
   const b = brokerHandle ?? await broker();
   const hook = await webhookServer(respond);
-  const base = makeConfig({webhookPort: hook.port, stateDir: dir});
+  const base = makeConfig({webhookPort: hook.port, stateDir: dir,
+    push: provider || push ? push ?? {credential_file: join(dir, 'fcm-service-account.json')} : undefined});
   const config = {...base, mqtt: {url: b.url, clientId}, statusApi: {...base.statusApi, port: 0}};
-  const service = createService(config, {now: c.now, log});
+  const service = createService(config, {now: c.now, log, pushProvider: provider});
   const {port} = await service.start();
   const handle = {t, dir, c, b, hook, config, service, port, log,
     stop: () => service.stop(),
@@ -217,4 +218,120 @@ test('sin webhook configurado el estado lo indica sin afirmar entrega', async ()
   const {json} = await status(rig);
   assert.deepEqual(json.channels.webhook, {configured: false, last_delivery: null, pending: 0, suppressed: 0});
   assert.deepEqual(json.channels.push, {configured: false, last_delivery: null, pending: 0, suppressed: 0});
+});
+
+const post = (rig, path, token, body, method = 'POST') => new Promise((resolve, reject) => {
+  const req = http.request({host: '127.0.0.1', port: rig.port, path, method, agent: false,
+    headers: {authorization: `Bearer ${token}`, 'content-type': 'application/json'}},
+  res => { const chunks = []; res.on('data', d => chunks.push(d)); res.on('end', () => resolve({status: res.statusCode, body: Buffer.concat(chunks).toString()})); });
+  req.on('error', reject);
+  req.end(body === undefined ? undefined : JSON.stringify(body));
+});
+const registerInstallation = (rig, installation, token, device = NODE_A, bearer = TOKEN_A) =>
+  post(rig, '/v1/registrations', bearer, {device_id: device, installation_id: installation, platform: 'android', token});
+
+test('push: un incidente por MQTT llega al webhook y a la instalación registrada con el mismo ID original', async () => {
+  const log = recordingLog();
+  const provider = fakeProvider();
+  const rig = await setup({provider, log});
+  await rig.ready();
+  assert.equal((await registerInstallation(rig, 'inst-1', TOKEN_ANDROID_1)).status, 200);
+  const pub = await publisher(rig.b.url);
+  await pub.publish(topicFor(), bytes(ceboEvent({id: 'boot-1:77', severity: 'critical', ip: '192.0.2.77'})));
+  await until(() => rig.hook.requests.length === 1 && provider.sent.length === 1);
+  assert.equal(rig.hook.requests[0].json.event_id, 'boot-1:77');
+  assert.deepEqual(provider.sent[0], {token: TOKEN_ANDROID_1, push: {
+    notification: {title: 'Sentinel Node', body: 'Actividad detectada en Cebo. Abre la app para consultar el incidente.'},
+    data: {device_id: NODE_A, event_id: 'boot-1:77', severity: 'critical', route: 'cebo'}}});
+  await until(async () => (await status(rig)).json.channels.push.last_delivery?.status === 'provider_accepted');
+  const {json} = await status(rig);
+  assert.equal(json.channels.push.configured, true);
+  assert.deepEqual([json.channels.push.last_delivery.event_id, json.channels.push.last_delivery.read_status], ['boot-1:77', 'unknown']);
+  assert.equal(json.channels.webhook.last_delivery.event_id, 'boot-1:77');
+  // Ni el token, ni la IP de origen, ni el secreto del webhook salen en el registro ni hacia el proveedor.
+  const logged = JSON.stringify(log.entries);
+  for (const secret of [TOKEN_ANDROID_1, WEBHOOK_SECRET, TOKEN_A]) assert.ok(!logged.includes(secret), secret);
+  assert.ok(!JSON.stringify(provider.sent).includes('192.0.2.77'));
+  // La reentrega del mismo evento no repite el push.
+  await pub.publish(topicFor(), bytes(ceboEvent({id: 'boot-1:77', severity: 'critical', ip: '192.0.2.77'})));
+  await until(() => rig.service.router.counters.duplicates === 1);
+  await rig.service.deliver();
+  assert.equal(provider.sent.length, 1);
+});
+
+test('push: cada canal falla y se recupera por separado', async () => {
+  const c = clock();
+  let hookUp = false;
+  const provider = fakeProvider({results: [{ok: false, error: 'provider_unavailable'}]});
+  const rig = await setup({c, provider, respond: () => (hookUp ? {status: 200} : {status: 500})});
+  await rig.ready();
+  await registerInstallation(rig, 'inst-1', TOKEN_ANDROID_1);
+  rig.service.onMessage(topicFor(), bytes(ceboEvent({id: 'boot-2:1'})));
+  await until(() => provider.sent.length >= 1 && rig.hook.requests.length >= 1);
+  let json = (await status(rig)).json.channels;
+  assert.equal(json.push.last_delivery.error, 'provider_unavailable');
+  assert.equal(json.webhook.last_delivery.error, 'provider_unavailable');
+  assert.deepEqual([json.push.pending, json.webhook.pending], [1, 1]);
+  c.advance(1000);
+  await rig.service.deliver();                       // el push se recupera aunque el webhook siga caído
+  json = (await status(rig)).json.channels;
+  assert.deepEqual([json.push.pending, json.push.last_delivery.status], [0, 'provider_accepted']);
+  assert.equal(json.webhook.pending, 1);
+  hookUp = true;
+  c.advance(60000);
+  await rig.service.deliver();
+  assert.equal((await status(rig)).json.channels.webhook.pending, 0);
+  assert.equal(provider.sent.length, 2, 'el push no se repite cuando se recupera el webhook');
+});
+
+test('push: un token inválido se retira, queda visible y no hay más intentos', async () => {
+  const log = recordingLog();
+  const provider = fakeProvider({results: [{ok: false, error: 'invalid_registration', drop: true, remove: true}]});
+  const rig = await setup({provider, log});
+  await registerInstallation(rig, 'inst-1', TOKEN_ANDROID_1);
+  rig.service.onMessage(topicFor(), bytes(ceboEvent({id: 'boot-3:1'})));
+  await until(() => provider.sent.length === 1);
+  await until(async () => (await status(rig)).json.channels.push.last_delivery?.error === 'invalid_registration');
+  assert.equal(rig.service.registry.size, 0);
+  assert.equal((await status(rig)).json.channels.push.pending, 0);
+  // La instalación ya no existe: otro incidente no envía nada y la baja sigue siendo idempotente.
+  rig.service.onMessage(topicFor(), bytes(ceboEvent({id: 'boot-3:2', ip: '192.0.2.50'})));
+  await rig.service.deliver();
+  assert.equal(provider.sent.length, 1);
+  assert.equal((await post(rig, '/v1/registrations/inst-1', TOKEN_A, undefined, 'DELETE')).status, 200);
+  assert.ok(!JSON.stringify(log.entries).includes(TOKEN_ANDROID_1));
+});
+
+test('push: las instalaciones y los envíos pendientes sobreviven a un reinicio', async () => {
+  const c = clock();
+  const provider = fakeProvider({results: [{ok: false, error: 'provider_unavailable'}]});
+  const first = await setup({c, provider});
+  await registerInstallation(first, 'inst-1', TOKEN_ANDROID_1);
+  first.service.onMessage(topicFor(), bytes(ceboEvent({id: 'boot-4:1'})));
+  await first.service.deliver();
+  assert.equal((await status(first)).json.channels.push.pending, 1);
+  await first.stop();
+
+  const second = await setup({c, stateDir: first.dir, provider, clientId: 'notify-test-2'});
+  assert.equal(second.service.registry.get(NODE_A, 'inst-1').token, TOKEN_ANDROID_1);
+  c.advance(60000);
+  await until(async () => { await second.service.deliver(); return provider.sent.length === 2; });
+  assert.equal(provider.sent[1].token, TOKEN_ANDROID_1);
+  assert.equal(provider.sent[1].push.data.event_id, 'boot-4:1');
+  await until(async () => (await status(second)).json.channels.push.pending === 0);
+});
+
+test('push: con la credencial inutilizable el canal queda sin configurar y no registra ni filtra nada', async () => {
+  const log = recordingLog();
+  const t = tempDir();
+  cleanups.push(async () => t.cleanup());
+  writeFileSync(join(t.dir, 'fcm-service-account.json'), JSON.stringify({type: 'service_account', project_id: 'FICTIONAL-PROJECT-ID',
+    client_email: 'x@y', private_key: 'FICTIONAL-PRIVATE-KEY-MATERIAL'}));
+  const rig = await setup({stateDir: t.dir, log, push: {credential_file: join(t.dir, 'fcm-service-account.json')}});
+  assert.equal((await status(rig)).json.channels.push.configured, false);
+  assert.equal((await registerInstallation(rig, 'inst-1', TOKEN_ANDROID_2)).status, 503);
+  const logged = JSON.stringify(log.entries);
+  assert.ok(logged.includes('push_credential_unusable'));
+  for (const secret of ['FICTIONAL-PRIVATE-KEY-MATERIAL', 'FICTIONAL-PROJECT-ID', TOKEN_ANDROID_2, t.dir]) assert.ok(!logged.includes(secret), secret);
+  assert.equal(rig.service.health().push.configured, false);
 });

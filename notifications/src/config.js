@@ -63,7 +63,7 @@ function url(value, field, schemes) {
 /** Valida un objeto de configuración ya leído. `base` resuelve rutas relativas. */
 export function parseConfig(raw, {base = process.cwd(), env = {}} = {}) {
   if (!isObject(raw)) throw new ConfigError('raíz', 'se esperaba un objeto');
-  only(raw, 'raíz', ['mqtt', 'nodes', 'alerts', 'webhook', 'status_api', 'state_dir']);
+  only(raw, 'raíz', ['mqtt', 'nodes', 'alerts', 'webhook', 'push', 'status_api', 'state_dir']);
 
   // MQTT: broker anónimo del MVP en LAN de confianza (sin usuario ni contraseña).
   const mqtt = raw.mqtt;
@@ -129,6 +129,17 @@ export function parseConfig(raw, {base = process.cwd(), env = {}} = {}) {
     });
   }
 
+  // Push (FCM): la credencial de la cuenta de servicio es un archivo privado fuera de Git.
+  let push = null;
+  if (raw.push !== undefined && raw.push !== null) {
+    const p = raw.push;
+    if (!isObject(p)) throw new ConfigError('push', 'se esperaba un objeto');
+    only(p, 'push', ['credential_file', 'ttl_seconds']);
+    const credentialFile = path(p.credential_file, 'push.credential_file', base);
+    if (!credentialFile) throw new ConfigError('push.credential_file', 'obligatorio');
+    push = Object.freeze({credentialFile, ttlMs: integer(p.ttl_seconds, 'push.ttl_seconds', 60, 86400, 3600) * 1000});
+  }
+
   // API de estado: HTTPS con CORS explícito. Sin TLS solo en bucle local.
   const api = raw.status_api ?? {};
   if (!isObject(api)) throw new ConfigError('status_api', 'se esperaba un objeto');
@@ -166,6 +177,7 @@ export function parseConfig(raw, {base = process.cwd(), env = {}} = {}) {
       repeatWindowMs: integer(alerts.repeat_window_ms, 'alerts.repeat_window_ms', 0, 3600000, 30000),
     }),
     webhook,
+    push,
     statusApi: Object.freeze({
       host,
       port: integer(api.port, 'status_api.port', 1, 65535, 8443),

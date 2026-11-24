@@ -22,6 +22,10 @@
       "value": "Bearer REEMPLAZAR-O-USAR-NOTIFY_WEBHOOK_AUTH_VALUE"
     }
   },
+  "push": {
+    "credential_file": "/run/notifications/fcm-service-account.json",
+    "ttl_seconds": 3600
+  },
   "status_api": {
     "host": "0.0.0.0",
     "port": 8443,

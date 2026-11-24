@@ -122,3 +122,25 @@ test('el archivo de ejemplo documentado es una configuración válida y solo con
   assert.equal(config.statusApi.corsOrigins.length, 2);
   assert.ok(!/password|secret|key[_-]?id|BEGIN/i.test(text.replace('NOTIFY_WEBHOOK_AUTH_VALUE', '').replace('key_file', '')));
 });
+
+test('la sección push valida la credencial de FCM y la vida del mensaje', () => {
+  const raw = valid();
+  assert.equal(parseConfig(raw).push, null); // sin credencial el canal queda sin configurar
+  raw.push = {credential_file: 'fcm/service-account.json'};
+  const config = parseConfig(raw, {base: '/srv/notify'});
+  assert.ok(config.push.credentialFile.split('\\').join('/').endsWith('/srv/notify/fcm/service-account.json'));
+  assert.equal(config.push.ttlMs, 3600000);
+  raw.push.ttl_seconds = 120;
+  assert.equal(parseConfig(raw).push.ttlMs, 120000);
+  reject(r => { r.push = {}; }, /push\.credential_file/);
+  reject(r => { r.push = {credential_file: 'x.json', ttl_seconds: 10}; }, /ttl_seconds/);
+  reject(r => { r.push = {credential_file: 'x.json', ttl_seconds: 90000}; }, /ttl_seconds/);
+  reject(r => { r.push = {credential_file: 'x.json', project_id: 'p'}; }, /push\.project_id/);
+  reject(r => { r.push = {credential_file: 42}; }, /credential_file/);
+});
+
+test('el ejemplo documentado incluye push con una ruta ficticia fuera del repositorio', async () => {
+  const {readFileSync} = await import('node:fs');
+  const config = parseConfig(JSON.parse(readFileSync(new URL('../config/notifications.example.json', import.meta.url), 'utf8')));
+  assert.ok(config.push.credentialFile.split('\\').join('/').endsWith('/run/notifications/fcm-service-account.json'));
+});
