@@ -2,7 +2,7 @@
 
 Responsable: Persona 3. Cambio: [sentinel-cebo-telnet](../../openspec/changes/sentinel-cebo-telnet/proposal.md) ([ficha](../encargos/sentinel-cebo-telnet.md), [diseño](../../openspec/changes/sentinel-cebo-telnet/design.md), [tareas](../../openspec/changes/sentinel-cebo-telnet/tasks.md)). Rama: `feat/sentinel-cebo-telnet`, apilada sobre `feat/sentinel-cebo-http` ([panel HTTP](cebo-http.md)), de la que depende. Se integra con la [API de módulos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) y el [contrato v2](../../contracts/module-protocol.md).
 
-Este incremento añade `telnet_session.cpp` (protocolo y privacidad, lógica pura) y `telnet_service.cpp` (sockets lwIP) en `firmware/SentinelNode/src/cebo/`, y hace que el módulo gestione HTTP y Telnet con límites y parada comunes. La clasificación por ventanas, `cebo.stats`, `cebo.configure` y la persistencia del historial pertenecen al cambio de [eventos e historial](../encargos/sentinel-cebo-eventos-historial.md). `SENTINEL_MODULE_CEBO` sigue en 0; ver [cómo activarlo](cebo-http.md#activar-y-compilar).
+Este incremento añade `telnet_session.cpp` (protocolo y privacidad, lógica pura) y `telnet_service.cpp` (sockets lwIP) en `firmware/SentinelNode/src/cebo/`, y hace que el módulo gestione HTTP y Telnet con límites y parada comunes. La clasificación por ventanas, las métricas, `cebo.stats`, `cebo.configure` y la persistencia se documentan en [cebo-events.md](cebo-events.md). `SENTINEL_MODULE_CEBO` sigue en 0; ver [cómo activarlo](cebo-http.md#activar-y-compilar).
 
 ## Qué hace y qué no hace
 
@@ -36,7 +36,7 @@ Una interacción de Telnet lleva siempre `protocol: "telnet"`, `destination_port
 {"source_ipv4":"192.0.2.2","source_port":51000,"destination_port":23,"protocol":"telnet","interaction":"auth_attempt","path":null,"count":1,"window_ms":1000,"suspicion":"informational","evidence":["auth_attempt"]}
 ```
 
-Como en HTTP, cada interacción es **aislada** (`count: 1`, `suspicion: "informational"`, severidad `info`) hasta que el cambio de eventos e historial añada la clasificación. El cierre tras tres intentos o por exceso de línea se marca como `capacity_limit`: es el cierre por un límite propio.
+Como en HTTP, un origen sin repetición suficiente produce eventos **informativos** (`count: 1`, `suspicion: "informational"`, severidad `info`) y la repetición escala a `medium` (≥ 5 intentos en 60 s) o `high` (≥ 20 interacciones en 60 s); ver [cebo-events.md](cebo-events.md#clasificación). El cierre tras tres intentos o por exceso de línea se marca como `capacity_limit`: es el cierre por un límite propio.
 
 ## Protocolo: fin de línea e IAC
 
@@ -54,12 +54,12 @@ Valores iniciales propuestos en el diseño; son cotas de implementación, no med
 
 | Límite | Valor | Efecto |
 | --- | --- | --- |
-| Sesiones Telnet | 2 (`TelnetMaxSessions`) | La conexión excedente se acepta y se cierra de inmediato |
-| Conexiones totales HTTP + Telnet | 6 = 4 + 2 (`MaxConnections`) | Coincide con `max_connections` del contrato v2 |
+| Sesiones Telnet | 2 (`TelnetMaxSessions`) | La conexión excedente se acepta y se cierra de inmediato; se cuenta como `rejected_connections` |
+| Conexiones totales HTTP + Telnet | 6 = 4 + 2 (`MaxConnections`) | Coincide con `max_connections` del contrato v2; `cebo.configure` puede bajarlo y la admisión es compartida |
 | Línea | 512 bytes de datos (`TelnetMaxLine`) | Mayor: «Input too long» y cierre por límite |
 | Bytes recibidos por sesión | 4096 (`TelnetMaxSessionBytes`) | «Session limit reached» y cierre; acota el uso de CPU de un cliente que no termina líneas |
 | Intentos de autenticación | 3 (`TelnetMaxAttempts`) | Cierre tras el tercero |
-| Inactividad | 5 s (`IdleTimeoutMs`, compartido con HTTP) | La tarea cierra la sesión |
+| Inactividad | 5 s por defecto (`IdleTimeoutMs`; configurable con `cebo.configure`, compartido con HTTP) | La tarea cierra la sesión |
 | Salida pendiente | 256 B | Cubre el peor caso (saludo, 16 respuestas y tres intentos); un cliente que no lee se cierra en lugar de acumular salida |
 | Reintento de arranque fallido | 5 s | El estado Telnet pasa a `error` entre intentos; HTTP no se ve afectado |
 
@@ -68,7 +68,7 @@ Valores iniciales propuestos en el diseño; son cotas de implementación, no med
 - Un único `Cebo` gestiona los dos servicios con un bus compartido. Cada servicio espera la LAN, arranca, falla y se recupera por separado: un fallo de uno no detiene al otro. Si la LAN se pierde, ambos cierran y reabren al volver.
 - El listener Telnet usa un socket de escucha lwIP y una tarea propia (`cebo_telnet`, 4 KiB de pila, prioridad inactiva + 3) con `select` de 100 ms. No se abre otro gestor Wi-Fi ni otro MQTT.
 - `request_stop` no bloquea: la tarea ve la marca en su siguiente vuelta, cierra las sesiones y el listener, y solo entonces `stopped()` pasa a verdadero. El módulo no queda detenido hasta que **los dos** servicios cerraron; un cierre incompleto se reintenta en cada `tick` dentro del plazo del supervisor. La tarea termina con `vTaskDelete`; el sistema libera su memoria poco después, sin que quede sesión, socket ni código de la tarea en ejecución.
-- `cebo.stop` y `cebo.start` actúan sobre los dos servicios. Estado: `{"kind":"cebo","http":{"available":true,"status":"running"},"telnet":{"available":true,"status":"running"},"active_connections":N,"max_connections":6,"idle_timeout_ms":5000}`, con `honeypot_http` y `honeypot_telnet` verdaderos; con ello el gate del núcleo ya admite `cebo.start`.
+- `cebo.stop` y `cebo.start` actúan sobre los dos servicios. Estado: `{"kind":"cebo","http":{"available":true,"status":"running"},"telnet":{"available":true,"status":"running"},"active_connections":N,"max_connections":6,"idle_timeout_ms":5000}` (valores por defecto), con `honeypot_http` y `honeypot_telnet` verdaderos; con ello el gate del núcleo ya admite `cebo.start`.
 - Los servicios siguen arrancando al entrar en el modo Cebo (`AutoStartServices`) hasta que la app tenga el control de Cebo; ver los [puntos para coordinar con P1](cebo-http.md#puntos-para-coordinar-con-p1).
 
 ## Activar y compilar

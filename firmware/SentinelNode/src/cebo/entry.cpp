@@ -20,6 +20,9 @@ public:
   sentinel::cebo::ServiceListener &telnet() override {
     return sentinel::cebo::esp_telnet_listener();
   }
+  sentinel::cebo::ConfigStore &config() override {
+    return sentinel::cebo::nvs_config_store();
+  }
 };
 } // namespace
 

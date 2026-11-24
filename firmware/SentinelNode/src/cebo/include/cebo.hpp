@@ -31,6 +31,18 @@ constexpr size_t BusCapacity = 16;
 constexpr unsigned EventsPerTick = 4;
 constexpr uint32_t EventRetryMs = 2000; // evento no aceptado: se descarta tras esto
 constexpr uint32_t IsolatedWindowMs = 1000;
+// Rango de idle_timeout_ms que acepta el contrato v2 (cebo.configure).
+constexpr uint32_t MinIdleTimeoutMs = 1000, MaxIdleTimeoutMs = 60000;
+constexpr uint32_t MetricsIntervalMs = 5000; // periodo de las métricas v2
+// Clasificación por origen y protocolo (sentinel-cebo-eventos-historial).
+// Son propuestas de diseño ajustables ante fallos; indicios de conducta, no
+// prueba de intrusión.
+constexpr size_t ClassifierEntries = 32;  // tabla con desalojo LRU
+constexpr uint32_t WindowMs = 60000;      // ventana de conteo
+constexpr uint32_t ExpiryMs = 300000;     // una entrada sin actividad caduca
+constexpr uint32_t CooldownMs = 30000;    // entre eventos del mismo origen
+constexpr uint32_t MediumAuthAttempts = 5;   // intentos de login/ventana: medio
+constexpr uint32_t HighInteractions = 20;    // interacciones/ventana: alto
 // El núcleo solo admite cebo.start cuando existen HTTP y Telnet
 // (module_runtime.cpp). Mientras la app no tenga el control de Cebo, los
 // servicios arrancan al entrar en el modo, que ya es una orden explícita del
@@ -60,11 +72,36 @@ struct Interaction {
 const char *protocol_text(Protocol);
 const char *kind_text(Kind);
 const char *path_text(Path); // nullptr para Path::None
-// Detalles v2 exactos de `cebo.interaction` para una interacción aislada.
-// Falso si el resultado no cabe o los datos no cumplen el contrato.
+// Código de evidencia v2 propio de la interacción (V2CeboEvidence).
+const char *evidence_text(const Interaction &);
+
+// Nivel de sospecha de una interacción: indicio, nunca atribución. Se liga a
+// la severidad del contrato: informational→info, medium→warning, high→critical.
+enum class Suspicion : uint8_t { Informational, Medium, High };
+const char *suspicion_text(Suspicion);
+const char *severity_text(Suspicion);
+
+// Resultado de clasificar una interacción: si debe publicarse un evento y con
+// qué sospecha, cantidad, ventana y evidencia. No contiene datos del cliente.
+struct Classification {
+  bool publish = false;
+  Suspicion suspicion = Suspicion::Informational;
+  uint32_t count = 1, window_ms = IsolatedWindowMs;
+  // Evidencia propia de la interacción y, si procede, la de repetición.
+  const char *evidence[2] = {nullptr, nullptr};
+  unsigned evidence_count = 0;
+  // Posición de la tabla para confirmar la publicación (Classifier::commit).
+  unsigned slot = 0;
+};
+
+// Detalles v2 exactos de `cebo.interaction` con su clasificación. Falso si el
+// resultado no cabe o los datos no cumplen el contrato.
+bool format_details(const Interaction &, const Classification &, char *out,
+                    size_t capacity);
+// Atajo: interacción aislada (count 1, informational).
 bool format_details(const Interaction &, char *out, size_t capacity);
-// Se publican accesos, entradas e intentos de autenticación. Conexión y cierre
-// circulan por el bus para la clasificación del siguiente cambio.
+// Se publican accesos, entradas e intentos de autenticación; una conexión
+// solo si escala la sospecha del origen. El cierre nunca genera evento.
 bool publishable(const Interaction &);
 // Borrado que el compilador no puede eliminar, para buffers con datos del
 // cliente.
@@ -94,6 +131,128 @@ private:
 struct Peer {
   uint8_t ipv4[4] = {};
   uint16_t port = 0;
+};
+
+// ---- Configuración y límites ----------------------------------------------
+// Configuración aceptada de Cebo (cebo.configure). El contrato solo admite
+// HTTP y Telnet activos, de modo que solo estos dos valores son variables.
+struct Config {
+  unsigned max_connections = MaxConnections; // simultáneas, ambos servicios
+  uint32_t idle_timeout_ms = IdleTimeoutMs;
+  bool operator==(const Config &o) const {
+    return max_connections == o.max_connections &&
+           idle_timeout_ms == o.idle_timeout_ms;
+  }
+};
+bool valid(const Config &);
+
+enum class Load : uint8_t { Loaded, Missing, Error };
+// Almacén de la configuración aceptada. save solo devuelve verdadero tras el
+// commit; ante un fallo conserva la configuración anterior.
+class ConfigStore {
+public:
+  virtual ~ConfigStore() = default;
+  virtual Load load(Config &out) = 0;
+  virtual bool save(const Config &) = 0;
+};
+// NVS estándar, espacio de nombres propio de Cebo (config_store.cpp).
+ConfigStore &nvs_config_store();
+
+// Admisión de conexiones compartida por HTTP y Telnet. Hace cumplir
+// max_connections (total) y el tope propio de cada servicio, y cuenta las
+// conexiones rechazadas. Se usa desde las tareas de los servicios.
+class Limiter {
+public:
+  void configure(const Config &);
+  Config config() const;
+  uint32_t idle_timeout_ms() const;
+  // Reserva una conexión; falso (y cuenta un rechazo) si no cabe.
+  bool admit(Protocol);
+  void release(Protocol);
+  // Pone a cero las conexiones de un servicio cuando se cierran todas.
+  void reset(Protocol);
+  // Nueva sesión del modo: sin conexiones ni rechazos.
+  void clear();
+  unsigned active() const;
+  unsigned active(Protocol) const;
+  uint32_t rejected() const;
+
+private:
+  mutable std::mutex lock_;
+  Config config_;
+  unsigned active_[2] = {};
+  uint32_t rejected_ = 0;
+};
+
+// ---- Clasificación ----------------------------------------------------------
+// Tabla de orígenes por (IPv4, protocolo): ventanas de WindowMs, expiración,
+// desalojo LRU y enfriamiento entre eventos. Cuenta todas las interacciones
+// aunque el evento se suprima. Lógica pura: el reloj lo da la interacción.
+//
+//  - isolated: acceso/entrada/login sin repetición suficiente → informational.
+//  - ≥ MediumAuthAttempts intentos de login en la ventana → medium
+//    (repeated_auth); count = intentos.
+//  - ≥ HighInteractions interacciones en la ventana → high (rate_threshold);
+//    count = interacciones (conexión, acceso, entrada, login).
+// Una escalada de nivel se publica aunque el origen esté en enfriamiento.
+class Classifier {
+public:
+  // Cuenta la interacción y decide si publica. No modifica el estado de
+  // publicación: eso lo hace commit tras confirmar que el evento se aceptó.
+  Classification observe(const Interaction &);
+  void commit(const Interaction &, const Classification &, bool accepted);
+  // Elimina los orígenes sin actividad durante ExpiryMs.
+  void expire(uint64_t now_ms);
+  void reset();
+  size_t size() const;
+  uint32_t suppressed() const { return suppressed_; }
+  uint32_t evictions() const { return evictions_; }
+
+private:
+  struct Entry {
+    bool used = false, published = false;
+    uint8_t ipv4[4] = {};
+    Protocol protocol = Protocol::Http;
+    uint8_t alerted = 0; // 0 ninguna, 1 medium, 2 high publicada en la ventana
+    uint64_t window_start = 0, last_seen = 0, last_published = 0;
+    uint32_t connections = 0, accesses = 0, auth_attempts = 0, inputs = 0;
+  };
+  Entry *find(const Interaction &);
+  Entry *allocate(const Interaction &);
+  Entry table_[ClassifierEntries];
+  uint32_t suppressed_ = 0, evictions_ = 0;
+};
+
+// ---- Métricas ---------------------------------------------------------------
+// Contadores acumulados del modo (conexiones, accesos, intentos, entradas,
+// alertas) por protocolo, y ritmo de interacciones en los últimos 60 s.
+class Metrics {
+public:
+  void record(const Interaction &);
+  // Una alerta (medium/high) aceptada por el núcleo.
+  void alert(Protocol);
+  void reset();
+  uint32_t alerts() const;
+  // Valores v2 (V2CeboMetricValues). Falso si no caben.
+  bool format(char *out, size_t capacity, unsigned http_active,
+              unsigned telnet_active, uint32_t rejected,
+              uint64_t now_ms) const;
+  uint32_t connections(Protocol p) const { return side_[idx(p)].connections; }
+  uint32_t accesses(Protocol p) const { return side_[idx(p)].accesses; }
+  uint32_t auth_attempts(Protocol p) const { return side_[idx(p)].auth; }
+  uint32_t inputs(Protocol p) const { return side_[idx(p)].inputs; }
+  uint32_t per_minute(Protocol p, uint64_t now_ms) const;
+
+private:
+  static constexpr unsigned Buckets = 60;
+  struct Side {
+    uint32_t connections = 0, accesses = 0, auth = 0, inputs = 0, alerts = 0;
+    uint64_t bucket_second[Buckets] = {};
+    uint32_t bucket_count[Buckets] = {};
+    bool bucket_used[Buckets] = {};
+  };
+  static unsigned idx(Protocol p) { return p == Protocol::Telnet ? 1 : 0; }
+  Side side_[2];
 };
 
 // ---- HTTP -----------------------------------------------------------------
@@ -168,8 +327,11 @@ private:
 };
 
 // ---- Servicios y módulo ---------------------------------------------------
+// Límites compartidos de los dos servicios. El límite vive en el módulo y los
+// servicios lo consultan en cada conexión, de modo que cebo.configure surte
+// efecto sin reiniciar listeners.
 struct ServiceSettings {
-  uint32_t idle_timeout_ms = IdleTimeoutMs;
+  Limiter *limiter = nullptr;
 };
 // Un servicio de red (HTTP o Telnet). Las implementaciones ESP-IDF viven en
 // http_service.cpp y telnet_service.cpp; las pruebas de host usan dobles.
@@ -194,6 +356,7 @@ public:
   virtual bool lan_ready() = 0;
   virtual ServiceListener &http() = 0;
   virtual ServiceListener &telnet() = 0;
+  virtual ConfigStore &config() = 0;
 };
 // Implementaciones ESP-IDF; no se usan en las pruebas de host.
 ServiceListener &esp_http_listener();
@@ -205,6 +368,7 @@ const char *service_text(Service);
 struct Counters {
   uint32_t interactions[5] = {}; // por Kind, consumidas del bus
   uint32_t published = 0, publish_failed = 0;
+  uint32_t metrics_published = 0;
 };
 
 class Cebo final : public Module {
@@ -224,6 +388,10 @@ public:
   Service http_status() const { return services_[0].status; }
   Service telnet_status() const { return services_[1].status; }
   const Counters &counters() const { return counters_; }
+  const Classifier &classifier() const { return classifier_; }
+  const Metrics &metrics() const { return metrics_; }
+  Limiter &limiter() { return limiter_; }
+  Config config() const { return config_; }
   InteractionBus &bus() { return bus_; }
 
 private:
@@ -232,18 +400,38 @@ private:
     Service status = Service::Stopped;
     uint64_t retry_at = 0;
   };
+  // Evento ya clasificado a la espera de que el núcleo lo acepte.
+  struct Pending {
+    bool used = false;
+    Interaction interaction;
+    Classification classification;
+    char details[320] = {};
+    uint64_t since = 0;
+    bool failing = false;
+  };
   void step(Control &, bool lan, uint64_t now_ms);
   void drain(uint64_t now_ms);
+  bool deliver(uint64_t now_ms);
+  void publish_metrics(uint64_t now_ms);
+  void report_storage_error();
+  void configure(const ModuleCommand &, ModuleReply &);
+  void stats(ModuleReply &);
   void finish_stop();
   bool all_stopped() const;
   CeboPlatform &platform_;
   ModuleContext *context_ = nullptr;
   InteractionBus bus_;
+  Limiter limiter_;
+  Classifier classifier_;
+  Metrics metrics_;
   Counters counters_;
+  Config config_;
+  Pending pending_;
   Control services_[2];
   bool active_ = false, stopping_ = false, wanted_ = false;
-  uint64_t head_failing_since_ = 0;
-  bool head_failing_ = false;
+  bool storage_error_ = false;
+  bool stored_ok_ = false; // lo almacenado coincide con config_
+  uint64_t last_metrics_ = 0;
 };
 
 } // namespace sentinel::cebo

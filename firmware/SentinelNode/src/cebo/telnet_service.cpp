@@ -27,7 +27,7 @@ struct Slot {
 class EspTelnet final : public ServiceListener {
 public:
   bool start(InteractionBus &bus, const ServiceSettings &settings) override {
-    if (running_.load() || listen_fd_ >= 0)
+    if (running_.load() || listen_fd_ >= 0 || !settings.limiter)
       return false;
     int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
     if (fd < 0)
@@ -45,7 +45,8 @@ public:
       return false;
     }
     bus_ = &bus;
-    idle_ms_ = settings.idle_timeout_ms;
+    limiter_ = settings.limiter;
+    limiter_->reset(Protocol::Telnet);
     listen_fd_ = fd;
     stop_ = false;
     active_ = 0;
@@ -102,6 +103,7 @@ private:
     slot.session.finish(reason, clock_ms());
     close(slot.fd);
     slot = Slot();
+    limiter_->release(Protocol::Telnet);
   }
 
   void accept_one(Slot *slots) {
@@ -111,12 +113,18 @@ private:
     if (fd < 0)
       return;
     Peer peer;
+    // El límite compartido decide si cabe otra conexión (total y por servicio).
+    if (!limiter_->admit(Protocol::Telnet)) {
+      close(fd); // el exceso de sesiones se rechaza
+      return;
+    }
     Slot *free_slot = nullptr;
     for (unsigned n = 0; n < TelnetMaxSessions && !free_slot; ++n)
       if (slots[n].fd < 0)
         free_slot = &slots[n];
     if (!free_slot || !peer_of(address, peer)) {
-      close(fd); // el exceso de sesiones se rechaza
+      limiter_->release(Protocol::Telnet);
+      close(fd);
       return;
     }
     free_slot->fd = fd;
@@ -169,9 +177,10 @@ private:
             read_one(s);
       }
       uint64_t now = clock_ms();
+      const uint32_t idle_ms = limiter_->idle_timeout_ms();
       unsigned open_sessions = 0;
       for (auto &s : slots) {
-        if (s.fd >= 0 && s.session.idle(now, idle_ms_))
+        if (s.fd >= 0 && s.session.idle(now, idle_ms))
           close_slot(s, Close::IdleTimeout);
         open_sessions += s.fd >= 0;
       }
@@ -184,11 +193,12 @@ private:
     close(listen_fd_);
     listen_fd_ = -1;
     active_ = 0;
+    limiter_->reset(Protocol::Telnet);
     running_ = false;
   }
 
   InteractionBus *bus_ = nullptr;
-  uint32_t idle_ms_ = IdleTimeoutMs;
+  Limiter *limiter_ = nullptr;
   int listen_fd_ = -1;
   std::atomic<bool> running_{false}, stop_{false};
   std::atomic<unsigned> active_{0};

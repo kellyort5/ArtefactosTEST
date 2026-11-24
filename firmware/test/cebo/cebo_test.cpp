@@ -2,28 +2,10 @@
 // NVS: comprueban la lógica pura (política, bus, ciclo de vida). La
 // integración con esp_http_server y las pruebas en LAN real se registran
 // aparte como evidencia física.
-#include "../../SentinelNode/src/cebo/include/cebo.hpp"
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "test_support.hpp"
 #include <fstream>
-#include <iostream>
 #include <sstream>
-#include <string>
 #include <string_view>
-#include <vector>
-
-using namespace sentinel;
-using namespace sentinel::cebo;
-
-#define CHECK(condition)                                                       \
-  do {                                                                         \
-    if (!(condition)) {                                                        \
-      std::fprintf(stderr, "FAIL %s:%d: %s\n", __FILE__, __LINE__,             \
-                   #condition);                                                \
-      std::exit(1);                                                            \
-    }                                                                          \
-  } while (0)
 
 static const char *Marker = "CEBO-SECRET-MARKER-7f3a91";
 
@@ -359,105 +341,6 @@ static void details_format(const char *fixtures) {
   std::cout << "Cebo details vs shared v2 fixtures: PASS\n";
 }
 
-// ---- Dobles para el ciclo de vida -----------------------------------------
-struct FakeResources : ModuleResources {
-  bool set_channel(uint8_t) override { return false; }
-  bool scan_passive() override { return false; }
-  size_t scan_results(ScanNetwork *, size_t) override { return 0; }
-  bool capture(bool) override { return false; }
-  bool configure_upstream(const UpstreamConfig &) override { return false; }
-  bool configure_ap(const ApConfig &) override { return false; }
-  bool napt(bool) override { return false; }
-  esp_netif_obj *sta_netif() const override { return nullptr; }
-  esp_netif_obj *ap_netif() const override { return nullptr; }
-  bool poll(RadioEvent &) override { return false; }
-  uint64_t dropped() const override { return 0; }
-};
-struct Emitted {
-  std::string name, severity, details;
-  bool simulated;
-};
-struct FakeContext : ModuleContext {
-  FakeResources resources_;
-  uint64_t now = 1000;
-  bool accept = true;
-  std::vector<Emitted> events;
-  uint64_t now_ms() const override { return now; }
-  ModuleResources &resources() override { return resources_; }
-  bool emit_event(const char *name, const char *severity, const char *details,
-                  bool simulated) override {
-    if (!accept)
-      return false;
-    events.push_back({name, severity, details, simulated});
-    return true;
-  }
-  bool publish_metrics(uint32_t, const char *) override { return false; }
-};
-struct FakeListener : ServiceListener {
-  bool start_ok = true, running = false, stuck = false;
-  unsigned starts = 0, stops = 0, ticks = 0, connections = 0;
-  InteractionBus *bus = nullptr;
-  bool start(InteractionBus &b, const ServiceSettings &settings) override {
-    ++starts;
-    if (!start_ok)
-      return false;
-    CHECK(!running); // el módulo nunca arranca un listener ya abierto
-    CHECK(settings.idle_timeout_ms == IdleTimeoutMs);
-    running = true;
-    bus = &b;
-    return true;
-  }
-  void request_stop() override {
-    ++stops;
-    if (!stuck)
-      running = false;
-  }
-  bool stopped() const override { return !running; }
-  unsigned active_connections() const override { return connections; }
-  void tick() override { ++ticks; }
-};
-struct FakeCebo : CeboPlatform {
-  bool lan = false;
-  FakeListener h, t;
-  bool lan_ready() override { return lan; }
-  ServiceListener &http() override { return h; }
-  ServiceListener &telnet() override { return t; }
-};
-static std::string state_of(const Cebo &cebo) {
-  ModuleSnapshot s;
-  cebo.snapshot(s);
-  return s.state;
-}
-static Interaction make(Kind kind, Path path = Path::None) {
-  Interaction i;
-  i.ipv4[0] = 192;
-  i.ipv4[2] = 2;
-  i.ipv4[3] = 2;
-  i.source_port = 45000;
-  i.destination_port = 80;
-  i.kind = kind;
-  i.path = path;
-  return i;
-}
-static Interaction make_telnet(Kind kind, Close close = Close::None) {
-  Interaction i = make(kind);
-  i.protocol = Protocol::Telnet;
-  i.destination_port = 23;
-  i.close = close;
-  return i;
-}
-static std::string state_text(const char *http, const char *telnet,
-                              unsigned connections) {
-  char text[420];
-  snprintf(text, sizeof(text),
-           "{\"kind\":\"cebo\",\"http\":{\"available\":true,\"status\":\"%s\"},"
-           "\"telnet\":{\"available\":true,\"status\":\"%s\"},"
-           "\"active_connections\":%u,\"max_connections\":6,"
-           "\"idle_timeout_ms\":5000}",
-           http, telnet, connections);
-  return text;
-}
-
 static void lifecycle() {
   FakeCebo p;
   FakeContext ctx;
@@ -503,8 +386,14 @@ static void lifecycle() {
   CHECK(bus.push(make(Kind::Access, Path::Root)));
   CHECK(bus.push(make_telnet(Kind::Connect)));
   CHECK(bus.push(make_telnet(Kind::Input)));
-  CHECK(bus.push(make_telnet(Kind::AuthAttempt)));
-  CHECK(bus.push(make(Kind::AuthAttempt, Path::Login)));
+  // Cada origen publica su primer evento; los intentos de login de otros
+  // orígenes no quedan suprimidos por el enfriamiento de 192.0.2.2.
+  Interaction telnet_auth = make_telnet(Kind::AuthAttempt);
+  telnet_auth.ipv4[3] = 3;
+  Interaction http_auth = make(Kind::AuthAttempt, Path::Login);
+  http_auth.ipv4[3] = 4;
+  CHECK(bus.push(telnet_auth));
+  CHECK(bus.push(http_auth));
   CHECK(bus.push(make(Kind::Disconnect)));
   CHECK(bus.push(make_telnet(Kind::Disconnect, Close::Limit)));
   cebo.tick(1003);
@@ -535,6 +424,7 @@ static void lifecycle() {
   ctx.events.clear();
   for (unsigned n = 0; n < 10; ++n) {
     Interaction i = make(Kind::Access, Path::Root);
+    i.ipv4[3] = uint8_t(10 + n); // un origen distinto cada vez
     i.source_port = uint16_t(2000 + n);
     CHECK(bus.push(i));
   }
@@ -551,17 +441,20 @@ static void lifecycle() {
   ctx.events.clear();
   ctx.accept = false;
   Interaction held = make(Kind::AuthAttempt, Path::Login);
+  held.ipv4[3] = 50;
   held.source_port = 3000;
   CHECK(bus.push(held));
   cebo.tick(2000);
   cebo.tick(2000 + EventRetryMs - 1);
-  CHECK(ctx.events.empty() && bus.size() == 1);
+  // Ya clasificada, la interacción espera en el módulo y no se vuelve a contar.
+  CHECK(ctx.events.empty() && bus.size() == 0);
   ctx.accept = true;
   cebo.tick(2000 + EventRetryMs - 1);
   CHECK(ctx.events.size() == 1 &&
         contains(ctx.events[0].details, "\"source_port\":3000"));
   unsigned failed = cebo.counters().publish_failed;
   ctx.accept = false;
+  held.ipv4[3] = 51;
   CHECK(bus.push(held));
   cebo.tick(9000);
   cebo.tick(9000 + EventRetryMs);
@@ -608,11 +501,9 @@ static void lifecycle() {
   reply = ModuleReply();
   cebo.handle({"cebo.start", nullptr, "c3b"}, reply); // ya activo: sin efecto
   CHECK(!reply.error && p.h.starts == 3);
-  for (const char *operation : {"cebo.configure", "cebo.stats", "escudo.scan"}) {
-    reply = ModuleReply();
-    cebo.handle({operation, nullptr, "c4"}, reply);
-    CHECK(reply.error && !strcmp(reply.error, "not_implemented"));
-  }
+  reply = ModuleReply();
+  cebo.handle({"escudo.scan", nullptr, "c4"}, reply);
+  CHECK(reply.error && !strcmp(reply.error, "not_implemented"));
 
   // Parada: stopped() solo es verdadero cuando los DOS listeners se liberaron;
   // no quedan interacciones ni eventos tras cerrar.
@@ -1094,6 +985,7 @@ static void dump() {
   CHECK(none.init(ctx) && none.start());
   none.tick(1000);
   std::cout << "module " << state_of(none) << '\n'; // error / error
+  events_dump();
 }
 
 int main(int argc, char **argv) {
@@ -1124,5 +1016,6 @@ int main(int argc, char **argv) {
   lifecycle();
   independent_failures();
   std::cout << "Cebo module lifecycle (LAN wait, shared bus, joint stop, restart): PASS\n";
+  events_tests();
   return 0;
 }

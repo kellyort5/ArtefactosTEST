@@ -74,8 +74,11 @@ public:
   bool start(InteractionBus &bus, const ServiceSettings &settings) override {
     if (server_)
       return false;
+    if (!settings.limiter)
+      return false;
     bus_ = &bus;
-    idle_ms_ = settings.idle_timeout_ms;
+    limiter_ = settings.limiter;
+    limiter_->reset(Protocol::Http);
     {
       std::lock_guard<std::mutex> guard(lock_);
       for (auto &s : sessions_)
@@ -84,7 +87,10 @@ public:
     active_ = 0;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = HttpPort;
-    config.max_open_sockets = HttpMaxSockets;
+    // Un socket más que los admitidos: el excedente llega a on_open, donde el
+    // límite lo rechaza y lo cuenta, en lugar de descartarlo el servidor sin
+    // que el módulo lo vea.
+    config.max_open_sockets = HttpMaxSockets + 1;
     config.max_uri_handlers = 2;
     config.max_resp_headers = 8;
     config.backlog_conn = 2;
@@ -126,6 +132,8 @@ public:
     for (auto &s : sessions_)
       s = Session();
     active_ = 0;
+    if (limiter_)
+      limiter_->reset(Protocol::Http);
   }
 
   bool stopped() const override { return server_ == nullptr; }
@@ -137,10 +145,11 @@ public:
     int victims[SessionSlots];
     size_t count = 0;
     uint64_t now = clock_ms();
+    const uint32_t idle_ms = limiter_ ? limiter_->idle_timeout_ms() : IdleTimeoutMs;
     {
       std::lock_guard<std::mutex> guard(lock_);
       for (auto &s : sessions_)
-        if (s.fd >= 0 && !s.closing && now - s.last_ms >= idle_ms_) {
+        if (s.fd >= 0 && !s.closing && now - s.last_ms >= idle_ms) {
           s.closing = true;
           victims[count++] = s.fd;
         }
@@ -158,8 +167,12 @@ private:
   static esp_err_t on_open(httpd_handle_t handle, int fd) {
     auto *self = static_cast<EspHttp *>(httpd_get_global_user_ctx(handle));
     Peer peer;
-    if (!self || !peer_of_socket(fd, peer) || !self->track(fd, peer))
-      return ESP_FAIL; // el servidor cierra el socket de inmediato
+    if (!self || !self->limiter_ || !self->limiter_->admit(Protocol::Http))
+      return ESP_FAIL; // sin cupo: el servidor cierra el socket de inmediato
+    if (!peer_of_socket(fd, peer) || !self->track(fd, peer)) {
+      self->limiter_->release(Protocol::Http);
+      return ESP_FAIL;
+    }
     self->note(Kind::Connect, peer, Close::None);
     return ESP_OK;
   }
@@ -169,9 +182,12 @@ private:
   static void on_close(httpd_handle_t handle, int fd) {
     auto *self = static_cast<EspHttp *>(httpd_get_global_user_ctx(handle));
     Session session;
-    if (self && self->untrack(fd, session))
+    if (self && self->untrack(fd, session)) {
+      if (self->limiter_)
+        self->limiter_->release(Protocol::Http);
       self->note(Kind::Disconnect, session.peer,
                  session.closing ? Close::IdleTimeout : Close::Peer);
+    }
     close(fd);
   }
 
@@ -285,7 +301,7 @@ private:
 
   httpd_handle_t server_ = nullptr;
   InteractionBus *bus_ = nullptr;
-  uint32_t idle_ms_ = IdleTimeoutMs;
+  Limiter *limiter_ = nullptr;
   std::mutex lock_;
   Session sessions_[SessionSlots];
   std::atomic<unsigned> active_{0};

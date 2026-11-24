@@ -2,7 +2,7 @@
 
 Responsable: Persona 3. Cambio: [sentinel-cebo-http](../../openspec/changes/sentinel-cebo-http/proposal.md) ([ficha](../encargos/sentinel-cebo-http.md), [diseño](../../openspec/changes/sentinel-cebo-http/design.md), [tareas](../../openspec/changes/sentinel-cebo-http/tasks.md)). Rama: `feat/sentinel-cebo-http`. Se integra con la [API de módulos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) y el [contrato v2](../../contracts/module-protocol.md).
 
-El firmware añade `firmware/SentinelNode/src/cebo/`. El servicio Telnet se documenta en [cebo-telnet.md](cebo-telnet.md). La clasificación por ventanas, `cebo.stats`, `cebo.configure` y la persistencia del historial pertenecen al cambio de [eventos e historial](../encargos/sentinel-cebo-eventos-historial.md). Cebo **no** habilita `SENTINEL_MODULE_CEBO` en `SentinelConfig.h`; ver [cómo activarlo](#activar-y-compilar).
+El firmware añade `firmware/SentinelNode/src/cebo/`. El servicio Telnet se documenta en [cebo-telnet.md](cebo-telnet.md). La clasificación por ventanas, las métricas, `cebo.stats`, `cebo.configure` y la persistencia se documentan en [cebo-events.md](cebo-events.md). Cebo **no** habilita `SENTINEL_MODULE_CEBO` en `SentinelConfig.h`; ver [cómo activarlo](#activar-y-compilar).
 
 ## Qué hace y qué no hace
 
@@ -38,11 +38,11 @@ Valores iniciales propuestos en el diseño; son cotas de implementación, no med
 
 | Límite | Valor | Efecto |
 | --- | --- | --- |
-| Conexiones simultáneas | 4 (`HttpMaxSockets`) | El exceso se rechaza; no se desplaza a las existentes |
+| Conexiones simultáneas | 4 (`HttpMaxSockets`), y el total de `max_connections` | El exceso se rechaza y se cuenta (`rejected_connections`); no se desplaza a las existentes |
 | Tiempo de `recv`/`send` | 5 s | Lo aplica `esp_http_server` |
 | Cuerpo procesable | 1024 B | Mayor: 413 y cierre |
 | Presupuesto para vaciar un cuerpo | 3 s en total | Un cliente lento no ocupa el hilo del servidor |
-| Sesión sin petición completa | 5 s (`IdleTimeoutMs`, compartido con Telnet) | `esp_http_server` no cierra conexiones inactivas por sí solo; el módulo las cierra |
+| Sesión sin petición completa | 5 s por defecto (`IdleTimeoutMs`; configurable con `cebo.configure`, compartido con Telnet) | `esp_http_server` no cierra conexiones inactivas por sí solo; el módulo las cierra |
 | Cola de interacciones | 16 | Al llenarse se pierde la más reciente y se cuenta |
 | Eventos por `tick` | 4 | Evita saturar la salida del núcleo |
 | Reintento de arranque fallido | 5 s | El estado HTTP pasa a `error` entre intentos |
@@ -51,13 +51,13 @@ Valores iniciales propuestos en el diseño; son cotas de implementación, no med
 
 ## Eventos v2
 
-Se publica `cebo.interaction` mediante `ModuleContext::emit_event`, el hook de la API; el módulo no escribe en el journal ni en MQTT. Hasta que el cambio de eventos e historial añada la clasificación, cada interacción de acceso o autenticación es **aislada**: `count: 1`, `window_ms: 1000`, `suspicion: "informational"`, severidad `info`, `origin: "real"`.
+Se publica `cebo.interaction` mediante `ModuleContext::emit_event`, el hook de la API; el módulo no escribe en el journal ni en MQTT. Un origen sin repetición suficiente produce eventos **informativos** (`count: 1`, `window_ms: 1000`, `suspicion: "informational"`, severidad `info`, `origin: "real"`); la repetición escala a `medium` o `high` según los umbrales de [cebo-events.md](cebo-events.md#clasificación).
 
 ```json
 {"source_ipv4":"192.0.2.2","source_port":45000,"destination_port":80,"protocol":"http","interaction":"auth_attempt","path":"/login","count":1,"window_ms":1000,"suspicion":"informational","evidence":["auth_attempt"]}
 ```
 
-Evidencia: `canonical_access` (acceso), `auth_attempt`, `connection_observed` (conexión), `peer_closed` o `idle_timeout` (cierre). Las conexiones y cierres no generan evento todavía: cada petición ya escribe una entrada en el journal y publicarlas multiplicaría el desgaste del anillo. Esta mezcla es transitoria; el siguiente cambio agrega y suprime repeticiones.
+Evidencia: `canonical_access` (acceso), `auth_attempt`, `connection_observed` (conexión), `peer_closed` o `idle_timeout` (cierre), más `repeated_auth` o `rate_threshold` cuando el origen repite. Una conexión sola no genera evento y el cierre nunca lo genera, para no multiplicar el desgaste del anillo; las repeticiones de un mismo origen se suprimen durante 30 s, y los contadores las cuentan todas.
 
 La salida está limitada: si el núcleo no acepta un evento, se conserva y se reintenta; si pasan 2 s sin aceptarlo se descarta y se cuenta, para no bloquear la cola.
 
@@ -65,8 +65,8 @@ La salida está limitada: si el núcleo no acepta un evento, se conserva y se re
 
 - `init` no toma la radio ni abre sockets. `start` lo llama el supervisor tras conceder la radio; el servicio HTTP espera a tener IPv4 (lee `WIFI_STA_DEF` en modo solo lectura) y entonces abre el listener. Si la LAN se pierde, cierra y reabre al volver.
 - `request_stop` cierra la cola, las sesiones y el listener (`httpd_stop`). `stopped()` solo es verdadero cuando no queda listener ni socket; un cierre fallido se reintenta en cada `tick` dentro del plazo del supervisor. Tras salir del modo, el puerto 80 queda cerrado.
-- `cebo.stop` detiene los dos servicios sin salir del modo y `cebo.start` los reanuda. `cebo.configure` y `cebo.stats` devuelven `not_implemented` hasta sus cambios.
-- Estado: `{"kind":"cebo","http":{"available":true,"status":"running"},"telnet":{"available":true,"status":"running"},"active_connections":N,"max_connections":6,"idle_timeout_ms":5000}`, con `honeypot_http` y `honeypot_telnet` verdaderos. HTTP y Telnet arrancan, fallan y se recuperan por separado.
+- `cebo.stop` detiene los dos servicios sin salir del modo y `cebo.start` los reanuda. `cebo.stats` se describe en [cebo-events.md](cebo-events.md#métricas-y-cebostats) y `cebo.configure` en [cebo-events.md](cebo-events.md#ceboconfigure).
+- Estado: `{"kind":"cebo","http":{"available":true,"status":"running"},"telnet":{"available":true,"status":"running"},"active_connections":N,"max_connections":6,"idle_timeout_ms":5000}` (con los valores por defecto; `cebo.configure` cambia los dos últimos), con `honeypot_http` y `honeypot_telnet` verdaderos. HTTP y Telnet arrancan, fallan y se recuperan por separado.
 
 ### Puntos para coordinar con P1
 

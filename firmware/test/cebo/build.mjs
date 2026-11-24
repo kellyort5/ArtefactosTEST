@@ -28,10 +28,16 @@ export function buildCebo() {
     '-I' + join(repo, 'firmware/test/stubs/cebo'),
     '-I' + join(sketch, 'src/sentinel_api/include'),
     join(sketch, 'src/cebo/interaction.cpp'),
+    join(sketch, 'src/cebo/event_adapter.cpp'),
+    join(sketch, 'src/cebo/classifier.cpp'),
+    join(sketch, 'src/cebo/counters.cpp'),
+    join(sketch, 'src/cebo/limiter.cpp'),
+    join(sketch, 'src/cebo/config_store.cpp'),
     join(sketch, 'src/cebo/http_policy.cpp'),
     join(sketch, 'src/cebo/telnet_session.cpp'),
     join(sketch, 'src/cebo/module.cpp'),
     join(here, 'cebo_test.cpp'),
+    join(here, 'events_test.cpp'),
     '-o', binary,
   ], {cwd: repo, stdio: 'inherit'});
   if (build.error) throw build.error;

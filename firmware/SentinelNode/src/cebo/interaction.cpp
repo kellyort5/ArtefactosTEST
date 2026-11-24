@@ -44,7 +44,7 @@ const char *path_text(Path p) {
   return nullptr;
 }
 
-static const char *evidence_text(const Interaction &i) {
+const char *evidence_text(const Interaction &i) {
   switch (i.kind) {
   case Kind::Connect:
     return "connection_observed";
@@ -63,39 +63,10 @@ static const char *evidence_text(const Interaction &i) {
 }
 
 bool format_details(const Interaction &i, char *out, size_t capacity) {
-  if (!out || !capacity)
-    return false;
-  *out = 0;
-  // El contrato exige puertos 1..65535 y, para Telnet, puerto 23 sin ruta.
-  if (!i.source_port || !i.destination_port)
-    return false;
-  if (i.protocol == Protocol::Telnet &&
-      (i.destination_port != 23 || i.path != Path::None))
-    return false;
-  char address[16];
-  snprintf(address, sizeof(address), "%u.%u.%u.%u", i.ipv4[0], i.ipv4[1],
-           i.ipv4[2], i.ipv4[3]);
-  const char *path = path_text(i.path);
-  char path_json[24];
-  if (path)
-    snprintf(path_json, sizeof(path_json), "\"%s\"", path);
-  else
-    snprintf(path_json, sizeof(path_json), "null");
-  int n = snprintf(out, capacity,
-                   "{\"source_ipv4\":\"%s\",\"source_port\":%u,"
-                   "\"destination_port\":%u,\"protocol\":\"%s\","
-                   "\"interaction\":\"%s\",\"path\":%s,\"count\":1,"
-                   "\"window_ms\":%u,\"suspicion\":\"informational\","
-                   "\"evidence\":[\"%s\"]}",
-                   address, unsigned(i.source_port),
-                   unsigned(i.destination_port), protocol_text(i.protocol),
-                   kind_text(i.kind), path_json, unsigned(IsolatedWindowMs),
-                   evidence_text(i));
-  if (n <= 0 || size_t(n) >= capacity) {
-    *out = 0;
-    return false;
-  }
-  return true;
+  Classification isolated;
+  isolated.evidence[0] = evidence_text(i);
+  isolated.evidence_count = 1;
+  return format_details(i, isolated, out, capacity);
 }
 
 bool publishable(const Interaction &i) {
