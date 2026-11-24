@@ -30,12 +30,21 @@ bool Cebo::start() {
     return false;
   active_ = true;
   stopping_ = false;
-  wanted_ = AutoStartHttp;
-  status_ = wanted_ ? Service::Starting : Service::Stopped;
-  retry_at_ = 0;
+  wanted_ = AutoStartServices;
+  for (auto &s : services_) {
+    s.status = wanted_ ? Service::Starting : Service::Stopped;
+    s.retry_at = 0;
+  }
   head_failing_ = false;
   counters_ = Counters();
   bus_.open();
+  return true;
+}
+
+bool Cebo::all_stopped() const {
+  for (const auto &s : services_)
+    if (!s.listener->stopped())
+      return false;
   return true;
 }
 
@@ -48,18 +57,22 @@ void Cebo::request_stop() {
   finish_stop();
 }
 
-bool Cebo::stopped() const { return http_.stopped(); }
+bool Cebo::stopped() const { return all_stopped(); }
 
 void Cebo::finish_stop() {
-  // Un cierre fallido se reintenta en cada tick hasta el plazo del supervisor.
-  if (!http_.stopped()) {
-    http_.request_stop();
-    if (!http_.stopped())
+  // Un cierre incompleto se reintenta en cada tick hasta el plazo del
+  // supervisor; el módulo no queda libre hasta que los dos servicios cerraron.
+  if (!all_stopped()) {
+    for (auto &s : services_)
+      if (!s.listener->stopped())
+        s.listener->request_stop();
+    if (!all_stopped())
       return;
   }
   active_ = false;
   stopping_ = false;
-  status_ = Service::Stopped;
+  for (auto &s : services_)
+    s.status = Service::Stopped;
 }
 
 void Cebo::handle(const ModuleCommand &cmd, ModuleReply &reply) {
@@ -68,14 +81,17 @@ void Cebo::handle(const ModuleCommand &cmd, ModuleReply &reply) {
     return;
   }
   if (!strcmp(cmd.operation, "cebo.start")) {
-    wanted_ = true;
+    if (!wanted_) {
+      bus_.open();
+      wanted_ = true;
+    }
   } else if (!strcmp(cmd.operation, "cebo.stop")) {
     wanted_ = false;
     bus_.close();
-    http_.request_stop();
+    for (auto &s : services_)
+      s.listener->request_stop();
   } else {
-    // cebo.configure y cebo.stats pertenecen a los cambios de Telnet y de
-    // eventos/historial.
+    // cebo.configure y cebo.stats pertenecen al cambio de eventos e historial.
     reply.error = "not_implemented";
   }
 }
@@ -112,6 +128,31 @@ void Cebo::drain(uint64_t now_ms) {
   }
 }
 
+void Cebo::step(Control &s, bool lan, uint64_t now_ms) {
+  if (s.status == Service::Running) {
+    if (!lan) {
+      // Sin LAN no hay sesiones útiles: cerrar y volver a arrancar al regresar.
+      s.listener->request_stop();
+      s.status = Service::Starting;
+    }
+    return;
+  }
+  if (s.status == Service::Stopped)
+    s.status = Service::Starting;
+  if (!s.listener->stopped()) {
+    s.listener->request_stop();
+    return;
+  }
+  if (lan && now_ms >= s.retry_at) {
+    if (s.listener->start(bus_, ServiceSettings())) {
+      s.status = Service::Running;
+    } else {
+      s.status = Service::Error;
+      s.retry_at = now_ms + ServiceRetryMs;
+    }
+  }
+}
+
 void Cebo::tick(uint64_t now_ms) {
   if (!active_)
     return;
@@ -119,54 +160,43 @@ void Cebo::tick(uint64_t now_ms) {
     finish_stop();
     return;
   }
-  http_.tick();
+  for (auto &s : services_)
+    s.listener->tick();
   if (!wanted_) {
-    if (!http_.stopped())
-      http_.request_stop();
-    else
-      status_ = Service::Stopped;
+    for (auto &s : services_) {
+      if (!s.listener->stopped())
+        s.listener->request_stop();
+      else
+        s.status = Service::Stopped;
+    }
     drain(now_ms);
     return;
   }
-  bool lan = http_.lan_ready();
-  if (status_ == Service::Running) {
-    if (!lan) {
-      // Sin LAN no hay sesiones útiles: cerrar y volver a arrancar al regresar.
-      http_.request_stop();
-      status_ = Service::Starting;
-    }
-  } else {
-    if (status_ == Service::Stopped)
-      status_ = Service::Starting;
-    if (!http_.stopped())
-      http_.request_stop();
-    else if (lan && now_ms >= retry_at_) {
-      bus_.open();
-      if (http_.start(bus_, HttpSettings())) {
-        status_ = Service::Running;
-      } else {
-        status_ = Service::Error;
-        retry_at_ = now_ms + HttpRetryMs;
-      }
-    }
-  }
+  bool lan = platform_.lan_ready();
+  // Cada servicio arranca y se recupera por separado: un fallo de uno no
+  // detiene al otro.
+  for (auto &s : services_)
+    step(s, lan, now_ms);
   drain(now_ms);
 }
 
 void Cebo::snapshot(ModuleSnapshot &out) const {
-  unsigned connections = http_.active_connections();
-  if (connections > 6)
-    connections = 6;
-  Service status = active_ ? status_ : Service::Stopped;
+  unsigned connections = services_[0].listener->active_connections() +
+                         services_[1].listener->active_connections();
+  if (connections > MaxConnections)
+    connections = MaxConnections;
+  Service http = active_ ? services_[0].status : Service::Stopped;
+  Service telnet = active_ ? services_[1].status : Service::Stopped;
   snprintf(out.state, sizeof(out.state),
            "{\"kind\":\"cebo\",\"http\":{\"available\":true,\"status\":\"%s\"},"
-           "\"telnet\":{\"available\":false,\"status\":\"unavailable\"},"
+           "\"telnet\":{\"available\":true,\"status\":\"%s\"},"
            "\"active_connections\":%u,\"max_connections\":%u,"
            "\"idle_timeout_ms\":%u}",
-           service_text(status), connections, unsigned(HttpMaxSockets),
-           unsigned(HttpIdleTimeoutMs));
+           service_text(http), service_text(telnet), connections,
+           MaxConnections, unsigned(IdleTimeoutMs));
   out.capabilities = {};
   out.capabilities.honeypot_http = true;
+  out.capabilities.honeypot_telnet = true;
   out.target_selected = false;
 }
 

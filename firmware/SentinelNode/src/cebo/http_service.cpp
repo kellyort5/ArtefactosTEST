@@ -5,7 +5,6 @@
 #include <atomic>
 #include <cstring>
 #include <esp_http_server.h>
-#include <esp_netif.h>
 #include <esp_timer.h>
 #include <lwip/sockets.h>
 #include <mutex>
@@ -70,18 +69,9 @@ private:
   uint64_t started_;
 };
 
-class EspHttp final : public HttpPlatform {
+class EspHttp final : public ServiceListener {
 public:
-  bool lan_ready() override {
-    // sta_netif() de ModuleResources solo se concede a Sanitizador; en Cebo el
-    // núcleo gestiona la STA y aquí solo se lee su estado IPv4.
-    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
-    esp_netif_ip_info_t info = {};
-    return netif && esp_netif_is_netif_up(netif) &&
-           esp_netif_get_ip_info(netif, &info) == ESP_OK && info.ip.addr != 0;
-  }
-
-  bool start(InteractionBus &bus, const HttpSettings &settings) override {
+  bool start(InteractionBus &bus, const ServiceSettings &settings) override {
     if (server_)
       return false;
     bus_ = &bus;
@@ -295,16 +285,16 @@ private:
 
   httpd_handle_t server_ = nullptr;
   InteractionBus *bus_ = nullptr;
-  uint32_t idle_ms_ = HttpIdleTimeoutMs;
+  uint32_t idle_ms_ = IdleTimeoutMs;
   std::mutex lock_;
   Session sessions_[SessionSlots];
   std::atomic<unsigned> active_{0};
 };
 } // namespace
 
-HttpPlatform &esp_http_platform() {
-  static EspHttp platform;
-  return platform;
+ServiceListener &esp_http_listener() {
+  static EspHttp listener;
+  return listener;
 }
 
 } // namespace sentinel::cebo

@@ -29,6 +29,7 @@ export function buildCebo() {
     '-I' + join(sketch, 'src/sentinel_api/include'),
     join(sketch, 'src/cebo/interaction.cpp'),
     join(sketch, 'src/cebo/http_policy.cpp'),
+    join(sketch, 'src/cebo/telnet_session.cpp'),
     join(sketch, 'src/cebo/module.cpp'),
     join(here, 'cebo_test.cpp'),
     '-o', binary,

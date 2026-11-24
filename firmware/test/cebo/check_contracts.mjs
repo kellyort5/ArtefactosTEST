@@ -25,7 +25,9 @@ const stateTemplate = JSON.parse(readFileSync(join(repo, 'contracts/fixtures/v2/
 const stateFor = module => {
   const state = structuredClone(stateTemplate);
   state.payload.module = module;
-  state.payload.capabilities.honeypot_http = true; // la capacidad que anuncia el módulo
+  // Las capacidades que anuncia el módulo con los dos servicios.
+  state.payload.capabilities.honeypot_http = true;
+  state.payload.capabilities.honeypot_telnet = true;
   return state;
 };
 

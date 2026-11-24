@@ -53,13 +53,6 @@ void record(InteractionBus &bus, const Peer &peer, Kind kind, Path path,
   bus.push(i);
 }
 
-// Escritura volátil: el compilador no puede eliminar el borrado del buffer.
-void wipe(void *data, size_t length) {
-  volatile uint8_t *p = static_cast<volatile uint8_t *>(data);
-  while (length--)
-    *p++ = 0;
-}
-
 // Consume el cuerpo sin interpretarlo. Devuelve falso ante error o tiempo
 // agotado; el contenido nunca sale de este buffer transitorio.
 bool discard_body(BodyReader &reader, size_t length) {

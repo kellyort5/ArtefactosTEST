@@ -55,7 +55,9 @@ static const char *evidence_text(const Interaction &i) {
   case Kind::Input:
     return "input_observed";
   case Kind::Disconnect:
-    return i.close == Close::IdleTimeout ? "idle_timeout" : "peer_closed";
+    if (i.close == Close::IdleTimeout)
+      return "idle_timeout";
+    return i.close == Close::Limit ? "capacity_limit" : "peer_closed";
   }
   return "connection_observed";
 }
@@ -97,7 +99,15 @@ bool format_details(const Interaction &i, char *out, size_t capacity) {
 }
 
 bool publishable(const Interaction &i) {
-  return i.kind == Kind::Access || i.kind == Kind::AuthAttempt;
+  return i.kind == Kind::Access || i.kind == Kind::AuthAttempt ||
+         i.kind == Kind::Input;
+}
+
+// Escritura volátil: el compilador no puede eliminar el borrado.
+void wipe(void *data, size_t length) {
+  volatile uint8_t *p = static_cast<volatile uint8_t *>(data);
+  while (length--)
+    *p++ = 0;
 }
 
 bool InteractionBus::push(const Interaction &item) {

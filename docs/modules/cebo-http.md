@@ -2,7 +2,7 @@
 
 Responsable: Persona 3. Cambio: [sentinel-cebo-http](../../openspec/changes/sentinel-cebo-http/proposal.md) ([ficha](../encargos/sentinel-cebo-http.md), [diseño](../../openspec/changes/sentinel-cebo-http/design.md), [tareas](../../openspec/changes/sentinel-cebo-http/tasks.md)). Rama: `feat/sentinel-cebo-http`. Se integra con la [API de módulos](../development.md#api-de-módulos-de-firmware-persona-1-2-y-3) y el [contrato v2](../../contracts/module-protocol.md).
 
-El firmware añade `firmware/SentinelNode/src/cebo/`. Telnet, la clasificación por ventanas, `cebo.stats`, `cebo.configure` y la persistencia del historial pertenecen a los cambios siguientes ([Telnet](../encargos/sentinel-cebo-telnet.md), [eventos e historial](../encargos/sentinel-cebo-eventos-historial.md)). Este incremento **no** habilita `SENTINEL_MODULE_CEBO` en `SentinelConfig.h`; ver [cómo activarlo](#activar-y-compilar).
+El firmware añade `firmware/SentinelNode/src/cebo/`. El servicio Telnet se documenta en [cebo-telnet.md](cebo-telnet.md). La clasificación por ventanas, `cebo.stats`, `cebo.configure` y la persistencia del historial pertenecen al cambio de [eventos e historial](../encargos/sentinel-cebo-eventos-historial.md). Cebo **no** habilita `SENTINEL_MODULE_CEBO` en `SentinelConfig.h`; ver [cómo activarlo](#activar-y-compilar).
 
 ## Qué hace y qué no hace
 
@@ -42,7 +42,7 @@ Valores iniciales propuestos en el diseño; son cotas de implementación, no med
 | Tiempo de `recv`/`send` | 5 s | Lo aplica `esp_http_server` |
 | Cuerpo procesable | 1024 B | Mayor: 413 y cierre |
 | Presupuesto para vaciar un cuerpo | 3 s en total | Un cliente lento no ocupa el hilo del servidor |
-| Sesión sin petición completa | 5 s (`HttpIdleTimeoutMs`) | `esp_http_server` no cierra conexiones inactivas por sí solo; el módulo las cierra |
+| Sesión sin petición completa | 5 s (`IdleTimeoutMs`, compartido con Telnet) | `esp_http_server` no cierra conexiones inactivas por sí solo; el módulo las cierra |
 | Cola de interacciones | 16 | Al llenarse se pierde la más reciente y se cuenta |
 | Eventos por `tick` | 4 | Evita saturar la salida del núcleo |
 | Reintento de arranque fallido | 5 s | El estado HTTP pasa a `error` entre intentos |
@@ -65,12 +65,12 @@ La salida está limitada: si el núcleo no acepta un evento, se conserva y se re
 
 - `init` no toma la radio ni abre sockets. `start` lo llama el supervisor tras conceder la radio; el servicio HTTP espera a tener IPv4 (lee `WIFI_STA_DEF` en modo solo lectura) y entonces abre el listener. Si la LAN se pierde, cierra y reabre al volver.
 - `request_stop` cierra la cola, las sesiones y el listener (`httpd_stop`). `stopped()` solo es verdadero cuando no queda listener ni socket; un cierre fallido se reintenta en cada `tick` dentro del plazo del supervisor. Tras salir del modo, el puerto 80 queda cerrado.
-- `cebo.stop` detiene el servicio sin salir del modo. `cebo.start` lo reanuda, pero el gate del núcleo solo lo admitirá cuando exista también Telnet (ver abajo); hasta entonces se reanuda saliendo del modo Cebo y volviendo a entrar. `cebo.configure` y `cebo.stats` devuelven `not_implemented` hasta sus cambios.
-- Estado: `{"kind":"cebo","http":{"available":true,"status":"running"},"telnet":{"available":false,"status":"unavailable"},"active_connections":N,"max_connections":4,"idle_timeout_ms":5000}`, con `honeypot_http` verdadero y `honeypot_telnet` falso.
+- `cebo.stop` detiene los dos servicios sin salir del modo y `cebo.start` los reanuda. `cebo.configure` y `cebo.stats` devuelven `not_implemented` hasta sus cambios.
+- Estado: `{"kind":"cebo","http":{"available":true,"status":"running"},"telnet":{"available":true,"status":"running"},"active_connections":N,"max_connections":6,"idle_timeout_ms":5000}`, con `honeypot_http` y `honeypot_telnet` verdaderos. HTTP y Telnet arrancan, fallan y se recuperan por separado.
 
 ### Puntos para coordinar con P1
 
-1. El gate del núcleo (`module_runtime.cpp`, operación `cebo.start`) exige `honeypot_http` **y** `honeypot_telnet`. Con solo HTTP, `cebo.start` responde `not_implemented`, así que el servicio arranca al entrar en el modo Cebo (`AutoStartHttp`), que ya es una orden explícita. Cuando Telnet habilite la segunda capacidad, `cebo.start` pasará el gate.
+1. El gate del núcleo (`module_runtime.cpp`, operación `cebo.start`) exige `honeypot_http` **y** `honeypot_telnet`; con ambos servicios ya lo pasa. Los servicios siguen arrancando al entrar en el modo Cebo (`AutoStartServices`), que ya es una orden explícita, porque la app aún no tiene el control de Cebo. Cuando lo tenga, basta cambiar esa constante para que solo arranquen con `cebo.start`.
 2. `ModuleResources::sta_netif()` solo devuelve el handle en Sanitizador, así que Cebo lee `esp_netif_get_handle_from_ifkey("WIFI_STA_DEF")`. Si P1 prefiere concederlo en Cebo, es un cambio acotado en `network.h`.
 3. `SentinelConfig.h` es de P1; este cambio no activa el flag.
 
@@ -111,7 +111,7 @@ Requiere ESP32, LAN propia/autorizada y una copia con el flag activado. Sustituy
 | Comprobación | Resultado |
 | --- | --- |
 | Pruebas de host de Cebo | PASS (Windows, MinGW; sin radio) |
-| Eventos y estado del código C++ frente al decodificador v2 compartido (9 eventos, 5 estados) | PASS (paquete de contratos instalado en una carpeta temporal; host) |
+| Eventos y estado del código C++ frente al decodificador v2 compartido | PASS (paquete de contratos instalado en una carpeta temporal; host) |
 | Compilación del módulo con core oficial ESP32 3.3.12, ESP32S3 (sketch aislado con `esp_http_server`) | PASS |
 | Verificar del sketch completo con el flag activado | PENDIENTE |
 | 2.1 HTTP real y eventos desde teléfono/PC en LAN | PENDIENTE |
