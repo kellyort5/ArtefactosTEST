@@ -1,0 +1,50 @@
+{
+  "board": "esp32:esp32:esp32s3",
+  "core": "3.3.12",
+  "sdk_idf": "5.5.5",
+  "options": {
+    "FlashSize": "16M",
+    "FlashMode": "qio",
+    "PSRAM": "opi",
+    "PartitionScheme": "sentinel"
+  },
+  "libraries": [
+    {
+      "name": "wolfMQTT",
+      "version": "2.2.0",
+      "source": "https://codeload.github.com/wolfSSL/wolfMQTT/tar.gz/refs/tags/v2.2.0",
+      "sha256": "e6b940d5da7bf3fa05ce07d8a2b7ea8604d524b7633fef51159d895cc3b3a1c4",
+      "arduino_preparation": "Provider IDE/ARDUINO layout; options.h defines WOLFMQTT_V5; external Arduino TCP client, no wolfSSL.",
+      "arduino_zip": {
+        "source": "https://codeload.github.com/wolfSSL/wolfMQTT/zip/refs/tags/v2.2.0",
+        "sha256": "5e2cbd25502e4935d3c86f8d4693cd063c6bcafe65ef6f5c4d6d3f938e8323a5",
+        "root": "wolfMQTT-2.2.0",
+        "files": {
+          "COPYING": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+          "LICENSE": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+          "README.md": "3399fae175743714734bd40ea0d9e7af5b2a0967f63c18da062af62df3924137",
+          "mqtt_broker.c": "82dccd29ad2d4015ad9200dd14e17a144a4dda3f536caac68fdc3c3c005a36ea",
+          "mqtt_broker_persist.c": "26e73b4cbe29407a8484e9a6c793f54a38efcce350bd1710a7844f230314506d",
+          "mqtt_broker_persist_posix.c": "9fef56e92e393aeafb3d3631548a808e1f91ca30aaed8c681d3a1d4b7d30c122",
+          "mqtt_client.c": "f49676dc142e8f7c05d3ca328ed4e474e9e96a22b534fceb407d68b34978c2e4",
+          "mqtt_packet.c": "9474d7bf4c1adf07ebc0c8b0ce334bc005c95b585c5bffee3704ee545bc8de4e",
+          "mqtt_sn_client.c": "259e94f071e3e03e85a368defc7ae46c3c6496264f2f21268a4b69fdb3ed0555",
+          "mqtt_sn_packet.c": "b2d9c9abb8f7874d498461e3b6cb9c595817830243c55b0f4907c5a3711736bf",
+          "mqtt_socket.c": "f73219b5448bdfd8bcaafd368488ff2b792dc2c05fea19c321b02098c1409281",
+          "wolfmqtt/mqtt_broker.h": "c7ff13871b137b188dd7f2b7af76619a187ee0c02452b6b0c432e8ae8088a3db",
+          "wolfmqtt/mqtt_client.h": "f5d08a7958f3d8bea6eecec6978c63dc3bed8131dfb09aa95a2e04df106fc1c7",
+          "wolfmqtt/mqtt_packet.h": "3ad3c76ba6980d0949c643f3fc9a683fa7437173ea06ae26b117f27fa640b5dc",
+          "wolfmqtt/mqtt_sn_client.h": "4d7c60edf432d4fd0df3d60fc2fc941f90f67702f5b37b4c3f9966a2dd5d4fc8",
+          "wolfmqtt/mqtt_sn_packet.h": "5c18e0c3fe499e6600311d159a81a90e2537f3da2e9448d6dc82e0dfda17684e",
+          "wolfmqtt/mqtt_socket.h": "70cbb13142581b7e2d6afa9ead536c67602dc77a876b1a0b80667c5aaf6e218f",
+          "wolfmqtt/mqtt_types.h": "2f1550ffe22ef435dbd07fae866a9ee9cde27fad6ecff0cc41e5e0918d338081",
+          "wolfmqtt/version.h": "3e3b355a2bdfed1e4783ad779f59cd9d42f41aaf8eac1128aff18ab5b7248c08",
+          "wolfmqtt/visibility.h": "e8dcf687ad9d80be7670e449dd3e367f7cb352d58815daf09b488578ae3bad42",
+          "wolfmqtt/vs_settings.h": "5400ab1fd96fdeeec188f346dd943cd9b8a49be6a772defd75d49f09bc49aade"
+        }
+      }
+    }
+  ],
+  "local_option": "boards.local.txt",
+  "nvs": "Identity, bonds, configuration and confirmed history persist during operation/restart/power loss; USB programming may reset data. Standard upload/export, no version migration; startup wrapper prevents automatic NVS formatting."
+}

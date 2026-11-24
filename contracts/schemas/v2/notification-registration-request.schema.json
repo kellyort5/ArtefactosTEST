@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentinel.local/contracts/v2/notification-registration-request.schema.json",
+  "type": "object",
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+    },
+    "installation_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+    },
+    "platform": {
+      "const": "android"
+    },
+    "token": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000-\\u0020\\u007f-\\u009f]+(?![\\s\\S])",
+      "$comment": "Maximum 2048 UTF-8 bytes, enforced by notifications.ts; HTTP body maximum 4096 UTF-8 bytes."
+    }
+  },
+  "required": [
+    "device_id",
+    "installation_id",
+    "platform",
+    "token"
+  ],
+  "additionalProperties": false
+}

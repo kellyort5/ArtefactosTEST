@@ -1,0 +1,19 @@
+name: sentinel-core
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22@sha256:81a6193ae693942a3231cd3ac52875b02b7e3a19da671b2fb4b55cc874c5b279
+    restart: unless-stopped
+    ports:
+      - "${SENTINEL_BIND_IP:-0.0.0.0}:1883:1883"
+      - "${SENTINEL_BIND_IP:-0.0.0.0}:9001:9001"
+    volumes:
+      - type: bind
+        source: ./config/mosquitto.conf
+        target: /mosquitto/config/mosquitto.conf
+        read_only: true
+      - mqtt-data:/mosquitto/data
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 15s
+volumes:
+  mqtt-data:

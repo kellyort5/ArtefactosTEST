@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentinel.local/contracts/v2/notification-status-response.schema.json",
+  "type": "object",
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+    },
+    "channels": {
+      "type": "object",
+      "properties": {
+        "webhook": {
+          "type": "object",
+          "properties": {
+            "configured": {
+              "type": "boolean"
+            },
+            "last_delivery": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "event_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "maxLength": 32,
+                      "pattern": "^(?!0000-)[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,11})?Z(?![\\s\\S])"
+                    },
+                    "status": {
+                      "const": "provider_accepted"
+                    },
+                    "read_status": {
+                      "const": "unknown"
+                    },
+                    "error": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "event_id",
+                    "timestamp",
+                    "status",
+                    "read_status",
+                    "error"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "event_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "maxLength": 32,
+                      "pattern": "^(?!0000-)[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,11})?Z(?![\\s\\S])"
+                    },
+                    "status": {
+                      "const": "failed"
+                    },
+                    "read_status": {
+                      "const": "unknown"
+                    },
+                    "error": {
+                      "enum": [
+                        "provider_unavailable",
+                        "provider_rejected",
+                        "invalid_registration",
+                        "rate_limited",
+                        "expired",
+                        "internal_error"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "event_id",
+                    "timestamp",
+                    "status",
+                    "read_status",
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "pending": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "suppressed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "configured",
+            "last_delivery",
+            "pending",
+            "suppressed"
+          ],
+          "additionalProperties": false
+        },
+        "push": {
+          "type": "object",
+          "properties": {
+            "configured": {
+              "type": "boolean"
+            },
+            "last_delivery": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "event_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "maxLength": 32,
+                      "pattern": "^(?!0000-)[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,11})?Z(?![\\s\\S])"
+                    },
+                    "status": {
+                      "const": "provider_accepted"
+                    },
+                    "read_status": {
+                      "const": "unknown"
+                    },
+                    "error": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "event_id",
+                    "timestamp",
+                    "status",
+                    "read_status",
+                    "error"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "event_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64,
+                      "pattern": "^[A-Za-z0-9._:-]{1,64}(?![\\s\\S])"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "maxLength": 32,
+                      "pattern": "^(?!0000-)[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\\.[0-9]{1,11})?Z(?![\\s\\S])"
+                    },
+                    "status": {
+                      "const": "failed"
+                    },
+                    "read_status": {
+                      "const": "unknown"
+                    },
+                    "error": {
+                      "enum": [
+                        "provider_unavailable",
+                        "provider_rejected",
+                        "invalid_registration",
+                        "rate_limited",
+                        "expired",
+                        "internal_error"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "event_id",
+                    "timestamp",
+                    "status",
+                    "read_status",
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "pending": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "suppressed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "configured",
+            "last_delivery",
+            "pending",
+            "suppressed"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "webhook",
+        "push"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "device_id",
+    "channels"
+  ],
+  "additionalProperties": false
+}

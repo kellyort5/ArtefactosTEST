@@ -1,0 +1,1 @@
+{"version":2,"type":"metrics","device_id":"node-example","boot_id":"boot-example","message_id":"metrics-system","seq":1,"uptime_ms":1000,"timestamp":null,"time_quality":"unknown","payload":{"scope":"system","interval_ms":1000,"values":{"free_heap_bytes":10000,"min_free_heap_bytes":9000,"queue_count":0,"journal_count":1,"dropped_messages":0,"dropped_events":0}}}

@@ -1,0 +1,24 @@
+{
+  "device_id": "node-example",
+  "channels": {
+    "webhook": {
+      "configured": true,
+      "last_delivery": {
+        "event_id": "event-cebo-example",
+        "timestamp": "2026-11-10T12:00:00Z",
+        "status": "provider_accepted",
+        "read_status": "unknown",
+        "error": null
+      },
+      "pending": 0,
+      "suppressed": 2
+    },
+    "push": {
+      "configured": false,
+      "last_delivery": null,
+      "pending": 0,
+      "suppressed": 0,
+      "destination": "https://private.invalid/FICTIONAL"
+    }
+  }
+}

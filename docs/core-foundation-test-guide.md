@@ -1,0 +1,151 @@
+# Prueba de sentinel-core-foundation
+
+> Guía de referencia de la fundación; para la entrega actual seguir [pruebas P1](guia-pruebas-persona-1.md). Cebo/servicios y recorrido de tres módulos requieren sus implementaciones reales; no activarlos como si estuvieran entregados.
+
+Guía para comprobar la base con ESP32-S3 N16R8, OLED SSD1306, botón y aplicación Android. El usuario autorizó utilizar el teléfono y la placa. También está disponible el SDK Android de Windows en `C:\Users\Jefry\AppData\Local\Android\Sdk` para las comprobaciones del emulador.
+
+Los resultados y tareas verificadas se registran en [core-foundation-check.md](core-foundation-check.md). Consultar [firmware.md](firmware.md), [connectivity.md](connectivity.md) y [app/README.md](../app/README.md) para los detalles de cada componente.
+
+## 1. Conectar pantalla y botón
+
+Realizar el cableado con la placa desconectada de la alimentación.
+
+| Componente | ESP32 |
+| --- | --- |
+| OLED VCC | 3V3 |
+| OLED GND | GND |
+| OLED SDA | GPIO8 |
+| OLED SCL | GPIO9 |
+| Botón externo | Entre GPIO4 y GND, conectado solo al presionarlo |
+
+El firmware configura pull-up interno para el botón. La pantalla prevista es SSD1306 I2C de 128×32, dirección `0x3C`. Confirmar modelo y resolución antes de probar otra pantalla. Los pines son los valores iniciales del cambio y están pendientes de comprobación física.
+
+## 2. Preparar Arduino Windows y pruebas host
+
+Abrir `firmware/SentinelNode/SentinelNode.ino` conforme a [firmware.md](firmware.md). El objetivo vigente es core oficial ESP32 3.3.12 con bibliotecas mantenidas. El firmware completo tiene build oficial Windows PASS; SDK propio y PlatformIO se conservan como antecedentes. La [guía de Persona 1](guia-pruebas-persona-1.md) contiene cableado, app v2 y criterios completos del Escudo.
+
+Node24, C/C++ y OpenSSL permiten mantenimiento host opcional en WSL. Los runners de firmware ya no requieren Python. Node y WSL tampoco son requisitos para compilar/subir firmware en Arduino IDE Windows.
+
+## 3. Compilar y localizar la placa
+
+Instalar las dos bibliotecas y la configuración inicial conforme a [firmware](firmware.md#preparar-arduino-ide), seleccionar las opciones N16R8 y pulsar **Verificar**. El resultado final del build oficial se registra en el cambio de dependencias; no se confunde con el SDK anterior. Se puede identificar el puerto sin programar ningún dispositivo:
+
+```powershell
+Get-CimInstance Win32_SerialPort | Select-Object DeviceID, Name, PNPDeviceID
+```
+
+Usar cable USB de datos y el COM correspondiente a la placa; un COM Bluetooth no es evidencia de ESP32. Si hay varios dispositivos, confirmar cuál programar.
+
+## 4. Grabar y comprobar el arranque
+
+Con las opciones oficiales y el COM real seleccionados, preparar primero **Erase All Flash Before Sketch Upload: Enabled** desde el IDE para la primera carga de la tabla nueva, después pulsar **Subir** y abrir **Monitor serie**, 115200; se pierden datos anteriores y hay que emparejar/configurar. Después volver a Disabled si no se solicita borrado total. La actualización USB normal y la imagen merged de inicialización no garantizan conservar datos ni ofrecen migración. En reinicios normales el arranque no formatea NVS automáticamente. Ver [política vigente](persistence-policy.md).
+
+Presionar RESET con el monitor abierto. Registrar device ID persistente, boot ID nuevo, perfil `idle`, flash 16777216 y PSRAM 8388608 medidas por el firmware, además de OLED. Resolver diagnósticos de memoria/pantalla antes de pairing. El [build del SDK previo](../openspec/changes/sentinel-arduino-firmware-port/integration-verification.md) es evidencia histórica; las pruebas físicas siguen pendientes; el build oficial nuevo tiene evidencia separada.
+
+## 5. Probar los controles físicos
+
+1. Pulsar brevemente el botón externo y soltarlo. Desde `idle` debe seleccionar `escudo`.
+2. Volver a pulsar y comprobar rotación solo entre módulos registrados. Actualmente solo Escudo está habilitado; no esperar Cebo/Sanitizador hasta sus entregas.
+3. Mantener el botón tres segundos y soltarlo. Debe abrir la ventana de emparejamiento durante 120 segundos y conservar el perfil al soltar.
+
+La conexión de Cebo requiere además su implementación real y registro, aprovisionamiento de red y broker. No habilitar un mock para dar por hecha esta prueba.
+
+## 6. Instalar la aplicación Android
+
+El APK de debug se genera en `app/android/app/build/outputs/apk/debug/app-debug.apk`. Para reconstruirlo, usar Node24, JDK21 y un SDK con Platform36/Build Tools36 configurado en el entorno.
+
+```sh
+npm ci
+npm run android:sync
+npm run android:assemble
+```
+
+Copiar el APK al teléfono e instalarlo desde su gestor de archivos, autorizando esa fuente cuando Android lo solicite. Para un emulador iniciado, ADB permite instalar el mismo APK seleccionando expresamente su identificador.
+
+Abrir Sentinel Node. Debe aparecer la pantalla Estado del nodo, los formularios de conexión, los controles y el historial. Al iniciar sin conexión aparece Esperando un dispositivo.
+
+## 7. Emparejar por BLE con la placa
+
+1. Activar Bluetooth en el teléfono.
+2. Abrir la ventana física de 120 segundos manteniendo el botón de la placa tres segundos.
+3. Pulsar Buscar y conectar BLE en Sentinel Node y conceder los permisos solicitados.
+4. Seleccionar el nodo e introducir el código mostrado en OLED durante el emparejamiento.
+5. Comprobar que la app muestra identidad, perfil, revisión y transportes reales.
+
+Registrar el resultado físico y comprobar la seguridad negociada para cerrar las tareas correspondientes. Una comprobación de interfaz en emulador acredita únicamente lo que se haya ejecutado en ese entorno.
+
+## 8. Probar órdenes y eventos por BLE
+
+Ejecutar cada acción después de recibir la confirmación de la anterior.
+
+1. Consultar estado.
+2. Seleccionar Reposo y Escudo, comprobando coincidencia con OLED. Probar Cebo/Sanitizador solo al estar implementados y registrados.
+3. Sincronizar hora por BLE.
+4. Comprobar los resultados `applied` y los eventos de sistema.
+5. Revisar capacidades: Escudo ya incorpora captura/detectores en firmware, con pruebas físicas pendientes. HTTP/Telnet, Sanitizador, notificaciones y las pantallas específicas siguen en sus cambios.
+
+## 9. Preparar MQTT para el equipo real
+
+Obtener el `device_id` de la placa y la IPv4 de la computadora en la red autorizada. En Windows, `ipconfig` permite identificar la dirección del adaptador correspondiente.
+
+Usar broker anónimo TCP1883/WS9001 con la IP LAN del PC, sin preparar cuentas/CA. Conservar volumen y permitir acceso local si hace falta; ver [broker](../broker/README.md). La base fundación es antecedente y no completa Cebo/Sanitizador.
+
+La app usa endpoint WS e ID del nodo; la provisión BLE del ESP32 solo usa SSID/contraseña Wi-Fi y URI MQTT. No hay roles o cuentas MQTT.
+
+## 10. Aprovisionar y comprobar Cebo
+
+Este recorrido espera el módulo real de P3; actualmente su flag vale 0 y no anuncia servicios. No se puede acreditar con la base/port por sí solos.
+
+1. Sincronizar la hora mediante BLE y esperar el resultado aplicado.
+2. En Conectividad del dispositivo, introducir SSID de 2.4 GHz, contraseña, URI `mqtt://HOST_REAL:1883`, sin cuenta ni CA.
+3. Enviar configuración protegida y esperar `applied`.
+4. Seleccionar Cebo. Esperar Wi-Fi y MQTT conectados.
+5. Configurar en la app `ws://HOST_REAL:9001/mqtt`, el mismo ID de nodo sin usuario/contraseña o rol. Android ya permite WS con la configuración del APK.
+6. Esperar un estado vivo y comprobar eventos y revisión.
+7. Para probar órdenes MQTT, desconectar BLE en la app, consultar estado sin cuenta MQTT. Comprobar el ack aplicado.
+8. Reconectar BLE autorizado antes de pedir Escudo. Al aplicar Escudo, STA/MQTT deben detenerse y el estado debe poder reconciliarse por BLE.
+
+`HOST_REAL` es la IP LAN del PC. En una placa o teléfono, `localhost` designa ese dispositivo.
+
+## 11. Recuperar eventos después de desconexión y reinicio
+
+1. Desconectar los canales de la app y producir una transición mediante el botón.
+2. Reconectar BLE y pulsar Recuperar por cursor.
+3. Comprobar que el evento aparece una vez.
+4. Reiniciar la placa y reconectar BLE. Comprobar identidad estable, boot ID nuevo y recuperación de los eventos persistidos con sus IDs originales.
+5. Repetir una recuperación y comprobar deduplicación.
+6. Comprobar configuración validada restaurada en Idle sin asociación; UTC no bloquea MQTT; sincronizarla si se requiere una fecha real o HTTPS/DoH. La configuración autorizada persiste en NVS y solo se reprovisiona si fue reinicializada por USB o si falta/es inválida. Probar también corte de alimentación tras commit sin subir firmware y comprobar identidad/bonds/historial retenidos.
+
+## 12. Registrar resultados
+
+Anotar fecha, entorno, placa, pantalla, puerto, versión Android, comandos ejecutados y resultados observados en [core-foundation-check.md](core-foundation-check.md). Mantener pendientes las verificaciones que requieran otro equipo o un canal todavía inaccesible. Las casillas OpenSpec se completan cuando se cumple toda la comprobación descrita en la tarea.
+
+## 13. Repetir la comprobación en el emulador
+
+El dispositivo virtual local **Sentinel_Foundation_API36** utiliza la imagen API36 Google Play x86_64 del SDK Windows. Su configuración y datos se guardan en la carpeta ignorada `.cache/android-avd` de este equipo. Si se reproduce la prueba en otro equipo, crear un dispositivo virtual con una imagen API compatible en Device Manager. [Administración de dispositivos virtuales](https://developer.android.com/studio/run/managing-avds.html)
+
+Desde PowerShell en la raíz del proyecto, iniciar el dispositivo virtual si todavía está apagado.
+
+```powershell
+$env:ANDROID_AVD_HOME = "$PWD\.cache\android-avd"
+& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -avd Sentinel_Foundation_API36 -port 5554 -no-snapshot -no-audio
+```
+
+En otra terminal PowerShell, desde la misma raíz, comprobar el arranque e instalar la aplicación.
+
+```powershell
+$SentinelAdb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+& $SentinelAdb -s emulator-5554 shell getprop sys.boot_completed
+& $SentinelAdb -s emulator-5554 install -r .\app\android\app\build\outputs\apk\debug\app-debug.apk
+& $SentinelAdb -s emulator-5554 shell am start -W -n org.sentinelnode.app/.MainActivity
+```
+
+El indicador de arranque debe ser `1` antes de instalar. Comprobar el dashboard inicial y pulsar Buscar y conectar BLE. Denegar Dispositivos cercanos debe producir un mensaje de permisos accionable. Usar teléfono y placa para el código OLED, bonding y tráfico GATT real. [Limitaciones de hardware del emulador](https://developer.android.com/studio/run/advanced-emulator-usage)
+
+Para WS local, iniciar el broker anónimo y reenviar el puerto de la máquina Windows hacia este dispositivo virtual.
+
+```powershell
+& $SentinelAdb -s emulator-5554 reverse tcp:9001 tcp:9001
+```
+
+Sin certificados/cuentas: utilizar ws://localhost:9001/mqtt con reenvío ADB y el ID del nodo; comprobar Canal conectado. El reenvío no prueba acceso LAN físico, que se verifica por separado. El estado debe venir del dispositivo real disponible, no de un fixture.

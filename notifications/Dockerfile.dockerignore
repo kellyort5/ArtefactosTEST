@@ -1,0 +1,15 @@
+# La construcción usa la raíz del repositorio como contexto: solo se envía lo necesario.
+.git
+**/node_modules
+**/dist
+**/*.log
+app/*
+!app/package.json
+broker
+docs
+firmware
+openspec
+simulator
+notifications/config
+notifications/state
+notifications/test

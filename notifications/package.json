@@ -1,0 +1,24 @@
+{
+  "name": "sentinel-notifications",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Componente de alertas externas de Sentinel Node: consume eventos Cebo por MQTT y los entrega por webhook HTTPS.",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "setup": "node scripts/build-contracts.mjs",
+    "start": "node src/index.js",
+    "test": "node --test --test-isolation=none test/*.test.mjs",
+    "token": "node scripts/token.mjs"
+  },
+  "dependencies": {
+    "@sentinel/contracts": "file:../contracts",
+    "mqtt": "5.16.1"
+  },
+  "devDependencies": {
+    "aedes": "1.2.0",
+    "typescript": "5.9.3"
+  }
+}

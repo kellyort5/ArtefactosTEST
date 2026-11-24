@@ -1,0 +1,116 @@
+# PlatformIO / ESP-IDF: dependencias, toolchains y salidas generadas.
+.pio/
+.pioenvs/
+.piolibdeps/
+.espressif/
+managed_components/
+sdkconfig.old
+compile_commands.json
+
+# Arduino: generated caches/firmware artifacts; the reviewed validator is source.
+v2_validator.inc
+!/firmware/SentinelNode/src/sentinel/v2_validator.h
+/firmware/SentinelNode/generated/
+/firmware/SentinelNode/*.bin
+/firmware/SentinelNode/*.elf
+/firmware/SentinelNode/*.map
+__pycache__/
+*.py[cod]
+
+# Node.js / React / Vite: dependencias y caches locales.
+node_modules/
+.npm/
+.pnpm-store/
+**/.yarn/cache/
+**/.yarn/unplugged/
+**/.yarn/install-state.gz
+.vite/
+.vite-temp/
+*.tsbuildinfo
+vite.config.*.timestamp-*
+
+# Compilaciones, cobertura y artefactos de distribucion.
+build/
+dist/
+out/
+coverage/
+.nyc_output/
+*.apk
+*.aab
+*.apks
+
+# Android / Gradle: conservar fuentes, Gradle Wrapper y configuracion.
+.gradle/
+.kotlin/
+.cxx/
+.externalNativeBuild/
+local.properties
+**/android/captures/
+
+# Recursos y metadatos Android regenerados por Capacitor.
+**/android/capacitor-cordova-android-plugins/
+**/android/app/src/main/assets/public/
+**/android/app/src/main/assets/capacitor.config.json
+**/android/app/src/main/assets/capacitor.plugins.json
+
+# Temporales, logs, caches y archivos locales del editor/SO.
+.cache/
+.temp/
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+*.log
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+*.iml
+.vscode/ipch/
+.vscode/.browse.c_cpp.db*
+.vscode/c_cpp_properties.json
+
+# Estado y logs del broker local; conservar mosquitto.conf, ACL y Docker.
+/broker/data/
+/broker/log/
+/broker/logs/
+mosquitto.db
+mosquitto.db.new
+
+# Entornos reales; permitir ejemplos revisados sin secretos.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+!.env.*.sample
+!.env.*.template
+
+# Directorios privados reservados para secretos locales.
+.secrets/
+secrets/
+credentials/
+.aws/
+
+# Credenciales, claves privadas y almacenes de firma.
+*.key
+*private*.pem
+*.p12
+*.pfx
+*.p8
+*.jks
+*.keystore
+credentials.json
+service-account*.json
+service_account*.json
+mosquitto.passwd
+password_file
+passwords.txt
+
+# No excluir android/, openspec/, docs/, .agents/, configuraciones fuente,
+# certificados publicos, lockfiles ni el codigo del proyecto.
