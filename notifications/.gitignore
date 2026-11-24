@@ -1,0 +1,10 @@
+# Configuración y estado privados del componente: nunca en Git.
+config/*
+!config/notifications.example.json
+state/
+*.pem
+*.crt
+*.key
+
+# Dependencias instaladas.
+node_modules/

@@ -1,0 +1,41 @@
+# Componente de alertas externas (webhook). Lee eventos del broker MQTT anónimo
+# del MVP (broker/) y los entrega por webhook HTTPS; la app consulta su estado
+# por HTTPS. Sin base de datos ni cola externa: el estado acotado vive en un
+# volumen privado.
+#
+#   cp notifications/config/notifications.example.json notifications/config/notifications.json   # y editarlo
+#   docker compose -f notifications/compose.yaml up -d --build
+#
+# La configuración, los certificados TLS y los secretos están en notifications/config/,
+# ignorado por Git. No ejecutar `down -v`: borraría la deduplicación y la cola.
+name: sentinel-notifications
+
+services:
+  notifications:
+    build:
+      context: ..
+      dockerfile: notifications/Dockerfile
+    image: sentinel-notifications:local
+    restart: unless-stopped
+    environment:
+      NOTIFY_CONFIG: /run/notifications/notifications.json
+      # Alternativa a escribir el secreto del webhook en el archivo (opcional):
+      # NOTIFY_WEBHOOK_AUTH_VALUE: ${NOTIFY_WEBHOOK_AUTH_VALUE:-}
+    volumes:
+      - ./config:/run/notifications:ro
+      - notifications-state:/var/lib/sentinel-notifications
+    ports:
+      # API de estado HTTPS. SENTINEL_BIND_IP acota la interfaz, como en el broker.
+      - "${SENTINEL_BIND_IP:-0.0.0.0}:8443:8443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  notifications-state:

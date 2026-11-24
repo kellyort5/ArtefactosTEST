@@ -1,0 +1,35 @@
+{
+  "mqtt": {
+    "url": "mqtt://host.docker.internal:1883",
+    "client_id": "sentinel-notifications"
+  },
+  "nodes": [
+    {
+      "device_id": "sentinel-REEMPLAZAR-POR-EL-ID-DEL-NODO",
+      "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "alerts": {
+    "min_severity": "warning",
+    "include_simulated": false,
+    "repeat_window_ms": 30000
+  },
+  "webhook": {
+    "url": "https://hooks.example.invalid/sentinel",
+    "timeout_ms": 5000,
+    "auth_header": {
+      "name": "Authorization",
+      "value": "Bearer REEMPLAZAR-O-USAR-NOTIFY_WEBHOOK_AUTH_VALUE"
+    }
+  },
+  "status_api": {
+    "host": "0.0.0.0",
+    "port": 8443,
+    "tls": {
+      "cert_file": "/run/notifications/tls/server.crt",
+      "key_file": "/run/notifications/tls/server.key"
+    },
+    "cors_origins": ["https://localhost", "capacitor://localhost"]
+  },
+  "state_dir": "/var/lib/sentinel-notifications"
+}
